@@ -1,0 +1,18 @@
+{
+	"mode": 0,
+	"mnemonic":[
+		"some mnemonic to genetate key 1",
+		"As I said this is just for test",
+		"don't use this in production encirinment",
+		"just hash these to get psudo random keys",
+		"And Make sure to never use them in production",
+		"But these serve as an easy way to generate",
+		"Keys for testing the nodes of a blockchain"
+	],
+	"keys":[
+	],
+	"istanbul":{
+		"vanity":"",
+		"seal":""
+	}
+}

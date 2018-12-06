@@ -1,0 +1,1 @@
+const gen = require('./helpers/generate-yaml');
