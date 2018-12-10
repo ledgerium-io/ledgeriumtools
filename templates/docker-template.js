@@ -208,3 +208,4 @@ exports.genTesseraCommand = (i, template)=>{
 }
 exports.geth = gethCom;
 exports.constellation = constellationCom;
+exports.tesseraFlag = false;

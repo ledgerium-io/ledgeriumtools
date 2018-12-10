@@ -8,6 +8,7 @@ var dockerCompose  = dockerTemplate.template;
 dockerCompose.services["eth-stats"] = dockerTemplate.services['eth-stats'];
 dockerCompose['networks']           = dockerTemplate.services['networks'];
 dockerCompose['volumes'] 			= {};
+const type 							= dockerTemplate.tesseraFlag;
 
 const getValidator = (i)=>{
 	const startIp         	= dockerTemplate.serviceConfig.validator.startIp.split(".");
@@ -18,12 +19,15 @@ const getValidator = (i)=>{
 	var validator      		= dockerTemplate.services.validator();
 	validator.hostname 		= validator.hostname+i;
 	validator.ports  	    = [(gossipPort+i)+":"+gossipPort, (rpcPort+i)+":"+rpcPort, (webSocketPort+i)+":"+webSocketPort];
-	//validator.volumes 	    = ["validator-"+i+":/eth","constellation-"+i+":/constellation:z"];
-	//validator["depends_on"] = ["constellation-"+i];
-	//validator["environment"]= ["PRIVATE_CONFIG=/constellation/tm.conf"];
-	validator.volumes 	    = ["validator-"+i+":/eth","tessera-"+i+":/tessera"];
-	validator["depends_on"] = ["tessera-"+i];
-	validator["environment"]= ["PRIVATE_CONFIG=/tessera/tm.ipc"];
+	if ( !type ){
+		validator.volumes 	    = ["validator-"+i+":/eth","constellation-"+i+":/constellation:z"];
+		validator["depends_on"] = ["constellation-"+i];
+		validator["environment"]= ["PRIVATE_CONFIG=/constellation/tm.conf"];
+	}else{
+		validator.volumes 	    = ["validator-"+i+":/eth","tessera-"+i+":/tessera"];
+		validator["depends_on"] = ["tessera-"+i];
+		validator["environment"]= ["PRIVATE_CONFIG=/tessera/tm.ipc"];
+	}
 	validator.entrypoint.push(
 		dockerTemplate.genValidatorCommand(
 			i,
@@ -86,7 +90,6 @@ const getTessera = (i)=>{
 	tessera.networks["app_net"]["ipv4_address"] = ip;
 	for (var j = 0; j < basicConfig.publicKeys.length; j++) {
 			peers.push({ "url" : "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(j+parseInt(startIp[3]))+":"+port+"/"})
-			//peers.push({ "url" : "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(j+parseInt(startIp[3]))+":"+port })
 	}	
 	tessera.hostname 							= tessera.hostname+i;
 	tessera.entrypoint.push(
@@ -97,20 +100,19 @@ const getTessera = (i)=>{
 
 for (var i = 0; i < basicConfig.publicKeys.length; i++) {
 	dockerCompose.services['validator-'+i] = getValidator(i);
-	//dockerCompose.services["constellation-"+i] = getConstellation(i);
-	dockerCompose.services["tessera-"+i] = getTessera(i);
+	if(!type){
+		dockerCompose.services["constellation-"+i] = getConstellation(i);
+	}else{
+		dockerCompose.services["tessera-"+i] = getTessera(i);		
+	}
 	volumes = dockerCompose.services["validator-"+i].volumes;
 	for (var j = volumes.length - 1; j >= 0; j--) {
 		dockerCompose.volumes[volumes[j].split(":")[0]] = null;
 	}
 }
 
-/*console.log(JSON.stringify(dockerCompose));*/
 fs.writeFileSync(process.argv[3]+'/docker-compose.yml',yaml.dump(dockerCompose,{
   styles: {
     '!!null' : 'canonical'
   }
 }));
-
-
-//https://www.youtube.com/watch?v=HQp3qJlxkcU&has_verified=1
