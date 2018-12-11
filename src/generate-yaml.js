@@ -35,7 +35,8 @@ const getValidator = (i)=>{
 			basicConfig.genesisString,
 			basicConfig.staticNodes,
 			basicConfig.privateKeys[i],
-			basicConfig.publicKeys[i]
+			basicConfig.publicKeys[i],
+			basicConfig.passwords
 		)
 	);
 	validator.networks["test_net"]["ipv4_address"] = ip;

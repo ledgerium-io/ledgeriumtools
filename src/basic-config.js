@@ -60,3 +60,4 @@ exports.publicKeys    = publicKeys;
 exports.privateKeys   = privateKeys;
 exports.staticNodes   = static_nodes;
 exports.genesisString = JSON.stringify(genesisTemplate);
+exports.passwords     = input.passwords;

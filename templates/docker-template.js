@@ -155,7 +155,7 @@ const template = {
 exports.template 				= template;
 exports.services 				= services;
 exports.serviceConfig			= serviceConfig;
-exports.genValidatorCommand     = (i, gossipPort,genesisString,staticNodes,privateKeys,publicKeys)=>{
+exports.genValidatorCommand     = (i, gossipPort,genesisString,staticNodes,privateKeys,publicKeys,passwords)=>{
 	const commands = [
 		"rm -f /eth/geth.ipc",
 		"mkdir -p /eth",
@@ -163,7 +163,7 @@ exports.genValidatorCommand     = (i, gossipPort,genesisString,staticNodes,priva
 		"echo '"+staticNodes+"' > /eth/static-nodes.json",
 		"echo '"+staticNodes+"' > /eth/permissioned-nodes.json",
 		"geth init /eth/genesis.json --datadir /eth",		
-		"echo 'password' > ./password",
+		"echo '"+passwords[i]+"' > ./password",
 		"echo '"+privateKeys.split("0x")[1]+"' > ./file",
 		"geth account import file --datadir /eth --password password",
 		"rm -f ./file && rm -f ./password",

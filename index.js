@@ -1,1 +1,1 @@
-const gen = require('./helpers/generate-yaml');
+const gen = require('./src/generate-yaml');
