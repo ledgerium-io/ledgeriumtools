@@ -21,7 +21,7 @@ The number of nodes brought up is equal to the number of keys/menmonics provided
 ie n keys signifies n nodes with the respective keys as coinbase/etherbase
 
 To start up the application provide the path to the mnemonic file and the path of the output directory<br>
-<code> node index.js <output-dir> </code>
+<code> node index.js "<output-dir>" </code>
 
 The docker file will be generated in the <output-dir>,<br>
 use <code>docker-compose up -d</code> to start up the nodes<br>
