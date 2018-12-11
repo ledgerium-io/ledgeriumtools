@@ -180,12 +180,12 @@ exports.genValidatorCommand     = (i, gossipPort,genesisString,staticNodes,priva
 exports.genConstellationCommand = (i,othernodes,ip,port)=>{
 	const commands = [
 		"rm -f /constellation/tm.ipc",
-		//"if [ -d \"constellation\" ]; then",
+		"if [ -d \"constellation\" ]; then",
 		"mkdir -p /constellation",
 		"echo \"socket=\\"+"\"/constellation/tm.ipc\\"+"\"\\npublickeys=[\\"+"\"/constellation/tm.pub\\"+"\"]\\n\" > /constellation/tm.conf",
 		"constellation-node --generatekeys=/constellation/tm",
 		"cp /constellation/tm.pub /tmp/tm"+i+".pub",
-		//"fi",
+		"fi",
 		constellationCom+othernodes+" --url=http://"+ip+":"+port+"/ --port="+port
 	];
 	var commandString = "";
