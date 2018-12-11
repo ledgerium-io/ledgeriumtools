@@ -24,9 +24,9 @@ const getValidator = (i)=>{
 		validator["depends_on"] = ["constellation-"+i];
 		validator["environment"]= ["PRIVATE_CONFIG=/constellation/tm.conf"];
 	}else{
-		validator.volumes 	    = ["validator-"+i+":/eth","tessera-"+i+":/tessera"];
+		validator.volumes 	    = ["validator-"+i+":/eth","tessera-"+i+":/priv"];
 		validator["depends_on"] = ["tessera-"+i];
-		validator["environment"]= ["PRIVATE_CONFIG=/tessera/tm.ipc"];
+		validator["environment"]= ["PRIVATE_CONFIG=/priv/tm.ipc"];
 	}
 	validator.entrypoint.push(
 		dockerTemplate.genValidatorCommand(
@@ -38,7 +38,7 @@ const getValidator = (i)=>{
 			basicConfig.publicKeys[i]
 		)
 	);
-	validator.networks["app_net"]["ipv4_address"] = ip;
+	validator.networks["test_net"]["ipv4_address"] = ip;
 	return validator;
 }
 
@@ -71,7 +71,7 @@ const getConstellation = (i)=>{
 			constellationPort+i
 		)
 	);
-	constellation.networks["app_net"]["ipv4_address"] = baseIp+(startIp+i);
+	constellation.networks["test_net"]["ipv4_address"] = baseIp+(startIp+i);
 	return constellation;
 }
 
@@ -85,9 +85,9 @@ const getTessera = (i)=>{
 	tesseraTemplate.server.port 				= port;
 	tesseraTemplate.server.hostName 			= "http://"+ip+":"+port+"/";
 	tesseraTemplate.peer        				= peers;
-	tessera.volumes								= ["tessera-"+i+":/tessera"];
+	tessera.volumes								= ["tessera-"+i+":/priv"];
 	tessera.ports          						= [];
-	tessera.networks["app_net"]["ipv4_address"] = ip;
+	tessera.networks["test_net"]["ipv4_address"] = ip;
 	for (var j = 0; j < basicConfig.publicKeys.length; j++) {
 			peers.push({ "url" : "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(j+parseInt(startIp[3]))+":"+port+"/"})
 	}	
