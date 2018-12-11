@@ -6,13 +6,12 @@ ledgeriumtools
 Generates a docker-compose yaml for deploying N nodes with IBFT consensus<br>
 <strike>Currently takes input only from the mnemonic.json file<br><br></strike>
 Takes input from the command line interface, prompts to enter number of menmonics<br>
-<code>
-    Number of Mnemonics : 2<br>
-    Enter Mnemonic 0 : *******************************************************<br>
-    Enter Password 0 : ***************<br>
-    Enter Mnemonic 1 : *******************************************************<br>
-    Enter Password 1 : ***************<br>
-</code>
+<code> Number of Mnemonics : 2 </code><br>
+<code> Enter Mnemonic 0 : *******************************************************</code><br>
+<code> Enter Password 0 : ***************</code><br>
+<code> Enter Mnemonic 1 : *******************************************************</code><br>
+<code> Enter Password 1 : ***************</code><br>
+
 Enter the Mnemonics and password which will generate the nodekeys and password
 
 <strike><code>mode = 0</code> to generate the keys from the menmonic<br>
