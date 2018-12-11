@@ -7,13 +7,11 @@ Generates a docker-compose yaml for deploying N nodes with IBFT consensus<br>
 <strike>Currently takes input only from the mnemonic.json file<br><br></strike>
 Takes input from the command line interface, prompts to enter number of menmonics<br>
 <code>
-  <pre style="color:white;background-color:black">
-    Number of Mnemonics : 2
-    Enter Mnemonic 0 : *******************************************************
-    Enter Password 0 : ***************
-    Enter Mnemonic 1 : *******************************************************
-    Enter Password 1 : ***************
-  </pre>
+    Number of Mnemonics : 2<br>
+    Enter Mnemonic 0 : *******************************************************<br>
+    Enter Password 0 : ***************<br>
+    Enter Mnemonic 1 : *******************************************************<br>
+    Enter Password 1 : ***************<br>
 </code>
 Enter the Mnemonics and password which will generate the nodekeys and password
 
