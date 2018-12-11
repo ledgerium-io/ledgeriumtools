@@ -14,7 +14,7 @@ const services = {
 	"eth-stats":{
 		"image"        :  "quay.io/amis/ethstats:latest",
 		"ports"        :  ["3000:3000"],
-		"environment"  :  ["WS_SECRET=bb98a0b6442386d0cdf8a31b267892c1"],
+		"environment"  :  ["WS_SECRET=bb98a0b6442334d0cdf8a31b267892c1"],
 		"restart"	   : "always",
 		"networks"	   : {
 			"test_net"  : {
@@ -157,19 +157,18 @@ exports.services 				= services;
 exports.serviceConfig			= serviceConfig;
 exports.genValidatorCommand     = (i, gossipPort,genesisString,staticNodes,privateKeys,publicKeys)=>{
 	const commands = [
-		//"if [ ! -e \"/eth/genesis.json\" ]; then",
 		"rm -f /eth/geth.ipc",
 		"mkdir -p /eth",
 		"echo '"+genesisString+"' > /eth/genesis.json",
 		"echo '"+staticNodes+"' > /eth/static-nodes.json",
 		"echo '"+staticNodes+"' > /eth/permissioned-nodes.json",
 		"geth init /eth/genesis.json --datadir /eth",		
-		//"fi",		
 		"echo 'password' > ./password",
 		"echo '"+privateKeys.split("0x")[1]+"' > ./file",
 		"geth account import file --datadir /eth --password password",
 		"rm -f ./file && rm -f ./password",
-		gethCom+" --identity "+"\"validator-"+i+"\" --nodekeyhex \""+privateKeys.split("0x")[1]+"\" "+"--etherbase \""+publicKeys+"\" --port \""+gossipPort+"\""
+		gethCom+" --identity "+"\"validator-"+i+"\" --nodekeyhex \""+privateKeys.split("0x")[1]+"\" "+"--etherbase \""+publicKeys+"\" --port \""+gossipPort+"\""+
+		" --ethstats \"validator-"+i+":bb98a0b6442334d0cdf8a31b267892c1@172.16.239.9:3000\""
 	];
 	var commandString = "";
 	for (var j = 0; j < commands.length; j++) {
