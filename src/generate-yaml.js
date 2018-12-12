@@ -84,7 +84,7 @@ const getTessera = (i)=>{
 	var tesseraTemplate 						= dockerTemplate.services.tesseraTemplate();
 	var tessera         						= dockerTemplate.services.tessera();
 	tesseraTemplate.server.port 				= port;
-	tesseraTemplate.server.hostName 			= "http://"+ip+":"+port+"/";
+	tesseraTemplate.server.hostName 			= "http://"+ip;
 	tesseraTemplate.peer        				= peers;
 	tessera.volumes								= ["tessera-"+i+":/priv"];
 	tessera.ports          						= [];
