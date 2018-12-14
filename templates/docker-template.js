@@ -10,6 +10,30 @@ const constellationCom = "constellation-node --socket=/constellation/tm.ipc --pu
 
 const tesseraCom = "";
 
+exports.tesseraFlag = true;
+exports.externalNetwork = false;
+
+const serviceConfig = {
+	"validator":{
+		"startIp":"172.18.239.10",
+		"gossipPort":21000,
+		"rpcPort":8545,
+		"wsPort":9000
+	},
+	"constellation":{
+		"startIp":"172.18.239.100",
+		"port":10000
+	},
+	"tessera":{
+		"startIp":"172.18.239.100",
+		"port":10000
+	},
+	"quorum-maker":{
+		"ip"   : "172.18.239.196",
+		"port" : 9999
+	}
+};
+
 const services = {
 	"eth-stats":{
 		"image"        :  "quay.io/amis/ethstats:latest",
@@ -18,10 +42,36 @@ const services = {
 		"restart"	   : "always",
 		"networks"	   : {
 			"test_net"  : {
-				"ipv4_address" : "172.16.239.9"
+				"ipv4_address" : "172.18.239.9"
 			}
 		}
 	},
+	"quorum-maker":  {
+			"hostname": "quorum-maker",
+			"image"   : "syneblock/quorum-maker:2.1.0_2.5",
+			"ports"	  : [serviceConfig["quorum-maker"].port+":"+serviceConfig["quorum-maker"].port],
+			"volumes" : ["./quorum-maker-conf:/home","./quorum-maker-conf/node/contracts:/root/quorum-maker/contracts"],
+			"depends_on": ["validator-0"],
+			"entrypoint":[ "/bin/sh", "-c", "set -u\n"
+			+"set -e\n"
+			+"cd /root/quorum-maker/\n"
+			+"PUB=$$(cat /priv/tm.pub)\n"
+			+"PUB=$$(echo $${PUB} | tr \"/\" \"\\/\")\n"
+			+"sed -i -e \"/PUBKEY=/ s/=.*/=$${PUB}/\" /home/setup.conf\n"
+			+"sed -i -e \"/CURRENT_IP=/ s/=.*/="+serviceConfig.validator.startIp+"/\" /home/setup.conf\n"
+			+"sed -i -e \"/RPC_PORT=/ s/=.*/="+serviceConfig.validator.rpcPort+"/\" /home/setup.conf\n"
+			+"sed -i -e \"/WS_PORT=/ s/=.*/="+serviceConfig.validator.wsPort+"/\" /home/setup.conf\n"
+			+"sed -i -e \"/WHISPER_PORT=/ s/=.*/="+serviceConfig.validator.gossipPort+"/\" /home/setup.conf\n"
+			+"sed -i -e \"/CONSTELLATION_PORT=/ s/=.*/="+serviceConfig.constellation.port+"/\" /home/setup.conf\n"
+			+"sed -i -e \"/REGISTERED=/ s/=.*/=/\" /home/setup.conf\n"
+			+"./start_nodemanager.sh "+serviceConfig.validator.rpcPort+" "+serviceConfig["quorum-maker"]["port"]+" "+serviceConfig.validator.startIp ],
+			"networks": {
+		      "test_net": {
+		        	"ipv4_address": serviceConfig['quorum-maker'].ip
+		    	}
+		    }/*,
+		    "restart": "always"*/
+	},	    
 	"validator": ()=>{
 		return {
 			"hostname"   : 'validator-',
@@ -76,11 +126,18 @@ const services = {
 				"driver"  :  "default",
 				"config"  : [ 
 					{
-						"subnet" : "172.16.239.0/24"
+						"subnet" : "172.18.239.0/24"
 					}
 				]
 			}
 		}
+	},
+	"external" : {
+		"default"  : {
+			"external":{
+				"name":"app_net"
+			}
+		}		
 	},
 	"tesseraTemplate": ()=>{
 		return {
@@ -125,23 +182,6 @@ const services = {
 			"unixSocketFile": "/priv/tm.ipc"/*,
 			"disablePeerDiscovery": true*/
 		}	
-	}
-};
-
-const serviceConfig = {
-	"validator":{
-		"startIp":"172.16.239.10",
-		"gossipPort":21000,
-		"rpcPort":8545,
-		"wsPort":9000
-	},
-	"constellation":{
-		"startIp":"172.16.239.100",
-		"port":10000
-	},
-	"tessera":{
-		"startIp":"172.16.239.100",
-		"port":10000
 	}
 };
 
@@ -213,4 +253,3 @@ exports.genTesseraCommand = (i, template)=>{
 }
 exports.geth = gethCom;
 exports.constellation = constellationCom;
-exports.tesseraFlag = true;

@@ -5,10 +5,15 @@ const yaml 			 = require('js-yaml');
 
 var dockerCompose  = dockerTemplate.template;
 
-dockerCompose.services["eth-stats"] = dockerTemplate.services['eth-stats'];
-dockerCompose['networks']           = dockerTemplate.services['networks'];
-dockerCompose['volumes'] 			= {};
-const type 							= dockerTemplate.tesseraFlag;
+dockerCompose.services["eth-stats"]       = dockerTemplate.services['eth-stats'];
+if(!dockerTemplate.externalNetwork){
+	dockerCompose['networks']             = dockerTemplate.services['networks'];
+}else{
+	dockerCompose['networks']             = dockerTemplate.services['external'];
+}
+dockerCompose["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]
+dockerCompose['volumes'] 				  = {};
+const type 								  = dockerTemplate.tesseraFlag;
 
 const getValidator = (i)=>{
 	const startIp         	= dockerTemplate.serviceConfig.validator.startIp.split(".");
@@ -23,10 +28,18 @@ const getValidator = (i)=>{
 		validator.volumes 	    = ["validator-"+i+":/eth","constellation-"+i+":/constellation:z"];
 		validator["depends_on"] = ["constellation-"+i];
 		validator["environment"]= ["PRIVATE_CONFIG=/constellation/tm.conf"];
+		if (i == 0){
+			dockerCompose["services"]["quorum-maker"].volumes.push("validator-"+i+":/eth");
+			dockerCompose["services"]["quorum-maker"].volumes.push("constellation-"+i+":/constellation:z");
+		}
 	}else{
 		validator.volumes 	    = ["validator-"+i+":/eth","tessera-"+i+":/priv"];
 		validator["depends_on"] = ["tessera-"+i];
 		validator["environment"]= ["PRIVATE_CONFIG=/priv/tm.ipc"];
+		if (i == 0){
+			dockerCompose["services"]["quorum-maker"].volumes.push("validator-"+i+":/eth");
+			dockerCompose["services"]["quorum-maker"].volumes.push("tessera-"+i+":/priv");
+		}
 	}
 	validator.entrypoint.push(
 		dockerTemplate.genValidatorCommand(
@@ -39,7 +52,10 @@ const getValidator = (i)=>{
 			basicConfig.passwords
 		)
 	);
-	validator.networks["test_net"]["ipv4_address"] = ip;
+	if(!dockerTemplate.externalNetwork)
+		validator.networks["test_net"]["ipv4_address"] = ip;
+	else
+		validator.networks["app_net"]["ipv4_address"] = ip;
 	return validator;
 }
 
@@ -72,7 +88,10 @@ const getConstellation = (i)=>{
 			constellationPort+i
 		)
 	);
-	constellation.networks["test_net"]["ipv4_address"] = baseIp+(startIp+i);
+	if(!dockerTemplate.externalNetwork)
+		constellation.networks["test_net"]["ipv4_address"] = baseIp+(startIp+i);
+	else
+		constellation.networks["app_net"]["ipv4_address"] = baseIp+(startIp+i);
 	return constellation;
 }
 
@@ -88,7 +107,10 @@ const getTessera = (i)=>{
 	tesseraTemplate.peer        				= peers;
 	tessera.volumes								= ["tessera-"+i+":/priv"];
 	tessera.ports          						= [];
-	tessera.networks["test_net"]["ipv4_address"] = ip;
+	if(!dockerTemplate.externalNetwork)
+		tessera.networks["test_net"]["ipv4_address"] = ip;
+	else
+		tessera.networks["app_net"]["ipv4_address"] = ip;
 	for (var j = 0; j < basicConfig.publicKeys.length; j++) {
 			peers.push({ "url" : "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(j+parseInt(startIp[3]))+":"+port+"/"})
 	}	

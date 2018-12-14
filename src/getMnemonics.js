@@ -5,7 +5,7 @@ if(!fs.existsSync(process.argv[2]))
 	throw "Provide path for output";
 
 var num = readlineSync.question('Number of Mnemonics : ');
-var menmonics = [];
+var mnemonics = [];
 var passwords = [];
 num = parseInt(num)
 for (var i = 0; i < num; i++) {
@@ -15,12 +15,18 @@ for (var i = 0; i < num; i++) {
 	var password = readlineSync.question('Enter Password '+i+" : ", {
 		hideEchoBack: true
 	});
-	if(password == "" || menmonic == ""){
+	if(menmonic == ""){
 		i--;
 		continue;
 	}
-	menmonics.push(menmonic);
+	mnemonics.push(menmonic);
 	passwords.push(password);
+}
+for (var i = 0; i < mnemonics.length; i++) {
+	for (var j = i+1; j < mnemonics.length; j++) {
+		if(mnemonics[i] == mnemonics[j])
+			throw "two mnemonics cannot be the same";
+	}
 }
 var template = {
 	"mode": 0,
@@ -32,6 +38,6 @@ var template = {
 		"seal":""
 	}
 }
-template.mnemonic = menmonics;
+template.mnemonic = mnemonics;
 exports.template  = template;
 exports.passwords = passwords;

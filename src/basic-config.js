@@ -2,7 +2,7 @@ const fs 			   = require('fs');
 const ethUtil  		   = require('ethereumjs-util');
 const dockerTemplate   = require("../templates/docker-template");
 var genesisTemplate    = require('../templates/genesis-template');
-const amount           ="0x446c3b15f9926687d2c40534fdb564000000000000"
+const amount           = "0xfffffffffffffffffffffffffffffffffffff";
 var input   		   = require('./getMnemonics');
 var mnemonic 		   = input.template;
 
