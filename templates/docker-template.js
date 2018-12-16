@@ -11,25 +11,25 @@ const constellationCom = "constellation-node --socket=/constellation/tm.ipc --pu
 const tesseraCom = "";
 
 exports.tesseraFlag = true;
-exports.externalNetwork = false;
+exports.externalNetwork = true;
 
 const serviceConfig = {
 	"validator":{
-		"startIp":"172.18.239.10",
+		"startIp":"172.19.240.10",
 		"gossipPort":21000,
 		"rpcPort":8545,
 		"wsPort":9000
 	},
 	"constellation":{
-		"startIp":"172.18.239.100",
+		"startIp":"172.19.240.100",
 		"port":10000
 	},
 	"tessera":{
-		"startIp":"172.18.239.100",
+		"startIp":"172.19.240.100",
 		"port":10000
 	},
 	"quorum-maker":{
-		"ip"   : "172.18.239.196",
+		"ip"   : "172.19.240.196",
 		"port" : 9999
 	}
 };
@@ -42,7 +42,7 @@ const services = {
 		"restart"	   : "always",
 		"networks"	   : {
 			"test_net"  : {
-				"ipv4_address" : "172.18.239.9"
+				"ipv4_address" : "172.19.240.9"
 			}
 		}
 	},
@@ -126,7 +126,7 @@ const services = {
 				"driver"  :  "default",
 				"config"  : [ 
 					{
-						"subnet" : "172.18.239.0/24"
+						"subnet" : "172.19.240.0/24"
 					}
 				]
 			}
