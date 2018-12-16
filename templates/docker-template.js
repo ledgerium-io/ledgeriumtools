@@ -54,10 +54,16 @@ const services = {
 			"depends_on": ["validator-0"],
 			"entrypoint":[ "/bin/sh", "-c", "set -u\n"
 			+"set -e\n"
+			+"while : ; do\n"
+			+"sleep 1\n"
+			+"if [ -e /eth/geth.ipc ];then\n"
+			+"break;\n"
+			+"fi\n"
+			+"done\n"
 			+"cd /root/quorum-maker/\n"
 			+"PUB=$$(cat /priv/tm.pub)\n"
 			+"PUB=$$(echo $${PUB} | tr \"/\" \"\\/\")\n"
-			+"sed -i -e \"/PUBKEY=/ s/=.*/=$${PUB}/\" /home/setup.conf\n"
+			//+"sed -i -e \"/PUBKEY=/ s/=.*/=$${PUB}/\" /home/setup.conf\n"
 			+"sed -i -e \"/CURRENT_IP=/ s/=.*/="+serviceConfig.validator.startIp+"/\" /home/setup.conf\n"
 			+"sed -i -e \"/RPC_PORT=/ s/=.*/="+serviceConfig.validator.rpcPort+"/\" /home/setup.conf\n"
 			+"sed -i -e \"/WS_PORT=/ s/=.*/="+serviceConfig.validator.wsPort+"/\" /home/setup.conf\n"
@@ -66,8 +72,8 @@ const services = {
 			+"sed -i -e \"/REGISTERED=/ s/=.*/=/\" /home/setup.conf\n"
 			+"./start_nodemanager.sh "+serviceConfig.validator.rpcPort+" "+serviceConfig["quorum-maker"]["port"]+" "+serviceConfig.validator.startIp ],
 			"networks": {
-		    }/*,
-		    "restart": "always"*/
+		    },
+		    "restart": "always"
 	},	    
 	"validator": ()=>{
 		return {
@@ -183,7 +189,14 @@ exports.services 				= services;
 exports.serviceConfig			= serviceConfig;
 exports.genValidatorCommand     = (i, gossipPort,genesisString,staticNodes,privateKeys,publicKeys,passwords)=>{
 	const commands = [
+		"while : ; do",
+		"sleep 1",
+		"if [[ -e /priv/tm.ipc ]];then",
+		"break;",
+		"fi",
+		"done",
 		"rm -f /eth/geth.ipc",
+		"if [[ ! -e /eth/genesis.json ]];then",
 		"mkdir -p /eth",
 		"echo '"+genesisString+"' > /eth/genesis.json",
 		"echo '"+staticNodes+"' > /eth/static-nodes.json",
@@ -193,6 +206,7 @@ exports.genValidatorCommand     = (i, gossipPort,genesisString,staticNodes,priva
 		"echo '"+privateKeys.split("0x")[1]+"' > ./file",
 		"geth account import file --datadir /eth --password password",
 		"rm -f ./file && rm -f ./password",
+		"fi",
 		gethCom+" --identity "+"\"validator-"+i+"\" --nodekeyhex \""+privateKeys.split("0x")[1]+"\" "+"--etherbase \""+publicKeys+"\" --port \""+gossipPort+"\""+
 		" --ethstats \"validator-"+i+":bb98a0b6442334d0cdf8a31b267892c1@172.16.239.9:3000\""
 	];
