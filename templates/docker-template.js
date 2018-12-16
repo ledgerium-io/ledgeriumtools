@@ -82,9 +82,6 @@ const services = {
 			"environment":	["PRIVATE_CONFIG=/constellation/tm.conf"],
 			"entrypoint" : ["/bin/sh","-c"],
 			"networks"	:	{
-				"test_net"	:	{
-					"ipv4_address"	: ""
-				}
 			},
 			"restart"	: "always"
 		}
