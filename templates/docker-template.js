@@ -11,7 +11,7 @@ const constellationCom = "constellation-node --socket=/constellation/tm.ipc --pu
 const tesseraCom = "";
 
 exports.tesseraFlag = true;
-exports.externalNetwork = false;
+exports.externalNetwork = true;
 
 const serviceConfig = {
 	"validator":{
@@ -82,9 +82,6 @@ const services = {
 			"environment":	["PRIVATE_CONFIG=/constellation/tm.conf"],
 			"entrypoint" : ["/bin/sh","-c"],
 			"networks"	:	{
-				"test_net"	:	{
-					"ipv4_address"	: ""
-				}
 			},
 			"restart"	: "always"
 		}
