@@ -11,9 +11,12 @@ const constellationCom = "constellation-node --socket=/constellation/tm.ipc --pu
 const tesseraCom = "";
 
 exports.tesseraFlag = true;
-exports.externalNetwork = true;
+exports.externalNetwork = false;
 
 const serviceConfig = {
+	"eth-stats":{
+		"ip" : "172.18.239.9"
+	},
 	"validator":{
 		"startIp":"172.18.239.10",
 		"gossipPort":21000,
@@ -41,9 +44,6 @@ const services = {
 		"environment"  :  ["WS_SECRET=bb98a0b6442334d0cdf8a31b267892c1"],
 		"restart"	   : "always",
 		"networks"	   : {
-			"test_net"  : {
-				"ipv4_address" : "172.18.239.9"
-			}
 		}
 	},
 	"quorum-maker":  {
@@ -66,9 +66,6 @@ const services = {
 			+"sed -i -e \"/REGISTERED=/ s/=.*/=/\" /home/setup.conf\n"
 			+"./start_nodemanager.sh "+serviceConfig.validator.rpcPort+" "+serviceConfig["quorum-maker"]["port"]+" "+serviceConfig.validator.startIp ],
 			"networks": {
-		      "test_net": {
-		        	"ipv4_address": serviceConfig['quorum-maker'].ip
-		    	}
 		    }/*,
 		    "restart": "always"*/
 	},	    
@@ -94,9 +91,6 @@ const services = {
 			"volumes"    : [],
 			"entrypoint" : ["/bin/sh","-c"],
 			"networks"	: {
-				"test_net"  : {
-					"ipv4_address" : ""
-				}
 			},
 			"restart"	: "always"	
 		}
@@ -109,15 +103,12 @@ const services = {
 			"volumes"    : [],
 			"entrypoint" : ["/bin/sh","-c"],
 			"networks"	: {
-				"test_net"  : {
-					"ipv4_address" : ""
-				}
 			},
 			"restart"	: "always"	
 		}
 	},
 	"networks" : {
-		"test_net":{
+		"app_net":{
 			"driver" : "bridge",
 			"ipam"   : {
 				"driver"  :  "default",
@@ -130,11 +121,9 @@ const services = {
 		}
 	},
 	"external" : {
-		"default"  : {
-			"external":{
-				"name":"app_net"
-			}
-		}		
+		"test_net":{
+			"external" : true
+		}
 	},
 	"tesseraTemplate": ()=>{
 		return {

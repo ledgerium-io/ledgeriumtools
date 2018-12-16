@@ -11,9 +11,12 @@ if(!dockerTemplate.externalNetwork){
 }else{
 	dockerCompose['networks']             = dockerTemplate.services['external'];
 }
-dockerCompose["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]
+dockerCompose["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"];
 dockerCompose['volumes'] 				  = {};
 const type 								  = dockerTemplate.tesseraFlag;
+const networkName						  = Object.keys(dockerCompose['networks'])[0];
+dockerCompose['services']["quorum-maker"]["networks"][networkName] = { "ipv4_address": dockerTemplate.serviceConfig["quorum-maker"].ip };
+dockerCompose['services']['eth-stats']["networks"][networkName] = { "ipv4_address": dockerTemplate.serviceConfig["eth-stats"].ip };
 
 const getValidator = (i)=>{
 	const startIp         	= dockerTemplate.serviceConfig.validator.startIp.split(".");
@@ -52,14 +55,7 @@ const getValidator = (i)=>{
 			basicConfig.passwords
 		)
 	);
-	if(!dockerTemplate.externalNetwork){
-			validator.networks["test_net"] = {};
-			validator.networks["test_net"]["ipv4_address"] = ip;
-		}
-	else{
-		validator.networks["app_net"] = {};
-		validator.networks["app_net"]["ipv4_address"] = ip;
-	}
+	validator.networks[networkName] = { "ipv4_address":ip };
 	return validator;
 }
 
@@ -92,14 +88,7 @@ const getConstellation = (i)=>{
 			constellationPort+i
 		)
 	);
-	if(!dockerTemplate.externalNetwork){
-		constellation.networks["test_net"] = {};
-		constellation.networks["test_net"]["ipv4_address"] = baseIp+(startIp+i);
-	}
-	else{
-		constellation.networks["app_net"] = {}
-		constellation.networks["app_net"]["ipv4_address"] = baseIp+(startIp+i);
-	}
+	constellation.networks[networkName] = { "ipv4_address":ip };
 	return constellation;
 }
 
@@ -114,15 +103,8 @@ const getTessera = (i)=>{
 	tesseraTemplate.server.hostName 			= "http://"+ip;
 	tesseraTemplate.peer        				= peers;
 	tessera.volumes								= ["tessera-"+i+":/priv"];
-	tessera.ports          						= [];
-	if(!dockerTemplate.externalNetwork){
-		tessera.networks["test_net"] = {}
-		tessera.networks["test_net"]["ipv4_address"] = ip;
-	}
-	else{
-		tessera.networks["app_net"] = {}
-		tessera.networks["app_net"]["ipv4_address"] = ip;
-	}
+	tessera.ports          						= [(port+i)+":"+port];
+	tessera.networks[networkName] = { "ipv4_address":ip };
 	for (var j = 0; j < basicConfig.publicKeys.length; j++) {
 			peers.push({ "url" : "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(j+parseInt(startIp[3]))+":"+port+"/"})
 	}	
