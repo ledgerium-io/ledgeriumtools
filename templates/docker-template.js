@@ -15,7 +15,7 @@ exports.externalNetwork = true;
 
 const serviceConfig = {
 	"eth-stats":{
-		"ip" : "172.18.239.9"
+		"ip" : "172.19.240.9"
 	},
 	"validator":{
 		"startIp":"172.19.240.10",
