@@ -44,6 +44,9 @@ const getValidator = (i)=>{
 			dockerCompose["services"]["quorum-maker"].volumes.push("tessera-"+i+":/priv");
 		}
 	}
+	if(i == 0){
+		validator.volumes.push("logs:/logs");
+	}
 	validator.entrypoint.push(
 		dockerTemplate.genValidatorCommand(
 			i,
@@ -79,7 +82,10 @@ const getConstellation = (i)=>{
 	var constellation 	   = dockerTemplate.services.constellation();
 	constellation.hostname = constellation.hostname+i;
 	constellation.ports    = [(constellationPort+i)+":"+(constellationPort+i)];
-	constellation.volumes  = ["constellation-"+i+":/constellation:z"]
+	constellation.volumes  = ["constellation-"+i+":/constellation:z"];
+	if(i == 0){
+		constellation.volumes.push("logs:/logs");
+	}
 	constellation.entrypoint.push(
 		dockerTemplate.genConstellationCommand(
 			i,
@@ -103,6 +109,9 @@ const getTessera = (i)=>{
 	tesseraTemplate.server.hostName 			= "http://"+ip;
 	tesseraTemplate.peer        				= peers;
 	tessera.volumes								= ["tessera-"+i+":/priv"];
+	if(i == 0){
+		tessera.volumes.push("logs:/logs");
+	}
 	tessera.ports          						= [(port+i)+":"+port];
 	tessera.networks[networkName] = { "ipv4_address":ip };
 	for (var j = 0; j < basicConfig.publicKeys.length; j++) {

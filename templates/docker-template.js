@@ -59,7 +59,7 @@ const services = {
 			"depends_on": ["validator-0"],
 			"entrypoint":[ "/bin/sh", "-c", "set -u\n"
 			+"set -e\n"
-			+"while : ; do\n"
+			+"while : ;do\n"
 			+"sleep 1\n"
 			+"if [ -e /eth/geth.ipc ];then\n"
 			+"break;\n"
@@ -210,14 +210,12 @@ exports.services 				= services;
 exports.serviceConfig			= serviceConfig;
 exports.genValidatorCommand     = (i, gossipPort,genesisString,staticNodes,privateKeys,publicKeys,passwords)=>{
 	const commands = [
-		"while : ; do",
+		"while [ ! -e /priv/tm.ipc ];do",
 		"sleep 1",
-		"if [[ -e /priv/tm.ipc ]];then",
-		"break;",
-		"fi",
+		"echo \"waiting for priv impl...\"",
 		"done",
 		"rm -f /eth/geth.ipc",
-		"if [[ ! -e /eth/genesis.json ]];then",
+		"if [ ! -e /eth/genesis.json ];then",
 		"mkdir -p /eth",
 		"mkdir -p /logs/gethLogs",
 		"echo '"+genesisString+"' > /eth/genesis.json",
@@ -231,7 +229,7 @@ exports.genValidatorCommand     = (i, gossipPort,genesisString,staticNodes,priva
 		"fi",
 		gethCom+" --identity "+"\"validator-"+i+"\" --nodekeyhex \""+privateKeys.split("0x")[1]+"\" "+"--etherbase \""+publicKeys+"\" --port \""+gossipPort+"\""+
 		" --ethstats \"validator-"+i+":bb98a0b6442334d0cdf8a31b267892c1@172.16.239.9:3000\" --rpcport "+ serviceConfig.validator.rpcPort +" --wsport "+serviceConfig.validator.wsPort
-		+" 2>/logs/gethLogs/validator-0.txt"
+		+" 2>/logs/gethLogs/validator-0.txt\n"
 	];
 	var commandString = "";
 	for (var j = 0; j < commands.length; j++) {
@@ -242,7 +240,7 @@ exports.genValidatorCommand     = (i, gossipPort,genesisString,staticNodes,priva
 exports.genConstellationCommand = (i,othernodes,ip,port)=>{
 	const commands = [
 		"rm -f /constellation/tm.ipc",
-		"if [ -d \"constellation\" ]; then",
+		"if [ ! -d \"constellation\" ];then",
 		"mkdir -p /constellation",
 		"mkdir -p /logs/constellationLogs",
 		"echo \"socket=\\"+"\"/constellation/tm.ipc\\"+"\"\\npublickeys=[\\"+"\"/constellation/tm.pub\\"+"\"]\\n\" > /constellation/tm.conf",
@@ -261,7 +259,7 @@ exports.genTesseraCommand = (i, template)=>{
 	const dir = "/priv";
 	const commands = [
 		"rm -f "+dir+"/tm.ipc",
-		"if [ ! -e \""+dir+"/tm.key\" ]; then",
+		"if [ ! -e \""+dir+"/tm.key\" ];then",
 		"mkdir -p "+dir,
 		"mkdir -p /logs/constellationLogs",
 		"echo -e \"\\n\" | java -jar /tessera/tessera-app.jar -keygen -filename "+dir+"/tm",
