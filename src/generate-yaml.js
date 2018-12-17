@@ -125,6 +125,7 @@ const getTessera = (i)=>{
 }
 
 const getGovernanceUI = (i)=>{
+	// const gov
 	var gov  = dockerTemplate.services.governanceApp(i);
 	const startIp = dockerTemplate.serviceConfig["governance-app"].startIp.split(".");
 	ip = startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+i);

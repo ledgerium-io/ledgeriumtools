@@ -41,7 +41,7 @@ const serviceConfig = {
 		"startIp" : "172.19.240.150"
 	}
 };
-
+//exports.
 const services = {
 	"eth-stats":{
 		"image"        :  "quay.io/amis/ethstats:latest",
