@@ -76,6 +76,7 @@ const services = {
 			+"sed -i -e \"/WS_PORT=/ s/=.*/="+serviceConfig.validator.wsPort+"/\" ./setup.conf\n"
 			+"sed -i -e \"/WHISPER_PORT=/ s/=.*/="+serviceConfig.validator.gossipPort+"/\" ./setup.conf\n"
 			+"sed -i -e \"/CONSTELLATION_PORT=/ s/=.*/="+serviceConfig.constellation.port+"/\" ./setup.conf\n"
+			+"sed -i -e \"/CONTRACT_ADD=/ s/=.*/=/\" ./setup.conf\n"
 			+"sed -i -e \"/REGISTERED=/ s/=.*/=/\" ./setup.conf\n"
 			+"fi\n"
 			+"./NodeManager http://"+serviceConfig.validator.startIp+":"+serviceConfig.validator.rpcPort+" "+serviceConfig["quorum-maker"]["port"]+" /logs/gethLogs/ /logs/constellationLogs"],
@@ -209,6 +210,10 @@ exports.template 				= template;
 exports.services 				= services;
 exports.serviceConfig			= serviceConfig;
 exports.genValidatorCommand     = (i, gossipPort,genesisString,staticNodes,privateKeys,publicKeys,passwords)=>{
+	var startGeth = gethCom+" --identity "+"\"validator-"+i+"\" --nodekeyhex \""+privateKeys.split("0x")[1]+"\" "+"--etherbase \""+publicKeys+"\" --port \""+gossipPort+"\""+
+		" --ethstats \"validator-"+i+":bb98a0b6442334d0cdf8a31b267892c1@172.16.239.9:3000\" --rpcport "+ serviceConfig.validator.rpcPort +" --wsport "+serviceConfig.validator.wsPort;
+	if(i == 0)
+		startGeth+=" 2>/logs/gethLogs/validator-0.txt\n"
 	const commands = [
 		"while [ ! -e /priv/tm.ipc ];do",
 		"sleep 1",
@@ -227,9 +232,7 @@ exports.genValidatorCommand     = (i, gossipPort,genesisString,staticNodes,priva
 		"geth account import file --datadir /eth --password password",
 		"rm -f ./file && rm -f ./password",
 		"fi",
-		gethCom+" --identity "+"\"validator-"+i+"\" --nodekeyhex \""+privateKeys.split("0x")[1]+"\" "+"--etherbase \""+publicKeys+"\" --port \""+gossipPort+"\""+
-		" --ethstats \"validator-"+i+":bb98a0b6442334d0cdf8a31b267892c1@172.16.239.9:3000\" --rpcport "+ serviceConfig.validator.rpcPort +" --wsport "+serviceConfig.validator.wsPort
-		+" 2>/logs/gethLogs/validator-0.txt\n"
+		startGeth
 	];
 	var commandString = "";
 	for (var j = 0; j < commands.length; j++) {
@@ -238,6 +241,9 @@ exports.genValidatorCommand     = (i, gossipPort,genesisString,staticNodes,priva
 	return commandString;
 };
 exports.genConstellationCommand = (i,othernodes,ip,port)=>{
+	var startConst = constellationCom+othernodes+" --url=http://"+ip+":"+port+"/ --port="+port;
+	if(i == 0)
+		startConst+=" 2>/logs/constellationLogs/validator-0_constellation.txt"
 	const commands = [
 		"rm -f /constellation/tm.ipc",
 		"if [ ! -d \"constellation\" ];then",
@@ -247,7 +253,7 @@ exports.genConstellationCommand = (i,othernodes,ip,port)=>{
 		"constellation-node --generatekeys=/constellation/tm",
 		"cp /constellation/tm.pub /tmp/tm"+i+".pub",
 		"fi",
-		constellationCom+othernodes+" --url=http://"+ip+":"+port+"/ --port="+port+ "2>/logs/constellationLogs/validator-0_constellation.txt"
+		startConst
 	];
 	var commandString = "";
 	for (var j = 0; j < commands.length; j++) {
@@ -257,6 +263,9 @@ exports.genConstellationCommand = (i,othernodes,ip,port)=>{
 };
 exports.genTesseraCommand = (i, template)=>{
 	const dir = "/priv";
+	var startTess = "java -Xms128M -Xmx128M -jar /tessera/tessera-app.jar -configfile "+dir+"/tessera-config.json";
+	if(i == 0)
+		startTess+=" 2>/logs/constellationLogs/validator-tessera.txt";
 	const commands = [
 		"rm -f "+dir+"/tm.ipc",
 		"if [ ! -e \""+dir+"/tm.key\" ];then",
@@ -266,7 +275,7 @@ exports.genTesseraCommand = (i, template)=>{
 		"echo '"+JSON.stringify(template)+"' > "+dir+"/tessera-config.json",
 		"cp "+dir+"/tm.pub /tmp/tm"+i+".pub",
 		"fi",
-		"java -Xms128M -Xmx128M -jar /tessera/tessera-app.jar -configfile "+dir+"/tessera-config.json 2>/logs/constellationLogs/validator-tessera.txt"
+		startTess
 	];
 	var commandString = "";
 	for (var j = 0; j < commands.length; j++) {
