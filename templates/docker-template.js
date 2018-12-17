@@ -11,7 +11,7 @@ const constellationCom = "constellation-node --socket=/constellation/tm.ipc --pu
 const tesseraCom = "";
 
 exports.tesseraFlag = true;
-exports.externalNetwork = false;
+exports.externalNetwork = true;
 
 const serviceConfig = {
 	"eth-stats":{
