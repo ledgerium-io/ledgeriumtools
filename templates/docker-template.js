@@ -1,6 +1,6 @@
-const gethCom = "geth --rpc --rpcaddr '0.0.0.0' --rpcport '8545' --rpccorsdomain '*' \
+const gethCom = "geth --rpc --rpcaddr '0.0.0.0' --rpccorsdomain '*' \
 --datadir '/eth' --rpcapi 'db,eth,net,web3,istanbul,personal,admin,debug,txpool' \
---ws --wsorigins '*' --wsport '9000' --wsapi 'db,eth,net,web3,personal,admin,debug,txpool' \
+--ws --wsorigins '*' --wsapi 'db,eth,net,web3,personal,admin,debug,txpool' \
 --wsaddr '0.0.0.0' --networkid 2018 --targetgaslimit 9007199254740000 --permissioned \
 --debug --metrics --syncmode 'full' --gasprice 0 --mine --verbosity 3 --nodiscover \
 --emitcheckpoints --istanbul.blockperiod 1 --mine --minerthreads 1 --syncmode full";
@@ -19,7 +19,7 @@ const serviceConfig = {
 	},
 	"validator":{
 		"startIp":"172.18.239.10",
-		"gossipPort":21000,
+		"gossipPort":30303,
 		"rpcPort":8545,
 		"wsPort":9000
 	},
@@ -34,6 +34,11 @@ const serviceConfig = {
 	"quorum-maker":{
 		"ip"   : "172.18.239.196",
 		"port" : 9999
+	},
+	"governance-app":{
+		"port-exp": 3545,
+		"port-int": 3003,
+		"startIp" : "172.18.239.150"
 	}
 };
 
@@ -48,9 +53,9 @@ const services = {
 	},
 	"quorum-maker":  {
 			"hostname": "quorum-maker",
-			"image"   : "syneblock/quorum-maker:2.1.0_2.5",
+			"image"   : "mythrihegde/quorum:2.1.1_2.5.1",
 			"ports"	  : [serviceConfig["quorum-maker"].port+":"+serviceConfig["quorum-maker"].port],
-			"volumes" : ["./quorum-maker-conf:/home","./quorum-maker-conf/node/contracts:/root/quorum-maker/contracts"],
+			"volumes" : ["./quorum-maker-conf:/conf","logs:/logs"],
 			"depends_on": ["validator-0"],
 			"entrypoint":[ "/bin/sh", "-c", "set -u\n"
 			+"set -e\n"
@@ -63,14 +68,17 @@ const services = {
 			+"cd /root/quorum-maker/\n"
 			+"PUB=$$(cat /priv/tm.pub)\n"
 			+"PUB=$$(echo $${PUB} | tr \"/\" \"\\/\")\n"
-			//+"sed -i -e \"/PUBKEY=/ s/=.*/=$${PUB}/\" /home/setup.conf\n"
-			+"sed -i -e \"/CURRENT_IP=/ s/=.*/="+serviceConfig.validator.startIp+"/\" /home/setup.conf\n"
-			+"sed -i -e \"/RPC_PORT=/ s/=.*/="+serviceConfig.validator.rpcPort+"/\" /home/setup.conf\n"
-			+"sed -i -e \"/WS_PORT=/ s/=.*/="+serviceConfig.validator.wsPort+"/\" /home/setup.conf\n"
-			+"sed -i -e \"/WHISPER_PORT=/ s/=.*/="+serviceConfig.validator.gossipPort+"/\" /home/setup.conf\n"
-			+"sed -i -e \"/CONSTELLATION_PORT=/ s/=.*/="+serviceConfig.constellation.port+"/\" /home/setup.conf\n"
-			+"sed -i -e \"/REGISTERED=/ s/=.*/=/\" /home/setup.conf\n"
-			+"./start_nodemanager.sh "+serviceConfig.validator.rpcPort+" "+serviceConfig["quorum-maker"]["port"]+" "+serviceConfig.validator.startIp ],
+			+"if [ ! -e /root/quorum-maker/setup.conf ];then\n"			
+			+"cp /conf/setup.conf /root/quorum-maker/\n"
+			//+"sed -i -e \"/PUBKEY=/ s/=.*/=$${PUB}/\" ./setup.conf\n"
+			+"sed -i -e \"/CURRENT_IP=/ s/=.*/="+serviceConfig.validator.startIp+"/\" ./setup.conf\n"
+			+"sed -i -e \"/RPC_PORT=/ s/=.*/="+serviceConfig.validator.rpcPort+"/\" ./setup.conf\n"
+			+"sed -i -e \"/WS_PORT=/ s/=.*/="+serviceConfig.validator.wsPort+"/\" ./setup.conf\n"
+			+"sed -i -e \"/WHISPER_PORT=/ s/=.*/="+serviceConfig.validator.gossipPort+"/\" ./setup.conf\n"
+			+"sed -i -e \"/CONSTELLATION_PORT=/ s/=.*/="+serviceConfig.constellation.port+"/\" ./setup.conf\n"
+			+"sed -i -e \"/REGISTERED=/ s/=.*/=/\" ./setup.conf\n"
+			+"fi\n"
+			+"./NodeManager http://"+serviceConfig.validator.startIp+":"+serviceConfig.validator.rpcPort+" "+serviceConfig["quorum-maker"]["port"]+" /logs/gethLogs/ /logs/constellationLogs"],
 			"networks": {
 		    },
 		    "restart": "always"
@@ -174,6 +182,19 @@ const services = {
 			"unixSocketFile": "/priv/tm.ipc"/*,
 			"disablePeerDiscovery": true*/
 		}	
+	},
+	"governanceApp": (i)=>{
+		return {
+			"hostname" 		: "governance-ui-"+i,
+			"image"    		: "ledgeriumengineering/governance_app_ui_img:latest",
+			"ports"    		: [(serviceConfig["governance-app"]["port-exp"]+i)+":"+serviceConfig["governance-app"]["port-int"]],
+			"volumes"  		: ['validator-'+i+':/eth'],
+			"depends_on" 	: ["validator-"+i],
+			"entrypoint"    : [ "/bin/sh","-c"],
+			"networks"      : {
+
+			}
+		}
 	}
 };
 
@@ -198,6 +219,7 @@ exports.genValidatorCommand     = (i, gossipPort,genesisString,staticNodes,priva
 		"rm -f /eth/geth.ipc",
 		"if [[ ! -e /eth/genesis.json ]];then",
 		"mkdir -p /eth",
+		"mkdir -p /logs/gethLogs",
 		"echo '"+genesisString+"' > /eth/genesis.json",
 		"echo '"+staticNodes+"' > /eth/static-nodes.json",
 		"echo '"+staticNodes+"' > /eth/permissioned-nodes.json",
@@ -208,7 +230,8 @@ exports.genValidatorCommand     = (i, gossipPort,genesisString,staticNodes,priva
 		"rm -f ./file && rm -f ./password",
 		"fi",
 		gethCom+" --identity "+"\"validator-"+i+"\" --nodekeyhex \""+privateKeys.split("0x")[1]+"\" "+"--etherbase \""+publicKeys+"\" --port \""+gossipPort+"\""+
-		" --ethstats \"validator-"+i+":bb98a0b6442334d0cdf8a31b267892c1@172.16.239.9:3000\""
+		" --ethstats \"validator-"+i+":bb98a0b6442334d0cdf8a31b267892c1@172.16.239.9:3000\" --rpcport "+ serviceConfig.validator.rpcPort +" --wsport "+serviceConfig.validator.wsPort
+		+" 2>/logs/gethLogs/validator-0.txt"
 	];
 	var commandString = "";
 	for (var j = 0; j < commands.length; j++) {
@@ -221,11 +244,12 @@ exports.genConstellationCommand = (i,othernodes,ip,port)=>{
 		"rm -f /constellation/tm.ipc",
 		"if [ -d \"constellation\" ]; then",
 		"mkdir -p /constellation",
+		"mkdir -p /logs/constellationLogs",
 		"echo \"socket=\\"+"\"/constellation/tm.ipc\\"+"\"\\npublickeys=[\\"+"\"/constellation/tm.pub\\"+"\"]\\n\" > /constellation/tm.conf",
 		"constellation-node --generatekeys=/constellation/tm",
 		"cp /constellation/tm.pub /tmp/tm"+i+".pub",
 		"fi",
-		constellationCom+othernodes+" --url=http://"+ip+":"+port+"/ --port="+port
+		constellationCom+othernodes+" --url=http://"+ip+":"+port+"/ --port="+port+ "2>/logs/constellationLogs/validator-0_constellation.txt"
 	];
 	var commandString = "";
 	for (var j = 0; j < commands.length; j++) {
@@ -239,11 +263,12 @@ exports.genTesseraCommand = (i, template)=>{
 		"rm -f "+dir+"/tm.ipc",
 		"if [ ! -e \""+dir+"/tm.key\" ]; then",
 		"mkdir -p "+dir,
+		"mkdir -p /logs/constellationLogs",
 		"echo -e \"\\n\" | java -jar /tessera/tessera-app.jar -keygen -filename "+dir+"/tm",
 		"echo '"+JSON.stringify(template)+"' > "+dir+"/tessera-config.json",
 		"cp "+dir+"/tm.pub /tmp/tm"+i+".pub",
 		"fi",
-		"java -Xms128M -Xmx128M -jar /tessera/tessera-app.jar -configfile "+dir+"/tessera-config.json"
+		"java -Xms128M -Xmx128M -jar /tessera/tessera-app.jar -configfile "+dir+"/tessera-config.json 2>/logs/constellationLogs/validator-tessera.txt"
 	];
 	var commandString = "";
 	for (var j = 0; j < commands.length; j++) {

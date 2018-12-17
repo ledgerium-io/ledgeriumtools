@@ -115,6 +115,28 @@ const getTessera = (i)=>{
 	return tessera;
 }
 
+const getGovernanceUI = (i)=>{
+	var gov  = dockerTemplate.services.governanceApp(i);
+	const startIp = dockerTemplate.serviceConfig["governance-app"].startIp.split(".");
+	ip = startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+i);
+	var string = "";
+	if(i == 0){
+			string+="cd /ledgerium/governanceapp/governanceApp\n"
+			string+="node index.js protocol=ws hostname=localhost port=9000 privateKeys="+basicConfig.privateKeys[i]+"\n";
+	}
+	string+="cd /ledgerium/governanceapp/governanceApp/app\n";
+	string+="node governanceUI.js "+dockerCompose.services['validator-'+i].networks[networkName]["ipv4_address"]+" "+dockerTemplate.serviceConfig.validator.rpcPort+"\n";
+	gov.entrypoint.push(string);
+	//console.log(dockerCompose.services['validator-'+i].networks[networkName]["ipv4_address"]);
+	if ( !type ){
+		gov.volumes.push("constellation-"+i+":/constellation:z")
+	}else{
+		gov.volumes.push('tessera-'+i+':/priv')
+	}
+	gov.networks[networkName] = { "ipv4_address":ip };
+	return gov;
+}
+
 for (var i = 0; i < basicConfig.publicKeys.length; i++) {
 	dockerCompose.services['validator-'+i] = getValidator(i);
 	if(!type){
@@ -122,12 +144,13 @@ for (var i = 0; i < basicConfig.publicKeys.length; i++) {
 	}else{
 		dockerCompose.services["tessera-"+i] = getTessera(i);		
 	}
+	dockerCompose.services['governance_ui-'+i] = getGovernanceUI(i);
 	volumes = dockerCompose.services["validator-"+i].volumes;
 	for (var j = volumes.length - 1; j >= 0; j--) {
 		dockerCompose.volumes[volumes[j].split(":")[0]] = null;
 	}
 }
-
+dockerCompose.volumes["logs"] = null;
 fs.writeFileSync(process.argv[2]+'/docker-compose.yml',yaml.dump(dockerCompose,{
   styles: {
     '!!null' : 'canonical'
