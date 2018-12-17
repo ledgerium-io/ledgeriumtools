@@ -114,7 +114,7 @@ const services = {
 		}
 	},
 	"networks" : {
-		"app_net":{
+		"test_net":{
 			"driver" : "bridge",
 			"ipam"   : {
 				"driver"  :  "default",
