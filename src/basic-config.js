@@ -56,6 +56,16 @@ data.push([]);
 
 genesisTemplate['extraData'] = vanity+ethUtil.rlp.encode(data).toString("hex");
 
+const tempDir = "./output/tmp/";
+
+if (!fs.existsSync(tempDir)){
+    fs.mkdirSync(tempDir);
+}
+
+fs.writeFileSync(tempDir+"genesis.json",JSON.stringify(genesisTemplate));
+fs.writeFileSync(tempDir+"static-nodes.json",static_nodes);
+fs.writeFileSync(tempDir+"permissioned-nodes.json",static_nodes);
+
 exports.publicKeys    = publicKeys;
 exports.privateKeys   = privateKeys;
 exports.staticNodes   = static_nodes;
