@@ -343,7 +343,10 @@ const services = {
 		var string = "";
 		if(i == 0){
 				string+="cd /ledgerium/governanceapp/governanceApp\n"
-				string+="node index.js protocol=ws hostname=localhost port=9000 privateKeys="+basicConfig.privateKeys[i]+"\n";
+				string+="node index.js protocol=ws hostname=localhost port=9000 privateKeys="
+				+basicConfig.privateKeys[0]+","
+				+basicConfig.privateKeys[1]+","
+				+basicConfig.privateKeys[2]+"\n";
 		}
 		string+="cd /ledgerium/governanceapp/governanceApp/app\n";
 		string+="node governanceUI.js "+vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i)+" "+serviceConfig.validator.rpcPort+"\n";
