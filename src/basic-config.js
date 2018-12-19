@@ -6,6 +6,7 @@ const amount           = "0xfffffffffffffffffffffffffffffffffffff";
 var input   		   = require('./getMnemonics');
 var mnemonic 		   = input.template;
 
+var privateKeyJSON = {}; var writeprivatekeys = true;
 var privateKeys = [], publicKeys = [], static_nodes = "[", extraData;
 const vanity = mnemonic.istanbul.vanity || "0x0000000000000000000000000000000000000000000000000000000000000000";
 const seal   = mnemonic.istanbul.seal || "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
@@ -32,7 +33,9 @@ for (var i = 0; i < privateKeys.length; i++) {
 		dockerTemplate.serviceConfig.validator.gossipPort+
 		"?discport=0\""
 	);
-	publicKeys.push(ethUtil.privateToAddress(privateKeys[i]).toString('hex'));
+	let pubk = ethUtil.privateToAddress(privateKeys[i]).toString('hex');
+	privateKeyJSON["0x" + pubk] = privateKeys[i].split("0x")[1];
+	publicKeys.push(pubk);
 	if(i != privateKeys.length-1){
 		static_nodes+=",";
 	}else{
@@ -65,6 +68,11 @@ if (!fs.existsSync(tempDir)){
 fs.writeFileSync(tempDir+"genesis.json",JSON.stringify(genesisTemplate));
 fs.writeFileSync(tempDir+"static-nodes.json",static_nodes);
 fs.writeFileSync(tempDir+"permissioned-nodes.json",static_nodes);
+
+if(writeprivatekeys){
+	var data = JSON.stringify(privateKeyJSON,null, 2);
+	fs.writeFileSync(tempDir+"privatekeys.json",data);
+}
 
 exports.publicKeys    = publicKeys;
 exports.privateKeys   = privateKeys;

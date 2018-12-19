@@ -1,4 +1,4 @@
-const basicConfig    = require('../src/basic-config');
+const basicConfig = require('../src/basic-config');
 
 const gethCom = "geth --rpc --rpcaddr '0.0.0.0' --rpccorsdomain '*' \
 --datadir '/eth' --rpcapi 'db,eth,net,web3,istanbul,personal,admin,debug,txpool' \
@@ -9,7 +9,6 @@ const gethCom = "geth --rpc --rpcaddr '0.0.0.0' --rpccorsdomain '*' \
 
 const constellationCom = "constellation-node --socket=/constellation/tm.ipc --publickeys=/constellation/tm.pub \
 --privatekeys=/constellation/tm.key --storage=/constellation --verbosity=4";
-
 
 const tesseraFlag = true;
 const network_name = "test_net";
@@ -53,7 +52,7 @@ const serviceConfig = {
 	},
 	"validator":{
 		"startIp": base_ip.slice(0, base_ip.length-1)+"10",
-		"gossipPort":21000,
+		"gossipPort":30303,
 		"rpcPort":8545,
 		"wsPort":9000
 	},
@@ -341,12 +340,12 @@ const services = {
 		const ip = startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+i);
 		const vip = serviceConfig.validator.startIp.split(".");
 		var string = "";
-		if(i == 0){
+		if((i == 0) && (numberOfNodes >= 3)) {
 				string+="cd /ledgerium/governanceapp/governanceApp\n"
-				string+="node index.js protocol=ws hostname=localhost port=9000 privateKeys="
-				+basicConfig.privateKeys[0]+","
-				+basicConfig.privateKeys[1]+","
-				+basicConfig.privateKeys[2]+"\n";
+				string+="node index.js protocol=http hostname=localhost port=8545 privateKeys="
+				+basicConfig.privateKeys[0].split("0x")[1]+","
+				+basicConfig.privateKeys[1].split("0x")[1]+","
+				+basicConfig.privateKeys[2].split("0x")[1]+"\n";
 		}
 		string+="cd /ledgerium/governanceapp/governanceApp/app\n";
 		string+="node governanceUI.js "+vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i)+" "+serviceConfig.validator.rpcPort+"\n";
