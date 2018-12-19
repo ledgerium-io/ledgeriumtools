@@ -5,7 +5,7 @@ const gethCom = "geth --rpc --rpcaddr '0.0.0.0' --rpccorsdomain '*' \
 --ws --wsorigins '*' --wsapi 'db,eth,net,web3,personal,admin,debug,txpool' \
 --wsaddr '0.0.0.0' --networkid 2018 --targetgaslimit 9007199254740000 --permissioned \
 --debug --metrics --syncmode 'full' --gasprice 0 --mine --verbosity 3 --nodiscover \
---emitcheckpoints --istanbul.blockperiod 5 --mine --minerthreads 1 --syncmode full";
+--emitcheckpoints --istanbul.blockperiod 1 --mine --minerthreads 1 --syncmode full";
 
 const constellationCom = "constellation-node --socket=/constellation/tm.ipc --publickeys=/constellation/tm.pub \
 --privatekeys=/constellation/tm.key --storage=/constellation --verbosity=4";
