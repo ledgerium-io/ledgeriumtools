@@ -171,6 +171,7 @@ const helper = {
 			+"echo "+i+"\"_ENODE=\""+enode+" >> ./setup.conf\n"
 			+"echo "+i+"\"_PUBKEY=\"$${PUB} >> ./setup.conf\n"
 			+"echo "+i+"\"_RAFT_ID=\""+i+" >> ./setup.conf\n"
+			+"echo "+i+"\"_ROLE=Unassigned\" >> ./setup.conf\n"
 			
 		}
 		if(i==basicConfig.publicKeys.length-1){
