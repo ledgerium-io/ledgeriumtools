@@ -57,29 +57,7 @@ const services = {
 			"ports"	  : [serviceConfig["quorum-maker"].port+":"+serviceConfig["quorum-maker"].port],
 			"volumes" : ["./quorum-maker-conf:/conf","logs:/logs"],
 			"depends_on": ["validator-0"],
-			"entrypoint":[ "/bin/sh", "-c", "set -u\n"
-			+"set -e\n"
-			+"while : ;do\n"
-			+"sleep 1\n"
-			+"if [ -e /eth/geth.ipc ];then\n"
-			+"break;\n"
-			+"fi\n"
-			+"done\n"
-			+"cd /root/quorum-maker/\n"
-			+"PUB=$$(cat /priv/tm.pub)\n"
-			+"PUB=$$(echo $${PUB} | tr \"/\" \"\\/\")\n"
-			+"if [ ! -e /root/quorum-maker/setup.conf ];then\n"			
-			+"cp /conf/setup.conf /root/quorum-maker/\n"
-			//+"sed -i -e \"/PUBKEY=/ s/=.*/=$${PUB}/\" ./setup.conf\n"
-			+"sed -i -e \"/CURRENT_IP=/ s/=.*/="+serviceConfig.validator.startIp+"/\" ./setup.conf\n"
-			+"sed -i -e \"/RPC_PORT=/ s/=.*/="+serviceConfig.validator.rpcPort+"/\" ./setup.conf\n"
-			+"sed -i -e \"/WS_PORT=/ s/=.*/="+serviceConfig.validator.wsPort+"/\" ./setup.conf\n"
-			+"sed -i -e \"/WHISPER_PORT=/ s/=.*/="+serviceConfig.validator.gossipPort+"/\" ./setup.conf\n"
-			+"sed -i -e \"/CONSTELLATION_PORT=/ s/=.*/="+serviceConfig.constellation.port+"/\" ./setup.conf\n"
-			+"sed -i -e \"/CONTRACT_ADD=/ s/=.*/=/\" ./setup.conf\n"
-			+"sed -i -e \"/REGISTERED=/ s/=.*/=/\" ./setup.conf\n"
-			+"fi\n"
-			+"./NodeManager http://"+serviceConfig.validator.startIp+":"+serviceConfig.validator.rpcPort+" "+serviceConfig["quorum-maker"]["port"]+" /logs/gethLogs/ /logs/constellationLogs"],
+			"entrypoint":["/bin/sh", "-c"],
 			"networks": {
 		    },
 		    "restart": "always"
@@ -241,17 +219,18 @@ exports.genValidatorCommand     = (i, gossipPort,genesisString,staticNodes,priva
 	return commandString;
 };
 exports.genConstellationCommand = (i,othernodes,ip,port)=>{
+	const dir = "/constellation"+i;
 	var startConst = constellationCom+othernodes+" --url=http://"+ip+":"+port+"/ --port="+port;
 	if(i == 0)
-		startConst+=" 2>/logs/constellationLogs/validator-0_constellation.txt"
+		startConst+=" 2>/logs"+dir+"Logs/validator-0_constellation.txt"
 	const commands = [
-		"rm -f /constellation/tm.ipc",
-		"if [ ! -d \"constellation\" ];then",
-		"mkdir -p /constellation",
-		"mkdir -p /logs/constellationLogs",
-		"echo \"socket=\\"+"\"/constellation/tm.ipc\\"+"\"\\npublickeys=[\\"+"\"/constellation/tm.pub\\"+"\"]\\n\" > /constellation/tm.conf",
-		"constellation-node --generatekeys=/constellation/tm",
-		"cp /constellation/tm.pub /tmp/tm"+i+".pub",
+		"rm -f "+dir+"/tm.ipc",
+		"if [ ! -d \"constellation"+i+"\" ];then",
+		"mkdir -p "+dir+"",
+		"mkdir -p /logs"+dir+"Logs",
+		"echo \"socket=\\"+"\""+dir+"/tm.ipc\\"+"\"\\npublickeys=[\\"+"\""+dir+"/tm.pub\\"+"\"]\\n\" > "+dir+"/tm.conf",
+		"constellation-node --generatekeys="+dir+"/tm",
+		"cp "+dir+"/tm.pub /tmp/tm"+i+".pub",
 		"fi",
 		startConst
 	];
@@ -262,7 +241,7 @@ exports.genConstellationCommand = (i,othernodes,ip,port)=>{
 	return commandString;
 };
 exports.genTesseraCommand = (i, template)=>{
-	const dir = "/priv";
+	const dir = "/priv"+i;
 	var startTess = "java -Xms128M -Xmx128M -jar /tessera/tessera-app.jar -configfile "+dir+"/tessera-config.json";
 	if(i == 0)
 		startTess+=" 2>/logs/constellationLogs/validator-tessera.txt";

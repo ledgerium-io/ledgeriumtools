@@ -17,6 +17,68 @@ const type 								  = dockerTemplate.tesseraFlag;
 const networkName						  = Object.keys(dockerCompose['networks'])[0];
 dockerCompose['services']["quorum-maker"]["networks"][networkName] = { "ipv4_address": dockerTemplate.serviceConfig["quorum-maker"].ip };
 dockerCompose['services']['eth-stats']["networks"][networkName] = { "ipv4_address": dockerTemplate.serviceConfig["eth-stats"].ip };
+var entrypoint
+const getQuorumMakerEntryPoint = (i)=>{
+	if(i==0){
+			entrypoint = "set -u\n"
+			+"set -e\n"
+			+"while : ;do\n"
+			+"sleep 1\n"
+			+"if [ -e /eth/geth.ipc ];then\n"
+			+"break;\n"
+			+"fi\n"
+			+"done\n"
+			+"cd /root/quorum-maker/\n"
+			+"if [ ! -e /root/quorum-maker/setup.conf ];then\n"			
+			+"cp /conf/setup.conf /root/quorum-maker/\n"
+	}
+	if(!type){
+		entrypoint = entrypoint+"PUB=$$(cat /constellation"+i+"/tm.pub)\n"
+	}
+	else{
+		entrypoint = entrypoint+"PUB=$$(cat /priv"+i+"/tm.pub)\n"
+	}
+	if(i==0){
+		entrypoint = entrypoint
+			+"RESPONSE=\`curl https://ipinfo.io/ip\` || \"--\"\n"
+			+"sed -i -e \"/EXTERNAL_IP=/ s/=.*/=$${RESPONSE}/\" ./setup.conf\n"
+			+"sed -i -e \"/CURRENT_IP=/ s/=.*/="+dockerTemplate.serviceConfig.validator.startIp+"/\" ./setup.conf\n"
+			+"sed -i -e \"/RPC_PORT=/ s/=.*/="+dockerTemplate.serviceConfig.validator.rpcPort+"/\" ./setup.conf\n"
+			+"sed -i -e \"/WS_PORT=/ s/=.*/="+dockerTemplate.serviceConfig.validator.wsPort+"/\" ./setup.conf\n"
+			+"sed -i -e \"/WHISPER_PORT=/ s/=.*/="+dockerTemplate.serviceConfig.validator.gossipPort+"/\" ./setup.conf\n"
+			+"sed -i -e \"/CONSTELLATION_PORT=/ s/=.*/="+dockerTemplate.serviceConfig.constellation.port+"/\" ./setup.conf\n"
+			+"sed -i -e \"/CONTRACT_ADD=/ s/=.*/=/\" ./setup.conf\n"
+			+"sed -i -e \"/REGISTERED=/ s/=.*/=/\" ./setup.conf\n"
+			+"sed -i -e \"/NODENAME=/ s/=.*/=validator-"+i+"/\" ./setup.conf\n"
+			+"echo \"PUBKEY=\"$${PUB} >> ./setup.conf\n"
+			+"sed -i -e \"/TOTAL_NODES=/ s/=.*/="+basicConfig.publicKeys.length+"/\" ./setup.conf\n"
+	}
+	else{
+		const startIp         	= dockerTemplate.serviceConfig.validator.startIp.split(".");
+		const ip         		= startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+i);
+		const enode 			= basicConfig.enodes[i]
+		entrypoint = entrypoint 
+			//+"sed -i -e \"/CURRENT_IP=/ s/=.*/="+ip+"/\" ./setup.conf\n"
+			//+"sed -i -e \"/REGISTERED=/ s/=.*/=/\" ./setup.conf\n"
+			//+"sed -i -e \"/NODENAME=/ s/=.*/=validator-"+i+"/\" ./setup.conf\n"
+			//+"sed -i -e \"/ENODE=/ s/=.*/="+enode+"/\" ./setup.conf\n"
+			+"echo "+i+"\"_CURRENT_IP=\""+ip+" >> ./setup.conf\n"
+			+"echo "+i+"\"_REGISTERED=\" >> ./setup.conf\n"
+			+"echo "+i+"\"_NODENAME=validator-\""+i+" >> ./setup.conf\n"
+			+"echo "+i+"\"_ENODE=\""+enode+" >> ./setup.conf\n"
+			+"echo "+i+"\"_PUBKEY=\"$${PUB} >> ./setup.conf\n"
+			+"echo "+i+"\"_RAFT_ID=\""+i+" >> ./setup.conf\n"
+			
+	}
+	if(i==basicConfig.publicKeys.length-1){
+		entrypoint = entrypoint
+			+"fi\n"
+			+"./NodeManager http://"+dockerTemplate.serviceConfig.validator.startIp+":"+dockerTemplate.serviceConfig.validator.rpcPort+" "+dockerTemplate.serviceConfig["quorum-maker"]["port"]+" /logs/gethLogs/ /logs/constellationLogs"
+		return entrypoint;
+	}
+	
+}
+
 
 const getValidator = (i)=>{
 	const startIp         	= dockerTemplate.serviceConfig.validator.startIp.split(".");
@@ -28,21 +90,21 @@ const getValidator = (i)=>{
 	validator.hostname 		= validator.hostname+i;
 	validator.ports  	    = [(gossipPort+i)+":"+gossipPort, (rpcPort+i)+":"+rpcPort, (webSocketPort+i)+":"+webSocketPort];
 	if ( !type ){
-		validator.volumes 	    = ["validator-"+i+":/eth","constellation-"+i+":/constellation:z"];
+		validator.volumes 	    = ["validator-"+i+":/eth","constellation-"+i+":/constellation"+i+":z"];
 		validator["depends_on"] = ["constellation-"+i];
 		validator["environment"]= ["PRIVATE_CONFIG=/constellation/tm.conf"];
 		if (i == 0){
 			dockerCompose["services"]["quorum-maker"].volumes.push("validator-"+i+":/eth");
-			dockerCompose["services"]["quorum-maker"].volumes.push("constellation-"+i+":/constellation:z");
 		}
+		dockerCompose["services"]["quorum-maker"].volumes.push("constellation-"+i+":/constellation"+i+":z");
 	}else{
-		validator.volumes 	    = ["validator-"+i+":/eth","tessera-"+i+":/priv"];
+		validator.volumes 	    = ["validator-"+i+":/eth","tessera-"+i+":/priv"+i];
 		validator["depends_on"] = ["tessera-"+i];
 		validator["environment"]= ["PRIVATE_CONFIG=/priv/tm.ipc"];
 		if (i == 0){
-			dockerCompose["services"]["quorum-maker"].volumes.push("validator-"+i+":/eth");
-			dockerCompose["services"]["quorum-maker"].volumes.push("tessera-"+i+":/priv");
+			dockerCompose["services"]["quorum-maker"].volumes.push("validator-"+i+":/eth");	
 		}
+		dockerCompose["services"]["quorum-maker"].volumes.push("tessera-"+i+":/priv"+i);
 	}
 	if(i == 0){
 		validator.volumes.push("logs:/logs");
@@ -82,7 +144,7 @@ const getConstellation = (i)=>{
 	var constellation 	   = dockerTemplate.services.constellation();
 	constellation.hostname = constellation.hostname+i;
 	constellation.ports    = [(constellationPort+i)+":"+(constellationPort+i)];
-	constellation.volumes  = ["constellation-"+i+":/constellation:z"];
+	constellation.volumes  = ["constellation-"+i+":/constellation"+i+":z"];
 	if(i == 0){
 		constellation.volumes.push("logs:/logs");
 	}
@@ -108,7 +170,7 @@ const getTessera = (i)=>{
 	tesseraTemplate.server.port 				= port;
 	tesseraTemplate.server.hostName 			= "http://"+ip;
 	tesseraTemplate.peer        				= peers;
-	tessera.volumes								= ["tessera-"+i+":/priv"];
+	tessera.volumes								= ["tessera-"+i+":/priv"+i];
 	if(i == 0){
 		tessera.volumes.push("logs:/logs");
 	}
@@ -139,9 +201,9 @@ const getGovernanceUI = (i)=>{
 	gov.entrypoint.push(string);
 	//console.log(dockerCompose.services['validator-'+i].networks[networkName]["ipv4_address"]);
 	if ( !type ){
-		gov.volumes.push("constellation-"+i+":/constellation:z")
+		gov.volumes.push("constellation-"+i+":/constellation"+i+":z")
 	}else{
-		gov.volumes.push('tessera-'+i+':/priv')
+		gov.volumes.push('tessera-'+i+':/priv'+i)
 	}
 	gov.networks[networkName] = { "ipv4_address":ip };
 	return gov;
@@ -159,7 +221,9 @@ for (var i = 0; i < basicConfig.publicKeys.length; i++) {
 	for (var j = volumes.length - 1; j >= 0; j--) {
 		dockerCompose.volumes[volumes[j].split(":")[0]] = null;
 	}
+	getQuorumMakerEntryPoint(i);
 }
+dockerCompose.services['quorum-maker'].entrypoint.push(entrypoint);
 dockerCompose.volumes["logs"] = null;
 fs.writeFileSync(process.argv[2]+'/docker-compose.yml',yaml.dump(dockerCompose,{
   styles: {
