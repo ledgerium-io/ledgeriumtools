@@ -7,10 +7,8 @@ const gethCom = "geth --rpc --rpcaddr '0.0.0.0' --rpccorsdomain '*' \
 --debug --metrics --syncmode 'full' --gasprice 0 --mine --verbosity 3 --nodiscover \
 --emitcheckpoints --istanbul.blockperiod 1 --mine --minerthreads 1 --syncmode full";
 
-const constellationCom = "constellation-node --socket=/constellation/tm.ipc --publickeys=/constellation/tm.pub \
---privatekeys=/constellation/tm.key --storage=/constellation --verbosity=4";
 
-const tesseraFlag = true;
+const tesseraFlag = false;
 const network_name = "test_net";
 var base_ip = "172.19.240.0",entrypoint, qmvolumes =[];
 
@@ -209,7 +207,6 @@ const services = {
 		};
 		quorum.volumes.push("validator-0:/eth");
 		quorum.networks[network_name] = { "ipv4_address": serviceConfig["quorum-maker"].ip }
-		console.log(qmvolumes);
 		quorum.volumes = quorum.volumes.concat(qmvolumes)
 		return quorum;
 	},	    
@@ -276,6 +273,9 @@ const services = {
 		return validator;
 	},
 	"constellation": (i)=>{
+		var constellationCom = "constellation-node --socket=/constellation"+i+"/tm.ipc --publickeys=/constellation"+i+"/tm.pub"
+			+"--privatekeys=/constellation"+i+"/tm.key --storage=/constellation"+i+" --verbosity=4";
+
 		var startIp 	  = serviceConfig.constellation.startIp.split(".");
 		var othernodes 	  = " --othernodes=";
 		var limit 		  = 3;
