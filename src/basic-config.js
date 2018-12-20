@@ -6,6 +6,7 @@ const amount           = "0xfffffffffffffffffffffffffffffffffffff";
 var input   		   = require('./getMnemonics');
 var mnemonic 		   = input.template;
 
+var privateKeyJSON = {}; var writeprivatekeys = true;
 var privateKeys = [], publicKeys = [], static_nodes = "[", extraData, enodes = [];
 const vanity = mnemonic.istanbul.vanity || "0x0000000000000000000000000000000000000000000000000000000000000000";
 const seal   = mnemonic.istanbul.seal || "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";

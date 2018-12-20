@@ -8,7 +8,7 @@ const gethCom = "geth --rpc --rpcaddr '0.0.0.0' --rpccorsdomain '*' \
 --emitcheckpoints --istanbul.blockperiod 1 --mine --minerthreads 1 --syncmode full";
 
 
-const tesseraFlag = false;
+const tesseraFlag = true;
 const network_name = "test_net";
 var base_ip = "172.19.240.0",entrypoint, qmvolumes =[];
 
@@ -67,7 +67,7 @@ const serviceConfig = {
 				"jdbc"          : {
 					"username"		   : "sa",
 				    "password"		   : "",
-				    "url"     		   : "jdbc:h2:.//priv"+i+"/db;MODE=Oracle;TRACE_LEVEL_SYSTEM_OUT=0",
+				    "url"     		   : "jdbc:h2:.//priv/db;MODE=Oracle;TRACE_LEVEL_SYSTEM_OUT=0",
 		            "autoCreateTables" : true
 				},
 				"server"        : {
@@ -76,18 +76,18 @@ const serviceConfig = {
 					"sslConfig": {
 						"tls"                         : "OFF",
 						"generateKeyStoreIfNotExisted": true,
-						"serverKeyStore"              : "/priv"+i+"/server-keystore",
+						"serverKeyStore"              : "/priv/server-keystore",
 						"serverKeyStorePassword"      : "quorum",
-						"serverTrustStore"            : "/priv"+i+"/server-truststore",
+						"serverTrustStore"            : "/priv/server-truststore",
 						"serverTrustStorePassword"    : "quorum",
 						"serverTrustMode"             : "TOFU",
-						"knownClientsFile"            : "/priv"+i+"/knownClients",
-						"clientKeyStore"              : "/priv"+i+"/client-keystore",
+						"knownClientsFile"            : "/priv/knownClients",
+						"clientKeyStore"              : "/priv/client-keystore",
 						"clientKeyStorePassword"  	  : "quorum",
-						"clientTrustStore"            : "/priv"+i+"/client-truststore",
+						"clientTrustStore"            : "/priv/client-truststore",
 						"clientTrustStorePassword"	  : "quorum",
 						"clientTrustMode"             : "TOFU",
-						"knownServersFile"            : "/priv"+i+"/knownServers"
+						"knownServersFile"            : "/priv/knownServers"
 					}
 				},
 				"peer"          : [],
@@ -95,13 +95,13 @@ const serviceConfig = {
 					"passwords": [],
 					"keyData"  : [
 					    {
-						    "privateKeyPath"   : "/priv"+i+"/tm.key",
-							"publicKeyPath": "/priv"+i+"/tm.pub"
+						    "privateKeyPath"   : "/priv/tm.key",
+							"publicKeyPath": "/priv/tm.pub"
 						}
 					]
 				},
 				"alwaysSendTo"  : [],
-				"unixSocketFile": "/priv"+i+"/tm.ipc"/*,
+				"unixSocketFile": "/priv/tm.ipc"/*,
 				"disablePeerDiscovery": true*/
 			}	
 		},
@@ -214,7 +214,7 @@ const services = {
 			],
 			"volumes"    : [],
 			"depends_on" : ["constellation-"],
-			"environment":	["PRIVATE_CONFIG=/constellation"+i+"/tm.conf"],
+			"environment":	["PRIVATE_CONFIG=/constellation/tm.conf"],
 			"entrypoint" : ["/bin/sh","-c"],
 			"networks"	:	{
 			},
@@ -223,13 +223,13 @@ const services = {
 		var startWait = "";
 		var cpPubKeys = "";
 		if ( !tesseraFlag ){
-			validator.volumes 	    = ["validator-"+i+":/eth","constellation-"+i+":/constellation"+i+":z","./tmp:/tmp"];
+			validator.volumes 	    = ["validator-"+i+":/eth","constellation-"+i+":/constellation:z","./tmp:/tmp"];
 			validator["depends_on"] = ["constellation-"+i];
 			validator["environment"]= ["PRIVATE_CONFIG=/constellation/tm.conf"];
 			startWait 				= "while [ ! -e /constellation/tm.ipc ];do"
 			cpPubKeys = "cp /constellation/tm.pub /tmp/tm"+i+".pub";
 		}else{
-			validator.volumes 	    = ["validator-"+i+":/eth","tessera-"+i+":/priv"+i,"./tmp:/tmp"];
+			validator.volumes 	    = ["validator-"+i+":/eth","tessera-"+i+":/priv","./tmp:/tmp"];
 			validator["depends_on"] = ["tessera-"+i];
 			validator["environment"]= ["PRIVATE_CONFIG=/priv/tm.ipc"];
 			startWait               = "while [ ! -e /priv/tm.ipc ];do";
@@ -263,8 +263,8 @@ const services = {
 		return validator;
 	},
 	"constellation": (i)=>{
-		var constellationCom = "constellation-node --socket=/constellation"+i+"/tm.ipc --publickeys=/constellation"+i+"/tm.pub"
-			+"--privatekeys=/constellation"+i+"/tm.key --storage=/constellation"+i+" --verbosity=4";
+		var constellationCom = "constellation-node --socket=/constellation/tm.ipc --publickeys=/constellation/tm.pub "
+			+"--privatekeys=/constellation/tm.key --storage=/constellation --verbosity=4";
 
 		var startIp 	  = serviceConfig.constellation.startIp.split(".");
 		var othernodes 	  = " --othernodes=";
@@ -288,20 +288,20 @@ const services = {
 			"hostname"   : "constellation-"+i,
 			"image"		: "quorumengineering/constellation:latest",
 			"ports"	     : [(serviceConfig.constellation.port+i)+":"+(serviceConfig.constellation.port+i)],
-			"volumes"    : ["constellation-"+i+":/constellation"+i+":z"],
+			"volumes"    : ["constellation-"+i+":/constellation:z"],
 			"entrypoint" : ["/bin/sh","-c"],
 			"networks"	: {
 			},
 			"restart"	: "always"	
 		};
 		const commands = [
-			"rm -f /constellation"+i+"/tm.ipc",
-			"if [ ! -e \"/constellation"+i+"/tm.pub\" ];then",
-			"mkdir -p /constellation"+i+"",
+			"rm -f /constellation/tm.ipc",
+			"if [ ! -e \"/constellation/tm.pub\" ];then",
+			"mkdir -p /constellation",
 			"mkdir -p /logs/constellationLogs",
-			"echo \"socket=\\"+"\"/constellation"+i+"/tm.ipc\\"+"\"\\npublickeys=[\\"+"\"/constellation"+i+"/tm.pub\\"+"\"]\\n\" > /constellation"+i+"/tm.conf",
-			"constellation-node --generatekeys=/constellation"+i+"/tm",
-			"cp /constellation"+i+"/tm.pub /tmp/tm"+i+".pub",
+			"echo \"socket=\\"+"\"/constellation/tm.ipc\\"+"\"\\npublickeys=[\\"+"\"/constellation/tm.pub\\"+"\"]\\n\" > /constellation/tm.conf",
+			"constellation-node --generatekeys=/constellation/tm",
+			"cp /constellation/tm.pub /tmp/tm"+i+".pub",
 			"fi",
 			startConst
 		];
@@ -312,7 +312,7 @@ const services = {
 		return constellation;
 	},
 	"tessera": (i)=>{
-		var startTess = "java -Xms128M -Xmx128M -jar /tessera/tessera-app.jar -configfile /priv"+i+"/tessera-config.json";
+		var startTess = "java -Xms128M -Xmx128M -jar /tessera/tessera-app.jar -configfile /priv/tessera-config.json";
 		if(i == 0)
 			startTess+=" >/logs/constellationLogs/validator-tessera.txt 2>&1"
 		var tesseraTemplate  = serviceConfig.tessera.tesseraTemplate(i);
@@ -334,15 +334,15 @@ const services = {
 		tesseraTemplate.server.port 				= serviceConfig.tessera.port;
 		tesseraTemplate.server.hostName 			= "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]));
 		tesseraTemplate.peer        				= peers;
-		tessera.volumes								= ["tessera-"+i+":/priv"+i];
+		tessera.volumes								= ["tessera-"+i+":/priv"];
 		const commands = [
-			"rm -f /priv"+i+"/tm.ipc",
-			"if [ ! -e \"/priv"+i+"/tm.key\" ];then",
-			"mkdir -p /priv"+i+"",
+			"rm -f /priv/tm.ipc",
+			"if [ ! -e \"/priv/tm.key\" ];then",
+			"mkdir -p /priv",
 			"mkdir -p /logs/constellationLogs",
-			"echo -e \"\\n\" | java -jar /tessera/tessera-app.jar -keygen -filename /priv"+i+"/tm",
-			"echo '"+JSON.stringify(tesseraTemplate)+"' > /priv"+i+"/tessera-config.json",
-			"cp /priv"+i+"/tm.pub /tmp/tm"+i+".pub",
+			"echo -e \"\\n\" | java -jar /tessera/tessera-app.jar -keygen -filename /priv/tm",
+			"echo '"+JSON.stringify(tesseraTemplate)+"' > /priv/tessera-config.json",
+			"cp /priv/tm.pub /tmp/tm"+i+".pub",
 			"fi",
 			startTess
 		];
@@ -379,9 +379,9 @@ const services = {
 		string+="node governanceUI.js "+vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i)+" "+serviceConfig.validator.rpcPort+"\n";
 		gov.entrypoint.push(string);
 		if ( !tesseraFlag ){
-			gov.volumes.push("constellation-"+i+":/constellation"+i+":z")
+			gov.volumes.push("constellation-"+i+":/constellation:z")
 		}else{
-			gov.volumes.push('tessera-'+i+':/priv'+i)
+			gov.volumes.push('tessera-'+i+':/priv')
 		}
 		gov.networks[network_name] = { "ipv4_address":ip };
 		return gov;
