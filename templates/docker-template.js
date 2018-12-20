@@ -12,7 +12,7 @@ const constellationCom = "constellation-node --socket=/constellation/tm.ipc --pu
 
 const tesseraFlag = false;
 const network_name = "test_net";
-var base_ip = "172.19.240.0"
+var base_ip = "172.19.240.0",entrypoint, qmvolumes =[];
 
 const genCommand = (commands)=>{
 	var commandString = "";
@@ -63,13 +63,13 @@ const serviceConfig = {
 	"tessera":{
 		"startIp":base_ip.slice(0, base_ip.length-1)+"100",
 		"port":10000,
-		"tesseraTemplate": ()=>{
+		"tesseraTemplate": (i)=>{
 			return {
 				"useWhiteList"  : false,
 				"jdbc"          : {
 					"username"		   : "sa",
 				    "password"		   : "",
-				    "url"     		   : "jdbc:h2:.//priv/db;MODE=Oracle;TRACE_LEVEL_SYSTEM_OUT=0",
+				    "url"     		   : "jdbc:h2:.//priv"+i+"/db;MODE=Oracle;TRACE_LEVEL_SYSTEM_OUT=0",
 		            "autoCreateTables" : true
 				},
 				"server"        : {
@@ -78,18 +78,18 @@ const serviceConfig = {
 					"sslConfig": {
 						"tls"                         : "OFF",
 						"generateKeyStoreIfNotExisted": true,
-						"serverKeyStore"              : "/priv/server-keystore",
+						"serverKeyStore"              : "/priv"+i+"/server-keystore",
 						"serverKeyStorePassword"      : "quorum",
-						"serverTrustStore"            : "/priv/server-truststore",
+						"serverTrustStore"            : "/priv"+i+"/server-truststore",
 						"serverTrustStorePassword"    : "quorum",
 						"serverTrustMode"             : "TOFU",
-						"knownClientsFile"            : "/priv/knownClients",
-						"clientKeyStore"              : "/priv/client-keystore",
+						"knownClientsFile"            : "/priv"+i+"/knownClients",
+						"clientKeyStore"              : "/priv"+i+"/client-keystore",
 						"clientKeyStorePassword"  	  : "quorum",
-						"clientTrustStore"            : "/priv/client-truststore",
+						"clientTrustStore"            : "/priv"+i+"/client-truststore",
 						"clientTrustStorePassword"	  : "quorum",
 						"clientTrustMode"             : "TOFU",
-						"knownServersFile"            : "/priv/knownServers"
+						"knownServersFile"            : "/priv"+i+"/knownServers"
 					}
 				},
 				"peer"          : [],
@@ -97,13 +97,13 @@ const serviceConfig = {
 					"passwords": [],
 					"keyData"  : [
 					    {
-						    "privateKeyPath"   : "/priv/tm.key",
-							"publicKeyPath": "/priv/tm.pub"
+						    "privateKeyPath"   : "/priv"+i+"/tm.key",
+							"publicKeyPath": "/priv"+i+"/tm.pub"
 						}
 					]
 				},
 				"alwaysSendTo"  : [],
-				"unixSocketFile": "/priv/tm.ipc"/*,
+				"unixSocketFile": "/priv"+i+"/tm.ipc"/*,
 				"disablePeerDiscovery": true*/
 			}	
 		},
@@ -118,6 +118,70 @@ const serviceConfig = {
 		"startIp" : base_ip.slice(0, base_ip.length-1)+"150"
 	}
 };
+const helper = {
+	"quorum-maker": (i)=>{
+		if(i==0){
+			entrypoint = "set -u\n"
+			+"set -e\n"
+			+"while : ;do\n"
+			+"sleep 1\n"
+			+"if [ -e /eth/geth.ipc ];then\n"
+			+"break;\n"
+			+"fi\n"
+			+"done\n"
+			+"cd /root/quorum-maker/\n"
+			+"if [ ! -e /root/quorum-maker/setup.conf ];then\n"			
+			+"cp /conf/setup.conf /root/quorum-maker/\n"
+		}
+		if(!tesseraFlag){
+			qmvolumes.push("constellation-"+i+":/constellation"+i+":z");
+			entrypoint = entrypoint+"PUB=$$(cat /constellation"+i+"/tm.pub)\n"
+		}
+		else{
+			entrypoint = entrypoint+"PUB=$$(cat /priv"+i+"/tm.pub)\n"
+			qmvolumes.push("tessera-"+i+":/priv"+i);
+		}
+		if(i==0){
+			entrypoint = entrypoint
+			+"RESPONSE=\`curl https://ipinfo.io/ip\` || \"--\"\n"
+			+"sed -i -e \"/EXTERNAL_IP=/ s/=.*/=$${RESPONSE}/\" ./setup.conf\n"
+			+"sed -i -e \"/CURRENT_IP=/ s/=.*/="+serviceConfig.validator.startIp+"/\" ./setup.conf\n"
+			+"sed -i -e \"/RPC_PORT=/ s/=.*/="+serviceConfig.validator.rpcPort+"/\" ./setup.conf\n"
+			+"sed -i -e \"/WS_PORT=/ s/=.*/="+serviceConfig.validator.wsPort+"/\" ./setup.conf\n"
+			+"sed -i -e \"/WHISPER_PORT=/ s/=.*/="+serviceConfig.validator.gossipPort+"/\" ./setup.conf\n"
+			+"sed -i -e \"/CONSTELLATION_PORT=/ s/=.*/="+serviceConfig.constellation.port+"/\" ./setup.conf\n"
+			+"sed -i -e \"/CONTRACT_ADD=/ s/=.*/=/\" ./setup.conf\n"
+			+"sed -i -e \"/REGISTERED=/ s/=.*/=/\" ./setup.conf\n"
+			+"sed -i -e \"/NODENAME=/ s/=.*/=validator-"+i+"/\" ./setup.conf\n"
+			+"echo \"PUBKEY=\"$${PUB} >> ./setup.conf\n"
+			+"sed -i -e \"/TOTAL_NODES=/ s/=.*/="+basicConfig.publicKeys.length+"/\" ./setup.conf\n"
+		}
+		else{
+			const startIp         	= serviceConfig.validator.startIp.split(".");
+			const ip         		= startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+i);
+			const enode 			= basicConfig.enodes[i]
+			entrypoint = entrypoint 
+			//+"sed -i -e \"/CURRENT_IP=/ s/=.*/="+ip+"/\" ./setup.conf\n"
+			//+"sed -i -e \"/REGISTERED=/ s/=.*/=/\" ./setup.conf\n"
+			//+"sed -i -e \"/NODENAME=/ s/=.*/=validator-"+i+"/\" ./setup.conf\n"
+			//+"sed -i -e \"/ENODE=/ s/=.*/="+enode+"/\" ./setup.conf\n"
+			+"echo "+i+"\"_CURRENT_IP=\""+ip+" >> ./setup.conf\n"
+			+"echo "+i+"\"_REGISTERED=\" >> ./setup.conf\n"
+			+"echo "+i+"\"_NODENAME=validator-\""+i+" >> ./setup.conf\n"
+			+"echo "+i+"\"_ENODE=\""+enode+" >> ./setup.conf\n"
+			+"echo "+i+"\"_PUBKEY=\"$${PUB} >> ./setup.conf\n"
+			+"echo "+i+"\"_RAFT_ID=\""+i+" >> ./setup.conf\n"
+			+"echo "+i+"\"_ROLE=Unassigned\" >> ./setup.conf\n"
+			
+		}
+		if(i==basicConfig.publicKeys.length-1){
+			entrypoint = entrypoint
+			+"fi\n"
+			+"./NodeManager http://"+serviceConfig.validator.startIp+":"+serviceConfig.validator.rpcPort+" "+serviceConfig["quorum-maker"]["port"]+" /logs/gethLogs/ /logs/constellationLogs"
+			
+		}	
+	}
+}
 const services = {
 	"eth-stats": ()=>{
 		var eth = {
@@ -131,48 +195,22 @@ const services = {
 		eth.networks[network_name] = { "ipv4_address":serviceConfig["eth-stats"].ip };
 		return eth;
 	},
-	"quorum-maker": ()=>{ 
+	"quorum-maker": ()=>{
 		var quorum = {
 			"hostname": "quorum-maker",
-			"image"   : "ledgeriumengineering/quorum-maker:v0.1",
+			"image"   : "mythrihegde/quorumumaker:2.1.1_2.5.1",//ledgeriumengineering/quorum-maker:v0.1
 			"ports"	  : [serviceConfig["quorum-maker"].port+":"+serviceConfig["quorum-maker"].port],
 			"volumes" : ["./quorum-maker-conf:/conf","logs:/logs"],
 			"depends_on": ["validator-0"],
-			"entrypoint":[ "/bin/sh", "-c", "set -u\n"
-				+"set -e\n"
-				+"while : ;do\n"
-				+"sleep 1\n"
-				+"if [ -e /eth/geth.ipc ];then\n"
-				+"break;\n"
-				+"fi\n"
-				+"done\n"
-				+"cd /root/quorum-maker/\n"
-				//+"PUB=$$(cat /priv/tm.pub)\n"
-				+"PUB=$$(echo $${PUB} | tr \"/\" \"\\/\")\n"
-				+"if [ ! -e /root/quorum-maker/setup.conf ];then\n"			
-				+"cp /conf/setup.conf /root/quorum-maker/\n"
-				//+"sed -i -e \"/PUBKEY=/ s/=.*/=$${PUB}/\" ./setup.conf\n"
-				+"sed -i -e \"/CURRENT_IP=/ s/=.*/="+serviceConfig.validator.startIp+"/\" ./setup.conf\n"
-				+"sed -i -e \"/RPC_PORT=/ s/=.*/="+serviceConfig.validator.rpcPort+"/\" ./setup.conf\n"
-				+"sed -i -e \"/WS_PORT=/ s/=.*/="+serviceConfig.validator.wsPort+"/\" ./setup.conf\n"
-				+"sed -i -e \"/WHISPER_PORT=/ s/=.*/="+serviceConfig.validator.gossipPort+"/\" ./setup.conf\n"
-				+"sed -i -e \"/CONSTELLATION_PORT=/ s/=.*/="+serviceConfig.constellation.port+"/\" ./setup.conf\n"
-				+"sed -i -e \"/CONTRACT_ADD=/ s/=.*/=/\" ./setup.conf\n"
-				+"sed -i -e \"/REGISTERED=/ s/=.*/=/\" ./setup.conf\n"
-				+"fi\n"
-				+"./NodeManager http://"+serviceConfig.validator.startIp+":"+serviceConfig.validator.rpcPort+" "
-				+serviceConfig["quorum-maker"]["port"]+" /logs/gethLogs/ /logs/constellationLogs"
-			],
+			"entrypoint":["/bin/sh", "-c",entrypoint],
 			"networks": {
 			},
 			"restart": "always"
 		};
 		quorum.volumes.push("validator-0:/eth");
 		quorum.networks[network_name] = { "ipv4_address": serviceConfig["quorum-maker"].ip }
-		if(tesseraFlag)
-			quorum.volumes.push("tessera-0:/priv");
-		else
-			quorum.volumes.push("constellation-0:/constellation:z");
+		console.log(qmvolumes);
+		quorum.volumes = quorum.volumes.concat(qmvolumes)
 		return quorum;
 	},	    
 	"validator": (i)=>{
@@ -193,7 +231,7 @@ const services = {
 			],
 			"volumes"    : [],
 			"depends_on" : ["constellation-"],
-			"environment":	["PRIVATE_CONFIG=/constellation/tm.conf"],
+			"environment":	["PRIVATE_CONFIG=/constellation"+i+"/tm.conf"],
 			"entrypoint" : ["/bin/sh","-c"],
 			"networks"	:	{
 			},
@@ -201,15 +239,15 @@ const services = {
 		};
 		var startWait = "";
 		if ( !tesseraFlag ){
-			validator.volumes 	    = ["validator-"+i+":/eth","constellation-"+i+":/constellation:z","./tmp:/tmp"];
+			validator.volumes 	    = ["validator-"+i+":/eth","constellation-"+i+":/constellation"+i+":z","./tmp:/tmp"];
 			validator["depends_on"] = ["constellation-"+i];
-			validator["environment"]= ["PRIVATE_CONFIG=/constellation/tm.conf"];
-			startWait 				= "while [ ! -e /constellation/tm.ipc ];do"
+			validator["environment"]= ["PRIVATE_CONFIG=/constellation"+i+"/tm.conf"];
+			startWait 				= "while [ ! -e /constellation"+i+"/tm.ipc ];do"
 		}else{
-			validator.volumes 	    = ["validator-"+i+":/eth","tessera-"+i+":/priv","./tmp:/tmp"];
+			validator.volumes 	    = ["validator-"+i+":/eth","tessera-"+i+":/priv"+i,"./tmp:/tmp"];
 			validator["depends_on"] = ["tessera-"+i];
-			validator["environment"]= ["PRIVATE_CONFIG=/priv/tm.ipc"];
-			startWait               = "while [ ! -e /priv/tm.ipc ];do";
+			validator["environment"]= ["PRIVATE_CONFIG=/priv"+i+"/tm.ipc"];
+			startWait               = "while [ ! -e /priv"+i+"/tm.ipc ];do";
 		}
 		const commands = [
 			startWait,
@@ -260,20 +298,20 @@ const services = {
 			"hostname"   : "constellation-"+i,
 			"image"		: "quorumengineering/constellation:latest",
 			"ports"	     : [(serviceConfig.constellation.port+i)+":"+(serviceConfig.constellation.port+i)],
-			"volumes"    : ["constellation-"+i+":/constellation:z"],
+			"volumes"    : ["constellation-"+i+":/constellation"+i+":z"],
 			"entrypoint" : ["/bin/sh","-c"],
 			"networks"	: {
 			},
 			"restart"	: "always"	
 		};
 		const commands = [
-			"rm -f /constellation/tm.ipc",
-			"if [ ! -e \"/constellation/tm.pub\" ];then",
-			"mkdir -p /constellation",
+			"rm -f /constellation"+i+"/tm.ipc",
+			"if [ ! -e \"/constellation"+i+"/tm.pub\" ];then",
+			"mkdir -p /constellation"+i+"",
 			"mkdir -p /logs/constellationLogs",
-			"echo \"socket=\\"+"\"/constellation/tm.ipc\\"+"\"\\npublickeys=[\\"+"\"/constellation/tm.pub\\"+"\"]\\n\" > /constellation/tm.conf",
-			"constellation-node --generatekeys=/constellation/tm",
-			"cp /constellation/tm.pub /tmp/tm"+i+".pub",
+			"echo \"socket=\\"+"\"/constellation"+i+"/tm.ipc\\"+"\"\\npublickeys=[\\"+"\"/constellation"+i+"/tm.pub\\"+"\"]\\n\" > /constellation"+i+"/tm.conf",
+			"constellation-node --generatekeys=/constellation"+i+"/tm",
+			"cp /constellation"+i+"/tm.pub /tmp/tm"+i+".pub",
 			"fi",
 			startConst
 		];
@@ -284,10 +322,10 @@ const services = {
 		return constellation;
 	},
 	"tessera": (i)=>{
-		var startTess = "java -Xms128M -Xmx128M -jar /tessera/tessera-app.jar -configfile /priv/tessera-config.json";
+		var startTess = "java -Xms128M -Xmx128M -jar /tessera/tessera-app.jar -configfile /priv"+i+"/tessera-config.json";
 		if(i == 0)
-			startTess+=" 2>/logs/constellationLogs/validator-tessera.txt"
-		var tesseraTemplate  = serviceConfig.tessera.tesseraTemplate();
+			startTess+=" >/logs/constellationLogs/validator-tessera.txt 2>&1"
+		var tesseraTemplate  = serviceConfig.tessera.tesseraTemplate(i);
 		var tessera          = {
 			"hostname"   : "tessera"+i,
 			"image"		: "quorumengineering/tessera:latest",
@@ -306,15 +344,15 @@ const services = {
 		tesseraTemplate.server.port 				= serviceConfig.tessera.port;
 		tesseraTemplate.server.hostName 			= "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]));
 		tesseraTemplate.peer        				= peers;
-		tessera.volumes								= ["tessera-"+i+":/priv"];
+		tessera.volumes								= ["tessera-"+i+":/priv"+i];
 		const commands = [
-			"rm -f /priv/tm.ipc",
-			"if [ ! -e \"/priv/tm.key\" ];then",
-			"mkdir -p /priv",
+			"rm -f /priv"+i+"/tm.ipc",
+			"if [ ! -e \"/priv"+i+"/tm.key\" ];then",
+			"mkdir -p /priv"+i+"",
 			"mkdir -p /logs/constellationLogs",
-			"echo -e \"\\n\" | java -jar /tessera/tessera-app.jar -keygen -filename /priv/tm",
-			"echo '"+JSON.stringify(tesseraTemplate)+"' > /priv/tessera-config.json",
-			"cp /priv/tm.pub /tmp/tm"+i+".pub",
+			"echo -e \"\\n\" | java -jar /tessera/tessera-app.jar -keygen -filename /priv"+i+"/tm",
+			"echo '"+JSON.stringify(tesseraTemplate)+"' > /priv"+i+"/tessera-config.json",
+			"cp /priv"+i+"/tm.pub /tmp/tm"+i+".pub",
 			"fi",
 			startTess
 		];
@@ -351,9 +389,9 @@ const services = {
 		string+="node governanceUI.js "+vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i)+" "+serviceConfig.validator.rpcPort+"\n";
 		gov.entrypoint.push(string);
 		if ( !tesseraFlag ){
-			gov.volumes.push("constellation-"+i+":/constellation:z")
+			gov.volumes.push("constellation-"+i+":/constellation"+i+":z")
 		}else{
-			gov.volumes.push('tessera-'+i+':/priv')
+			gov.volumes.push('tessera-'+i+':/priv'+i)
 		}
 		gov.networks[network_name] = { "ipv4_address":ip };
 		return gov;
@@ -373,3 +411,4 @@ exports.services 				= services;
 exports.serviceConfig			= serviceConfig;
 exports.networks				= networks;
 exports.tesseraFlag				= tesseraFlag;
+exports.helper 					= helper;
