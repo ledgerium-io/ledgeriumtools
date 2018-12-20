@@ -26,7 +26,6 @@ for (var i = 0; i < basicConfig.publicKeys.length; i++) {
 		if(volumes[j].slice(0,1) != ".")
 			dockerCompose.volumes[volumes[j].split(":")[0]] = null;
 	}
-	dockerTemplate.helper["quorum-maker"](i);
 }
 
 dockerCompose["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
