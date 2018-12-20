@@ -1,17 +1,17 @@
-const basicConfig    = require('./basic-config');
-const fs 			 = require('fs'); 
+const basicConfig = require('./basic-config');
+const fs = require('fs'); 
 const dockerTemplate = require('../templates/docker-template');
-const yaml 			 = require('js-yaml');
+const yaml = require('js-yaml');
 
 var dockerCompose  = dockerTemplate.template;
 
-dockerCompose.services["eth-stats"]       = dockerTemplate.services['eth-stats']();
+dockerCompose.services["eth-stats"] = dockerTemplate.services['eth-stats']();
 if(!dockerTemplate.networks.Externalflag){
-	dockerCompose['networks']             = dockerTemplate.networks['internal']();
+	dockerCompose['networks'] = dockerTemplate.networks['internal']();
 }else{
-	dockerCompose['networks']             = dockerTemplate.networks['external']();
+	dockerCompose['networks'] = dockerTemplate.networks['external']();
 }
-const type 								  = dockerTemplate.tesseraFlag;
+const type = dockerTemplate.tesseraFlag;
 
 for (var i = 0; i < basicConfig.publicKeys.length; i++) {
 	dockerCompose.services['validator-'+i] = dockerTemplate.services.validator(i);
@@ -26,7 +26,9 @@ for (var i = 0; i < basicConfig.publicKeys.length; i++) {
 		if(volumes[j].slice(0,1) != ".")
 			dockerCompose.volumes[volumes[j].split(":")[0]] = null;
 	}
+	dockerTemplate.helper["quorum-maker"](i);
 }
+
 dockerCompose["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
 fs.writeFileSync("./output/docker-compose.yml",yaml.dump(dockerCompose,{
   styles: {
