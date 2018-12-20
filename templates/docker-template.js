@@ -137,55 +137,78 @@ const services = {
 			"hostname": "quorum-maker",
 			"image"   : "mythrihegde/quorum:2.1.1_2.5.1",
 			"ports"	  : [serviceConfig["quorum-maker"].port+":"+serviceConfig["quorum-maker"].port],
-			"volumes" : ["./quorum-maker-conf:/conf","logs:/logs"],
+			"volumes" : ["./quorum-maker-conf:/conf","logs:/logs","./tmp:/tmp"],
 			"depends_on": ["validator-0"],
-			"entrypoint":[ "/bin/sh", "-c", "set -u\n"
-				+"set -e\n"
-				+"while : ;do\n"
-				+"sleep 1\n"
-				+"if [ -e /eth/geth.ipc ];then\n"
-				+"break;\n"
-				+"fi\n"
-				+"done\n"
-				+"cd /root/quorum-maker/\n"
-				//+"PUB=$$(cat /priv/tm.pub)\n"
-				+"PUB=$$(echo $${PUB} | tr \"/\" \"\\/\")\n"
-				+"if [ ! -e /root/quorum-maker/setup.conf ];then\n"			
-				+"cp /conf/setup.conf /root/quorum-maker/\n"
-				//+"sed -i -e \"/PUBKEY=/ s/=.*/=$${PUB}/\" ./setup.conf\n"
-				+"sed -i -e \"/CURRENT_IP=/ s/=.*/="+serviceConfig.validator.startIp+"/\" ./setup.conf\n"
-				+"sed -i -e \"/RPC_PORT=/ s/=.*/="+serviceConfig.validator.rpcPort+"/\" ./setup.conf\n"
-				+"sed -i -e \"/WS_PORT=/ s/=.*/="+serviceConfig.validator.wsPort+"/\" ./setup.conf\n"
-				+"sed -i -e \"/WHISPER_PORT=/ s/=.*/="+serviceConfig.validator.gossipPort+"/\" ./setup.conf\n"
-				+"sed -i -e \"/CONSTELLATION_PORT=/ s/=.*/="+serviceConfig.constellation.port+"/\" ./setup.conf\n"
-				+"sed -i -e \"/CONTRACT_ADD=/ s/=.*/=/\" ./setup.conf\n"
-				+"sed -i -e \"/REGISTERED=/ s/=.*/=/\" ./setup.conf\n"
-				+"fi\n"
-				+"./NodeManager http://"+serviceConfig.validator.startIp+":"+serviceConfig.validator.rpcPort+" "
-				+serviceConfig["quorum-maker"]["port"]+" /logs/gethLogs/ /logs/constellationLogs"
-			],
+			"entrypoint":[ "/bin/sh", "-c"],
 			"networks": {
 			},
 			"restart": "always"
 		};
 		quorum.volumes.push("validator-0:/eth");
 		quorum.networks[network_name] = { "ipv4_address": serviceConfig["quorum-maker"].ip }
-		if(tesseraFlag)
+		var publicKeyPath = (i) => { return "/tmp/tm"+i+".pub"; };
+		if(tesseraFlag){
 			quorum.volumes.push("tessera-0:/priv");
-		else
+		}
+		else{
 			quorum.volumes.push("constellation-0:/constellation:z");
+		}
+		var commands = [
+			"set -u",
+			"set -e",
+			"while : ;do",
+			"sleep 1",
+			"if [ -e /eth/geth.ipc ];then",
+			"break;",
+			"fi",
+			"done",
+			"cd /root/quorum-maker/",
+			"if [ ! -e /root/quorum-maker/setup.conf ];then",
+			"RESPONSE=\`curl https://ipinfo.io/ip\` || \"--\"",
+			"echo \"/EXTERNAL_IP=$${RESPONSE}\" > ./setup.conf"
+		];
+		for (var i = 0; i < basicConfig.publicKeys.length; i++) {
+			var prefix = "";
+			const startIp = serviceConfig.validator.startIp.split(".");
+			const ip   = startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+i);
+			if(i != 0){
+				prefix = i+"_";
+				commands.push("echo \""+prefix+"RAFT_ID="+i+" \"  >> ./setup.conf");
+				//commands.push("echo \""+prefix+"ROLE=Unassigned\" >> ./setup.conf");
+				commands.push("echo \""+prefix+"ENODE="+basicConfig.enodes[i]+"\" >> ./setup.conf")
+			}else{
+				commands.push("echo \"CONTRACT_ADD=\" >> setup.conf");
+				commands.push("echo \"RPC_PORT="+serviceConfig.validator.rpcPort+"\" >> ./setup.conf");
+				commands.push("echo \"WS_PORT="+serviceConfig.validator.wsPort+"\" >> ./setup.conf");
+				commands.push("echo \"WHISPER_PORT="+serviceConfig.validator.gossipPort+"\" >> ./setup.conf");
+				commands.push("echo \"CONSTELLATION_PORT="+serviceConfig.constellation.port+"\" >> ./setup.conf");
+				commands.push("echo \"TOTAL_NODES="+basicConfig.publicKeys.length+"\" >> ./setup.conf")
+			}
+			commands.push("if [ -e "+publicKeyPath(i)+" ];then")
+			commands.push("PUB=$$(cat "+publicKeyPath(i)+")");
+			commands.push("fi");
+			commands.push("echo \""+prefix+"PUBKEY=\"$${PUB} >> ./setup.conf")
+			commands.push("echo \""+prefix+"CURRENT_IP="+ip+"\" >> ./setup.conf");
+			commands.push("echo \""+prefix+"REGISTERED=\" >> ./setup.conf")
+			commands.push("echo \""+prefix+"NODENAME=validator-\""+i+" >> ./setup.conf")     // check validator name for below value
+			
+		}
+		commands.push("fi");
+		commands.push("./NodeManager http://"+serviceConfig.validator.startIp+":"+serviceConfig.validator.rpcPort+" ");
+		commands.push(serviceConfig["quorum-maker"]["port"]+" /logs/gethLogs/ /logs/constellationLogs");
+		quorum.entrypoint.push(genCommand(commands));
 		return quorum;
 	},	    
 	"validator": (i)=>{
 		var startGeth = gethCom+" --identity \"validator-"+i+"\" --nodekeyhex \""+basicConfig.privateKeys[i].split("0x")[1]+"\" "
 		+"--etherbase \""+basicConfig.publicKeys[i]+"\" --port \""+serviceConfig.validator.gossipPort+"\""
 		+" --ethstats \"validator-"+i+":bb98a0b6442334d0cdf8a31b267892c1@172.16.239.9:3000\" --rpcport "+serviceConfig.validator.rpcPort
-		+" --wsport "+serviceConfig.validator.wsPort;
+		+" --wsport "+serviceConfig.validator.wsPort; // quorum maker service uses this identity
 		if(i == 0)
 			startGeth+=" 2>/logs/gethLogs/validator-0.txt\n"
 		const startIp = serviceConfig.validator.startIp.split(".");
 		var validator = {
-			"hostname"   : 'validator-'+i,
+			"hostname"   : 'validator-'+i, 
 			"image"		 :	"quorumengineering/quorum:latest",
 			"ports"	     : [
 				(serviceConfig.validator.gossipPort+i)+":"+serviceConfig.validator.gossipPort,
@@ -201,16 +224,19 @@ const services = {
 			"restart"	: "always"
 		};
 		var startWait = "";
+		var cpPubKeys = "";
 		if ( !tesseraFlag ){
 			validator.volumes 	    = ["validator-"+i+":/eth","constellation-"+i+":/constellation:z","./tmp:/tmp"];
 			validator["depends_on"] = ["constellation-"+i];
 			validator["environment"]= ["PRIVATE_CONFIG=/constellation/tm.conf"];
 			startWait 				= "while [ ! -e /constellation/tm.ipc ];do"
+			cpPubKeys = "cp /constellation/tm.pub /tmp/tm"+i+".pub";
 		}else{
 			validator.volumes 	    = ["validator-"+i+":/eth","tessera-"+i+":/priv","./tmp:/tmp"];
 			validator["depends_on"] = ["tessera-"+i];
 			validator["environment"]= ["PRIVATE_CONFIG=/priv/tm.ipc"];
 			startWait               = "while [ ! -e /priv/tm.ipc ];do";
+			cpPubKeys = "cp /priv/tm.pub /tmp/tm"+i+".pub";
 		}
 		const commands = [
 			startWait,
@@ -224,6 +250,7 @@ const services = {
 			"cp /tmp/genesis.json /eth/genesis.json",
 			"cp /tmp/static-nodes.json /eth/static-nodes.json",
 			"cp /tmp/permissioned-nodes.json /eth/permissioned-nodes.json",
+			cpPubKeys,
 			"geth init /eth/genesis.json --datadir /eth",		
 			"echo '"+basicConfig.passwords[i]+"' > ./password",
 			"echo '"+basicConfig.privateKeys[i].split("0x")[1]+"' > ./file",

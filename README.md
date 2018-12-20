@@ -27,4 +27,5 @@ The docker file will be generated in the <output-dir>,<br>
 use <code>docker-compose up -d</code> to start up the nodes<br>
 and <code> docker-compose down </code> to bring down the nodes<br><br>
 
-<i> <b>Note :</b> don't use the -v option to bring down the nodes as the current blockchain data will be lost </i>
+<i> <b>Note :</b> don't use the -v option to bring down the nodes as the current blockchain data will be lost<br>
+for subsequent runs make sure the tmp dir created in output folder is deleted </i>

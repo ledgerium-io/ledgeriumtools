@@ -6,7 +6,7 @@ const amount           = "0xfffffffffffffffffffffffffffffffffffff";
 var input   		   = require('./getMnemonics');
 var mnemonic 		   = input.template;
 
-var privateKeys = [], publicKeys = [], static_nodes = "[", extraData;
+var privateKeys = [], publicKeys = [], static_nodes = "[", extraData, enodes = [];
 const vanity = mnemonic.istanbul.vanity || "0x0000000000000000000000000000000000000000000000000000000000000000";
 const seal   = mnemonic.istanbul.seal || "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
 
@@ -23,8 +23,10 @@ var baseIp = dockerTemplate.serviceConfig.validator.startIp.split(".");
 const startIp = (parseInt(baseIp[3]));
 baseIp = baseIp[0]+"."+baseIp[1]+"."+baseIp[2]+".";
 for (var i = 0; i < privateKeys.length; i++) {
+	var temp = ethUtil.privateToPublic(privateKeys[i]).toString('hex');
+	enodes.push(temp);
 	static_nodes += (
-		"\"enode://"+ethUtil.privateToPublic(privateKeys[i]).toString('hex')+
+		"\"enode://"+temp+
 		"@"+
 		baseIp+
 		(startIp+i)+
@@ -71,3 +73,4 @@ exports.privateKeys   = privateKeys;
 exports.staticNodes   = static_nodes;
 exports.genesisString = JSON.stringify(genesisTemplate);
 exports.passwords     = input.passwords;
+exports.enodes        = enodes;
