@@ -324,7 +324,7 @@ const services = {
 	"tessera": (i)=>{
 		var startTess = "java -Xms128M -Xmx128M -jar /tessera/tessera-app.jar -configfile /priv"+i+"/tessera-config.json";
 		if(i == 0)
-			startTess+=" 2>/logs/constellationLogs/validator-tessera.txt"
+			startTess+=" >/logs/constellationLogs/validator-tessera.txt 2>&1"
 		var tesseraTemplate  = serviceConfig.tessera.tesseraTemplate(i);
 		var tessera          = {
 			"hostname"   : "tessera"+i,
