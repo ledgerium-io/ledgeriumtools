@@ -213,7 +213,7 @@ const services = {
 	"validator": (i)=>{
 		var startGeth = gethCom+" --identity \"validator-"+i+"\" --nodekeyhex \""+basicConfig.privateKeys[i].split("0x")[1]+"\" "
 		+"--etherbase \""+basicConfig.publicKeys[i]+"\" --port \""+serviceConfig.validator.gossipPort+"\""
-		+" --ethstats \"validator-"+i+":bb98a0b6442334d0cdf8a31b267892c1@172.16.239.9:3000\" --rpcport "+serviceConfig.validator.rpcPort
+		+" --ethstats \"validator-"+i+":bb98a0b6442334d0cdf8a31b267892c1@172.19.240.9:3000\" --rpcport "+serviceConfig.validator.rpcPort
 		+" --wsport "+serviceConfig.validator.wsPort;
 		if(i == 0)
 			startGeth+=" 2>/logs/gethLogs/validator-0.txt\n"
