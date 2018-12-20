@@ -198,7 +198,7 @@ const services = {
 	"quorum-maker": ()=>{
 		var quorum = {
 			"hostname": "quorum-maker",
-			"image"   : "mythrihegde/quorumumaker:2.1.1_2.5.1",
+			"image"   : "mythrihegde/quorumumaker:2.1.1_2.5.1",//ledgeriumengineering/quorum-maker:v0.1
 			"ports"	  : [serviceConfig["quorum-maker"].port+":"+serviceConfig["quorum-maker"].port],
 			"volumes" : ["./quorum-maker-conf:/conf","logs:/logs"],
 			"depends_on": ["validator-0"],
