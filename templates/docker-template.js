@@ -8,7 +8,7 @@ const gethCom = "geth --rpc --rpcaddr '0.0.0.0' --rpccorsdomain '*' \
 --emitcheckpoints --istanbul.blockperiod 1 --mine --minerthreads 1 --syncmode full";
 
 
-const tesseraFlag = true;
+const tesseraFlag = false;
 const network_name = "test_net";
 var base_ip = "172.19.240.0",entrypoint, qmvolumes =[];
 
@@ -134,7 +134,7 @@ const services = {
 			"hostname": "quorum-maker",
 			"image"   : "mythrihegde/quorumumaker:2.1.1_2.5.1",//ledgeriumengineering/quorum-maker:v0.1
 			"ports"	  : [serviceConfig["quorum-maker"].port+":"+serviceConfig["quorum-maker"].port],
-			"volumes" : ["./quorum-maker-conf:/conf","logs:/logs","./tmp:/tmp"],
+			"volumes" : ["logs:/logs","./tmp:/tmp"],
 			"depends_on": ["validator-0"],
 			"entrypoint":[ "/bin/sh", "-c"],
 			"networks": {
@@ -162,7 +162,7 @@ const services = {
 			"cd /root/quorum-maker/",
 			"if [ ! -e /root/quorum-maker/setup.conf ];then",
 			"RESPONSE=\`curl https://ipinfo.io/ip\` || \"--\"",
-			"echo \"/EXTERNAL_IP=$${RESPONSE}\" > ./setup.conf"
+			"echo \"EXTERNAL_IP=$${RESPONSE}\" > ./setup.conf"
 		];
 		for (var i = 0; i < basicConfig.publicKeys.length; i++) {
 			var prefix = "";
@@ -170,7 +170,7 @@ const services = {
 			const ip   = startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+i);
 			if(i != 0){
 				prefix = i+"_";
-				commands.push("echo \""+prefix+"RAFT_ID="+i+" \"  >> ./setup.conf");
+				commands.push("echo \""+prefix+"RAFT_ID="+i+"\"  >> ./setup.conf");
 				//commands.push("echo \""+prefix+"ROLE=Unassigned\" >> ./setup.conf");
 				commands.push("echo \""+prefix+"ENODE="+basicConfig.enodes[i]+"\" >> ./setup.conf")
 			}else{
@@ -180,19 +180,23 @@ const services = {
 				commands.push("echo \"WHISPER_PORT="+serviceConfig.validator.gossipPort+"\" >> ./setup.conf");
 				commands.push("echo \"CONSTELLATION_PORT="+serviceConfig.constellation.port+"\" >> ./setup.conf");
 				commands.push("echo \"TOTAL_NODES="+basicConfig.publicKeys.length+"\" >> ./setup.conf")
+				commands.push("echo \"RAFT_ID="+i+"\" >> ./setup.conf") 
+				commands.push("echo \"MODE=ACTIVE\" >> ./setup.conf")
+				commands.push("echo \"STATE=I\" >> ./setup.conf")
 			}
 			commands.push("if [ -e "+publicKeyPath(i)+" ];then")
 			commands.push("PUB=$$(cat "+publicKeyPath(i)+")");
 			commands.push("fi");
 			commands.push("echo \""+prefix+"PUBKEY=\"$${PUB} >> ./setup.conf")
+			commands.push("echo \""+prefix+"ROLE=Unassigned\" >> ./setup.conf")
 			commands.push("echo \""+prefix+"CURRENT_IP="+ip+"\" >> ./setup.conf");
 			commands.push("echo \""+prefix+"REGISTERED=\" >> ./setup.conf")
 			commands.push("echo \""+prefix+"NODENAME=validator-\""+i+" >> ./setup.conf")     // check validator name for below value
 			
 		}
 		commands.push("fi");
-		commands.push("./NodeManager http://"+serviceConfig.validator.startIp+":"+serviceConfig.validator.rpcPort+" ");
-		commands.push(serviceConfig["quorum-maker"]["port"]+" /logs/gethLogs/ /logs/constellationLogs");
+		commands.push("./NodeManager http://"+serviceConfig.validator.startIp+":"+serviceConfig.validator.rpcPort+" "
+			+serviceConfig["quorum-maker"]["port"]+" /logs/gethLogs/ /logs/constellationLogs");
 		quorum.entrypoint.push(genCommand(commands));
 		return quorum;
 	},	    
