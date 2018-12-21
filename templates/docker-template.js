@@ -170,7 +170,7 @@ const services = {
 			const ip   = startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+i);
 			if(i != 0){
 				prefix = i+"_";
-				commands.push("echo \""+prefix+"RAFT_ID="+i+"\"  >> ./setup.conf");
+				//commands.push("echo \""+prefix+"RAFT_ID="+i+"\"  >> ./setup.conf");
 				//commands.push("echo \""+prefix+"ROLE=Unassigned\" >> ./setup.conf");
 				commands.push("echo \""+prefix+"ENODE="+basicConfig.enodes[i]+"\" >> ./setup.conf")
 			}else{
@@ -180,7 +180,7 @@ const services = {
 				commands.push("echo \"WHISPER_PORT="+serviceConfig.validator.gossipPort+"\" >> ./setup.conf");
 				commands.push("echo \"CONSTELLATION_PORT="+serviceConfig.constellation.port+"\" >> ./setup.conf");
 				commands.push("echo \"TOTAL_NODES="+basicConfig.publicKeys.length+"\" >> ./setup.conf")
-				commands.push("echo \"RAFT_ID="+i+"\" >> ./setup.conf") 
+				//commands.push("echo \"RAFT_ID="+i+"\" >> ./setup.conf") 
 				commands.push("echo \"MODE=ACTIVE\" >> ./setup.conf")
 				commands.push("echo \"STATE=I\" >> ./setup.conf")
 			}
@@ -203,7 +203,7 @@ const services = {
 	"validator": (i)=>{
 		var startGeth = gethCom+" --identity \"validator-"+i+"\" --nodekeyhex \""+basicConfig.privateKeys[i].split("0x")[1]+"\" "
 		+"--etherbase \""+basicConfig.publicKeys[i]+"\" --port \""+serviceConfig.validator.gossipPort+"\""
-		+" --ethstats \"validator-"+i+":bb98a0b6442334d0cdf8a31b267892c1@172.19.240.9:3000\" --rpcport "+serviceConfig.validator.rpcPort
+		+" --ethstats \"validator-"+i+":bb98a0b6442334d0cdf8a31b267892c1@"+base_ip.slice(0, base_ip.length-1)+"9"+":3000\" --rpcport "+serviceConfig.validator.rpcPort
 		+" --wsport "+serviceConfig.validator.wsPort; // quorum maker service uses this identity
 		if(i == 0)
 			startGeth+=" 2>/logs/gethLogs/validator-0.txt\n"
