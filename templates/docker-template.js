@@ -8,7 +8,7 @@ const gethCom = "geth --rpc --rpcaddr '0.0.0.0' --rpccorsdomain '*' \
 --emitcheckpoints --istanbul.blockperiod 1 --mine --minerthreads 1 --syncmode full";
 
 
-const tesseraFlag = true;
+const tesseraFlag = false;
 const network_name = "test_net";
 var base_ip = "172.19.240.0",entrypoint, qmvolumes =[];
 
@@ -199,7 +199,7 @@ const services = {
 	"validator": (i)=>{
 		var startGeth = gethCom+" --identity \"validator-"+i+"\" --nodekeyhex \""+basicConfig.privateKeys[i].split("0x")[1]+"\" "
 		+"--etherbase \""+basicConfig.publicKeys[i]+"\" --port \""+serviceConfig.validator.gossipPort+"\""
-		+" --ethstats \"validator-"+i+":bb98a0b6442334d0cdf8a31b267892c1@172.16.239.9:3000\" --rpcport "+serviceConfig.validator.rpcPort
+		+" --ethstats \"validator-"+i+":bb98a0b6442334d0cdf8a31b267892c1@172.19.240.9:3000\" --rpcport "+serviceConfig.validator.rpcPort
 		+" --wsport "+serviceConfig.validator.wsPort; // quorum maker service uses this identity
 		if(i == 0)
 			startGeth+=" 2>/logs/gethLogs/validator-0.txt\n"
