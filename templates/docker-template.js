@@ -3,8 +3,8 @@ const basicConfig = require('../src/basic-config');
 const gethCom = "geth --rpc --rpcaddr '0.0.0.0' --rpccorsdomain '*' \
 --datadir '/eth' --rpcapi 'db,eth,net,web3,istanbul,personal,admin,debug,txpool' \
 --ws --wsorigins '*' --wsapi 'db,eth,net,web3,personal,admin,debug,txpool' \
---wsaddr '0.0.0.0' --networkid 2018 --targetgaslimit 9007199254740000 --permissioned \
---debug --metrics --syncmode 'full' --gasprice 0 --mine --verbosity 3 --nodiscover \
+--wsaddr '0.0.0.0' --networkid 2018 --targetgaslimit 9007199254740000 \
+--debug --metrics --syncmode 'full' --gasprice 0 --mine --verbosity 3 \
 --emitcheckpoints --istanbul.blockperiod 1 --mine --minerthreads 1 --syncmode full";
 
 
@@ -132,7 +132,7 @@ const services = {
 	"quorum-maker": ()=>{
 		var quorum = {
 			"hostname": "quorum-maker",
-			"image"   : "mythrihegde/quorumumaker:2.1.1_2.5.1",//ledgeriumengineering/quorum-maker:v0.1
+			"image"   : "ledgeriumengineering/quorum-maker:v0.1",
 			"ports"	  : [serviceConfig["quorum-maker"].port+":"+serviceConfig["quorum-maker"].port],
 			"volumes" : ["logs:/logs","./tmp:/tmp"],
 			"depends_on": ["validator-0"],
