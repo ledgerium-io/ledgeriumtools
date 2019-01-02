@@ -132,7 +132,7 @@ const services = {
 	"quorum-maker": ()=>{
 		var quorum = {
 			"hostname": "quorum-maker",
-			"image"   : "mythrihegde/quorumumaker:2.1.1_2.5.1",//ledgeriumengineering/quorum-maker:v0.1
+			"image"   : "ledgeriumengineering/quorum-maker:v0.1",
 			"ports"	  : [serviceConfig["quorum-maker"].port+":"+serviceConfig["quorum-maker"].port],
 			"volumes" : ["logs:/logs","./tmp:/tmp"],
 			"depends_on": ["validator-0"],
@@ -170,8 +170,8 @@ const services = {
 			const ip   = startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+i);
 			if(i != 0){
 				prefix = i+"_";
-				//commands.push("echo \""+prefix+"RAFT_ID="+i+"\"  >> ./setup.conf");
-				//commands.push("echo \""+prefix+"ROLE=Unassigned\" >> ./setup.conf");
+				commands.push("echo \""+prefix+"RAFT_ID="+i+"\"  >> ./setup.conf");
+				commands.push("echo \""+prefix+"ROLE=Unassigned\" >> ./setup.conf");
 				commands.push("echo \""+prefix+"ENODE="+basicConfig.enodes[i]+"\" >> ./setup.conf")
 			}else{
 				commands.push("echo \"CONTRACT_ADD=\" >> setup.conf");
@@ -180,7 +180,7 @@ const services = {
 				commands.push("echo \"WHISPER_PORT="+serviceConfig.validator.gossipPort+"\" >> ./setup.conf");
 				commands.push("echo \"CONSTELLATION_PORT="+serviceConfig.constellation.port+"\" >> ./setup.conf");
 				commands.push("echo \"TOTAL_NODES="+basicConfig.publicKeys.length+"\" >> ./setup.conf")
-				//commands.push("echo \"RAFT_ID="+i+"\" >> ./setup.conf") 
+				commands.push("echo \"RAFT_ID="+i+"\" >> ./setup.conf") 
 				commands.push("echo \"MODE=ACTIVE\" >> ./setup.conf")
 				commands.push("echo \"STATE=I\" >> ./setup.conf")
 			}
@@ -210,7 +210,7 @@ const services = {
 		const startIp = serviceConfig.validator.startIp.split(".");
 		var validator = {
 			"hostname"   : 'validator-'+i, 
-			"image"		 :	"quorumengineering/quorum:latest",
+			"image"		 :	"ledgeriumengineering/quorum:fdlimit-bump",
 			"ports"	     : [
 				(serviceConfig.validator.gossipPort+i)+":"+serviceConfig.validator.gossipPort,
 				(serviceConfig.validator.rpcPort+i)+":"+serviceConfig.validator.rpcPort, 
