@@ -89,7 +89,7 @@ if (!fs.existsSync(tempDir)){
 if(modeFlag == "full"){
 	fs.writeFileSync(tempDir+"genesis.json",JSON.stringify(genesisTemplate));
 	fs.writeFileSync(tempDir+"static-nodes.json",static_nodes);
-//	fs.writeFileSync(tempDir+"permissioned-nodes.json",static_nodes);
+	fs.writeFileSync(tempDir+"permissioned-nodes.json",static_nodes);
 }
 
 if(writeprivatekeys){

@@ -249,7 +249,7 @@ const services = {
 			"mkdir -p /logs/gethLogs",
 			"cp /tmp/genesis.json /eth/genesis.json",
 			"cp /tmp/static-nodes.json /eth/static-nodes.json",
-			// "cp /tmp/permissioned-nodes.json /eth/permissioned-nodes.json",
+			"cp /tmp/permissioned-nodes.json /eth/permissioned-nodes.json",
 			cpPubKeys,
 			"geth init /eth/genesis.json --datadir /eth",		
 			"echo '"+basicConfig.passwords[i]+"' > ./password",
