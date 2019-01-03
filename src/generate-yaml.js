@@ -5,12 +5,14 @@ const yaml = require('js-yaml');
 
 var dockerCompose  = dockerTemplate.template;
 
-dockerCompose.services["eth-stats"] = dockerTemplate.services['eth-stats']();
-if(!dockerTemplate.networks.Externalflag){
-	dockerCompose['networks'] = dockerTemplate.networks['internal']();
-}else{
-	dockerCompose['networks'] = dockerTemplate.networks['external']();
-}
+if(basicConfig.modeFlag == "full"){
+	dockerCompose.services["eth-stats"] = dockerTemplate.services['eth-stats']();
+	if(!dockerTemplate.networks.Externalflag){
+		dockerCompose['networks'] = dockerTemplate.networks['internal']();
+	}else{
+		dockerCompose['networks'] = dockerTemplate.networks['external']();
+	}
+}	
 const type = dockerTemplate.tesseraFlag;
 
 for (var i = 0; i < basicConfig.publicKeys.length; i++) {
@@ -28,9 +30,13 @@ for (var i = 0; i < basicConfig.publicKeys.length; i++) {
 	}
 }
 
-dockerCompose["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
+if(basicConfig.modeFlag == "full"){
+	dockerCompose["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
+}	
+
+//Final output to the yml
 fs.writeFileSync("./output/docker-compose.yml",yaml.dump(dockerCompose,{
-  styles: {
-    '!!null' : 'canonical'
-  }
+	styles: {
+		'!!null' : 'canonical'
+	}
 }));
