@@ -134,7 +134,7 @@ const services = {
 			"hostname": "quorum-maker",
 			"image"   : "ledgeriumengineering/quorum-maker:v0.1",
 			"ports"	  : [serviceConfig["quorum-maker"].port+":"+serviceConfig["quorum-maker"].port],
-			"volumes" : ["logs:/logs","./tmp:/tmp"],
+			"volumes" : ["logs:/logs","./tmp:/tmp","quorum-maker:/quorum-maker"],
 			"depends_on": ["validator-0"],
 			"entrypoint":[ "/bin/sh", "-c"],
 			"networks": {
@@ -159,8 +159,8 @@ const services = {
 			"break;",
 			"fi",
 			"done",
-			"cd /root/quorum-maker/",
-			"if [ ! -e /root/quorum-maker/setup.conf ];then",
+			"cd /quorum-maker",
+			"if [ ! -e /quorum-maker/setup.conf ];then",
 			"RESPONSE=\`curl https://ipinfo.io/ip\` || \"--\"",
 			"echo \"EXTERNAL_IP=$${RESPONSE}\" > ./setup.conf"
 		];
@@ -170,8 +170,7 @@ const services = {
 			const ip   = startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+i);
 			if(i != 0){
 				prefix = i+"_";
-				//commands.push("echo \""+prefix+"RAFT_ID="+i+"\"  >> ./setup.conf");
-				//commands.push("echo \""+prefix+"ROLE=Unassigned\" >> ./setup.conf");
+				commands.push("echo \""+prefix+"RAFT_ID="+i+"\"  >> ./setup.conf");
 				commands.push("echo \""+prefix+"ENODE="+basicConfig.enodes[i]+"\" >> ./setup.conf")
 			}else{
 				commands.push("echo \"CONTRACT_ADD=\" >> setup.conf");
@@ -180,9 +179,10 @@ const services = {
 				commands.push("echo \"WHISPER_PORT="+serviceConfig.validator.gossipPort+"\" >> ./setup.conf");
 				commands.push("echo \"CONSTELLATION_PORT="+serviceConfig.constellation.port+"\" >> ./setup.conf");
 				commands.push("echo \"TOTAL_NODES="+basicConfig.publicKeys.length+"\" >> ./setup.conf")
-				//commands.push("echo \"RAFT_ID="+i+"\" >> ./setup.conf") 
+				commands.push("echo \"RAFT_ID="+i+"\" >> ./setup.conf") 
 				commands.push("echo \"MODE=ACTIVE\" >> ./setup.conf")
 				commands.push("echo \"STATE=I\" >> ./setup.conf")
+				commands.push("echo \"PRIVATE_KEY="+basicConfig.privateKeys[i].split("0x")[1]+"\" >> ./setup.conf");
 			}
 			commands.push("if [ -e "+publicKeyPath(i)+" ];then")
 			commands.push("PUB=$$(cat "+publicKeyPath(i)+")");
@@ -195,8 +195,9 @@ const services = {
 			
 		}
 		commands.push("fi");
+		commands.push("cd /root/quorum-maker/");
 		commands.push("./NodeManager http://"+serviceConfig.validator.startIp+":"+serviceConfig.validator.rpcPort+" "
-			+serviceConfig["quorum-maker"]["port"]+" /logs/gethLogs/ /logs/constellationLogs");
+			+serviceConfig["quorum-maker"]["port"]+" /logs/gethLogs/ /logs/constellationLogs /quorum-maker/setup.conf");
 		quorum.entrypoint.push(genCommand(commands));
 		return quorum;
 	},	    
@@ -397,7 +398,7 @@ const template = {
 
 	},
 	"volumes":{
-
+		'quorum-maker': null
 	}
 };
 exports.template 				= template;
