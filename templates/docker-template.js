@@ -7,7 +7,6 @@ const gethCom = "geth --rpc --rpcaddr '0.0.0.0' --rpccorsdomain '*' \
 --debug --metrics --syncmode 'full' --gasprice 0 --mine --verbosity 3 \
 --emitcheckpoints --istanbul.blockperiod 1 --mine --minerthreads 1 --syncmode full";
 
-
 const tesseraFlag = false;
 const network_name = "test_net";
 var base_ip = "172.19.240.0",entrypoint, qmvolumes =[];
