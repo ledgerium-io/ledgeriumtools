@@ -115,12 +115,13 @@ const serviceConfig = {
 		"startIp" : base_ip.slice(0, base_ip.length-1)+"150"
 	}
 };
+		
 const services = {
 	"eth-stats": ()=>{
 		var eth = {
-			"image"        :  "quay.io/amis/ethstats:latest",
-			"ports"        :  ["3000:3000"],
-			"environment"  :  ["WS_SECRET=bb98a0b6442334d0cdf8a31b267892c1"],
+			"image"        : "quay.io/amis/ethstats:latest",
+			"ports"        : ["3000:3000"],
+			"environment"  : ["WS_SECRET=bb98a0b6442334d0cdf8a31b267892c1"],
 			"restart"	   : "always",
 			"networks"	   : {
 			}
@@ -200,9 +201,14 @@ const services = {
 		return quorum;
 	},	    
 	"validator": (i)=>{
+		var ipaddressText;
+		if(basicConfig.modeFlag == "full")
+			ipaddressText = " --ethstats \"validator-"+i+":bb98a0b6442334d0cdf8a31b267892c1@"+base_ip.slice(0, base_ip.length-1)+"9";
+		else if(basicConfig.modeFlag == "addon")
+			ipaddressText = " --ethstats \"validator-"+i+":bb98a0b6442334d0cdf8a31b267892c1@"+basicConfig.externalIPAddress;
 		var startGeth = gethCom+" --identity \"validator-"+i+"\" --nodekeyhex \""+basicConfig.privateKeys[i].split("0x")[1]+"\" "
 		+"--etherbase \""+basicConfig.publicKeys[i]+"\" --port \""+serviceConfig.validator.gossipPort+"\""
-		+" --ethstats \"validator-"+i+":bb98a0b6442334d0cdf8a31b267892c1@"+base_ip.slice(0, base_ip.length-1)+"9"+":3000\" --rpcport "+serviceConfig.validator.rpcPort
+		+ipaddressText+":3000\" --rpcport "+serviceConfig.validator.rpcPort
 		+" --wsport "+serviceConfig.validator.wsPort; // quorum maker service uses this identity
 		if(i == 0)
 			startGeth+=" 2>/logs/gethLogs/validator-0.txt\n"
@@ -274,7 +280,10 @@ const services = {
 		var limit 		  = 3;
 		for (var j = 0; j < limit; j++){
 			if(i != j){
-		    	othernodes+="http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+j)+":"+(serviceConfig.constellation.port+j)+"/";
+				if(basicConfig.modeFlag == "full")
+		    		othernodes+="http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+j)+":"+(serviceConfig.constellation.port+j)+"/";
+				else if(basicConfig.modeFlag == "addon")
+					othernodes+="http://"+basicConfig.externalIPAddress+":"+(serviceConfig.constellation.port+j)+"/";
 		    	if(j != limit-1){
 		      		othernodes+=",";
 		    	}
