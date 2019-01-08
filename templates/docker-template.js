@@ -216,7 +216,7 @@ const services = {
 		const startIp = serviceConfig.validator.startIp.split(".");
 		var validator = {
 			"hostname"   : 'validator-'+i, 
-			"image"		 :	"ledgeriumengineering/quorum:v1.8.12",
+			"image"		 :	"ledgeriumengineering/quorum:fdlimit-bump",
 			"ports"	     : [
 				(serviceConfig.validator.gossipPort+i)+":"+serviceConfig.validator.gossipPort,
 				(serviceConfig.validator.rpcPort+i)+":"+serviceConfig.validator.rpcPort, 
