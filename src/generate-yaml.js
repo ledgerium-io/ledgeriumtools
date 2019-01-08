@@ -1,5 +1,6 @@
 const basicConfig = require('./basic-config');
 const fs = require('fs'); 
+var exec = require('child_process').exec;
 const dockerTemplate = require('../templates/docker-template');
 const yaml = require('js-yaml');
 
@@ -41,3 +42,10 @@ fs.writeFileSync("./output/docker-compose.yml",yaml.dump(dockerCompose,{
 		'!!null' : 'canonical'
 	}
 }));
+
+var replace = "sed -i -e 's/~//g' ./output/docker-compose.yml";
+exec(replace, function(error, stdout, stderr) {
+	if (error) {
+	  console.log(error.code);
+	}
+  });
