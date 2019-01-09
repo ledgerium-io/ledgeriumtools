@@ -136,7 +136,7 @@ const services = {
 			"hostname": "quorum-maker",
 			"image"   : "ledgeriumengineering/quorum-maker:v0.1",
 			"ports"	  : [serviceConfig["quorum-maker"].port+":"+serviceConfig["quorum-maker"].port],
-			"volumes" : ["logs:/logs","./tmp:/tmp","quorum-maker:/quorum-maker"],
+			"volumes" : ["./logs:/logs","./tmp:/tmp","quorum-maker:/quorum-maker"],
 			"depends_on": ["validator-0"],
 			"entrypoint":[ "/bin/sh", "-c"],
 			"networks": {
@@ -211,13 +211,16 @@ const services = {
 			validatorName = "validator-" + readparams.nodeName;
 		var ipaddressText;
 		var startGeth;
-		ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+base_ip.slice(0, base_ip.length-1)+"9";
+		if(readparams.modeFlag == "full")
+			ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+base_ip.slice(0, base_ip.length-1)+"9";
+		else if(readparams.modeFlag == "addon")	
+			ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+readparams.externalIPAddress;
 		startGeth = gethCom + " --identity \"" + validatorName + "\" --nodekeyhex \""+basicConfig.privateKeys[i].split("0x")[1]+"\" "
 		+"--etherbase \""+basicConfig.publicKeys[i]+"\" --port \""+serviceConfig.validator.gossipPort+"\""
 		+ipaddressText+":3000\" --rpcport "+serviceConfig.validator.rpcPort
 		+" --wsport "+serviceConfig.validator.wsPort; // quorum maker service uses this identity
-		if(i == 0)
-			startGeth+=" 2>/logs/gethLogs/" + validatorName + ".txt\n";
+		//if(i == 0)
+		startGeth+=" 2>/logs/gethLogs/" + validatorName + ".txt\n";
 		const startIp = serviceConfig.validator.startIp.split(".");
 		var validator = {
 			"hostname"   : validatorName, 
@@ -290,8 +293,8 @@ const services = {
 		];
 		validator.networks[network_name] = { "ipv4_address":startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+i) };
 		validator.entrypoint.push(genCommand(commands));
-		if(i == 0)
-			validator.volumes.push("logs:/logs");
+		//if(i == 0)
+		validator.volumes.push("./logs:/logs");
 		return validator;
 	},
 	"constellation": (i)=>{
@@ -323,21 +326,21 @@ const services = {
 		}
 		else if(readparams.modeFlag == "addon") {
 			for (var j = 0; j < limit; j++) {
-				if(i != j) {
-					othernodes+="http://"+readparams.externalIPAddress+":"+(serviceConfig.constellation.port+j)+"/";
-					if(j != limit-1) {
-						othernodes+=",";
-					}
-				} else {
-					limit++;
+				//if(i != j) {
+				othernodes+="http://"+readparams.externalIPAddress+":"+(serviceConfig.constellation.port+j)+"/";
+				if(j != limit-1) {
+					othernodes+=",";
 				}
+				// } else {
+				// 	limit++;
+				// }
 			}
 		}
 		var startConst = constellationCom + othernodes
 		+" --url=http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+i)+":"+(serviceConfig.constellation.port+i)
 		+"/ --port="+(serviceConfig.constellation.port+i);
-		if(i == 0)
-			startConst+=" 2>/logs/constellationLogs/" + validatorName + "_constellation.txt"
+		//if(i == 0)
+		startConst+=" 2>/logs/constellationLogs/" + validatorName + "_constellation.txt"
 		var constellation = {
 			"hostname"   : constellationName,
 			"image"		 : "quorumengineering/constellation:latest",
@@ -359,8 +362,8 @@ const services = {
 			"fi",
 			startConst
 		];
-		if(!tesseraFlag && i == 0)
-			constellation.volumes.push("logs:/logs");
+		if(!tesseraFlag)//if(!tesseraFlag && i == 0)
+			constellation.volumes.push("./logs:/logs");
 		constellation.entrypoint.push(genCommand(commands));
 		constellation.networks[network_name] = { "ipv4_address":startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+i) };
 		return constellation;
@@ -406,8 +409,8 @@ const services = {
 			"fi",
 			startTess
 		];
-		if(tesseraFlag && i == 0)
-			tessera.volumes.push("logs:/logs");
+		if(tesseraFlag)//if(tesseraFlag && i == 0)
+			tessera.volumes.push("./logs:/logs");
 		tessera.entrypoint.push(genCommand(commands));
 		tessera.networks[network_name] = { "ipv4_address":startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3])) };
 		return tessera;

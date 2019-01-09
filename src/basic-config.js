@@ -2,6 +2,7 @@ const fs = require('fs');
 const ethUtil = require('ethereumjs-util');
 const dockerTemplate = require("../templates/docker-template");
 var genesisTemplate = require('../templates/genesis-template');
+const path = require('path');
 
 const amount = "0xfffffffffffffffffffffffffffffffffffff";
 var input = require('./getMnemonics');
@@ -64,7 +65,19 @@ data.push([]);
 
 genesisTemplate['extraData'] = vanity+ethUtil.rlp.encode(data).toString("hex");
 
-const tempDir = "./output/tmp/";
+//Remove the files
+const genesis = "genesis.json";
+const privatekeys = "privatekeys.json";
+const static = "static-nodes.json";
+
+const tempDir = __dirname + "/../output/tmp/";
+if(fs.existsSync(tempDir + genesis))
+	fs.unlinkSync(tempDir + genesis);
+if(fs.existsSync(tempDir + privatekeys))
+	fs.unlinkSync(tempDir + privatekeys);
+if(fs.existsSync(tempDir + static))
+	fs.unlinkSync(tempDir + static);
+	
 if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir);
 }

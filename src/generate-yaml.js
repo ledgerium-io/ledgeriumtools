@@ -52,7 +52,7 @@ else if(readparams.modeFlag == "addon"){
 	}
 }
 
-if(basicConfig.readparams == "full"){
+if(readparams.modeFlag == "full"){
 	dockerCompose["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
 }
 
