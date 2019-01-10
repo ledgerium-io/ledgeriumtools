@@ -11,7 +11,7 @@ var readparams = require('../readparams');
 var mnemonic = input.template;
 
 var privateKeyJSON = {}; var writeprivatekeys = true;
-var privateKeys = [], publicKeys = [], static_nodes = "[", extraData, enodes = [];
+var privateKeys = [], publicKeys = [], static_nodes = "[", staticNodesExternal = "[", extraData, enodes = [];
 const vanity = mnemonic.istanbul.vanity || "0x0000000000000000000000000000000000000000000000000000000000000000";
 const seal   = mnemonic.istanbul.seal || "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
 
@@ -39,13 +39,23 @@ for (var i = 0; i < privateKeys.length; i++) {
 		dockerTemplate.serviceConfig.validator.gossipPort+
 		"?discport=0\""
 	);
+	staticNodesExternal += (
+		"\"enode://"+temp+
+		"@"+
+		readparams.externalIPAddress+
+		":"+
+		(dockerTemplate.serviceConfig.validator.gossipPort+i)+
+		"?discport=0\""
+	);
 	let pubk = ethUtil.privateToAddress(privateKeys[i]).toString('hex');
 	privateKeyJSON["0x" + pubk] = privateKeys[i].split("0x")[1];
 	publicKeys.push(pubk);
 	if(i != privateKeys.length-1){
 		static_nodes+=",";
+		staticNodesExternal+=",";
 	}else{
 		static_nodes+="]";
+		staticNodesExternal+="]";
 	}
 }
 
@@ -86,6 +96,18 @@ if(readparams.modeFlag == "full") {
 	fs.writeFileSync(tempDir+"genesis.json",JSON.stringify(genesisTemplate));
 	fs.writeFileSync(tempDir+"static-nodes.json",static_nodes);
 	//fs.writeFileSync(tempDir+"permissioned-nodes.json",static_nodes);
+
+	const outputDir = __dirname + "/../../ledgeriumnetwork/";
+	if (!fs.existsSync(outputDir)) {
+		fs.mkdirSync(outputDir);
+	}
+	if(fs.existsSync(outputDir + genesis))
+		fs.unlinkSync(outputDir + genesis);
+	if(fs.existsSync(outputDir + static))
+		fs.unlinkSync(outputDir + static);
+		
+	fs.writeFileSync(outputDir+"genesis.json",JSON.stringify(genesisTemplate));
+	fs.writeFileSync(outputDir+"static-nodes.json",staticNodesExternal);
 }
 
 if(writeprivatekeys) {
@@ -96,6 +118,7 @@ if(writeprivatekeys) {
 exports.publicKeys = publicKeys;
 exports.privateKeys = privateKeys;
 exports.staticNodes = static_nodes;
+exports.staticNodesExternal = staticNodesExternal;
 exports.genesisString = JSON.stringify(genesisTemplate);
 exports.passwords = input.passwords;
 exports.enodes = enodes;
