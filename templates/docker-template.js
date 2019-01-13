@@ -440,7 +440,7 @@ const services = {
 		}
 		var gov = {
 			"hostname" 		: governanceUIName,
-			"image"    		: "ledgeriumengineering/governance_app_ui_img:latest",
+			"image"    		: "ledgeriumengineering/governance_app_ui_img:new_metamask",
 			"ports"    		: [(serviceConfig["governance-app"]["port-exp"]+i)+":"+serviceConfig["governance-app"]["port-int"]],
 			"volumes"  		: [validatorName +':/eth'],
 			"depends_on" 	: [validatorName],
