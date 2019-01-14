@@ -75,7 +75,13 @@ if(writeprivatekeys){
 	var data = JSON.stringify(privateKeyJSON,null, 2);
 	fs.writeFileSync(tempDir+"privatekeys.json",data);
 }
+var mode = '';
+if (process.argv[2] == '1')
+	mode = 1;
+else 
+	mode = 0;
 
+global.mode           = mode;
 exports.publicKeys    = publicKeys;
 exports.privateKeys   = privateKeys;
 exports.staticNodes   = static_nodes;

@@ -1,9 +1,6 @@
 const readlineSync = require('readline-sync');
 const fs 		   = require('fs');
 
-/*if(!fs.existsSync(process.argv[2]))
-	throw "Provide path for output";*/
-
 var num = readlineSync.question('Number of Mnemonics : ');
 var mnemonics = [];
 var passwords = [];
