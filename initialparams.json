@@ -1,5 +1,5 @@
 {
-	"mode": "addon",
-	"nodeName": "golra03",
-	"externalIPAddress": "121.211.90.209"
+	"mode": "full",
+	"externalIPAddress": "125.254.27.14",
+	"nodeName": "nodeName"
 }
