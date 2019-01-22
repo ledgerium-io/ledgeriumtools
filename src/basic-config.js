@@ -1,13 +1,23 @@
-const fs 			   = require('fs');
-const ethUtil  		   = require('ethereumjs-util');
-const dockerTemplate   = require("../templates/docker-template");
-var genesisTemplate    = require('../templates/genesis-template');
-const amount           = "0xfffffffffffffffffffffffffffffffffffff";
-var input   		   = require('./getMnemonics');
-var mnemonic 		   = input.template;
+const fs = require('fs');
+const ethUtil = require('ethereumjs-util');
+const dockerTemplate = require("../templates/docker-template");
+var genesisTemplate = require('../genesis');
+
+const amount = "0xfffffffffffffffffffffffffffffffffffff";
+var input = require('./getMnemonics');
+var readparams = require('../readparams');
+ 
+var mnemonic = input.template;
 
 var privateKeyJSON = {}; var writeprivatekeys = true;
-var privateKeys = [], publicKeys = [], static_nodes = "[", extraData, enodes = [];
+const test = [
+	'0x'+ethUtil.keccak("some random key for test").toString('hex'),
+	'0x'+ethUtil.keccak("just to use as seed").toString('hex'),
+	'0x'+ethUtil.keccak("for faulty node test").toString('hex'),
+	'0x'+ethUtil.keccak("enaled only if test is greater than zero").toString('hex')
+];
+var testCount = readparams.test>4?4:readparams.test;
+var privateKeys = [], publicKeys = [], static_nodes = "[", staticNodesExternal = "[", extraData, enodes = [];
 const vanity = mnemonic.istanbul.vanity || "0x0000000000000000000000000000000000000000000000000000000000000000";
 const seal   = mnemonic.istanbul.seal || "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
 
@@ -18,6 +28,10 @@ if(mnemonic.mode == 0){
 	}
 }else {
 	privateKeys = mnemonic.keys;
+}
+
+for (var i = 0; i < testCount; i++) {
+	privateKeys.push(test[i]);
 }
 
 var baseIp = dockerTemplate.serviceConfig.validator.startIp.split(".");
@@ -35,13 +49,23 @@ for (var i = 0; i < privateKeys.length; i++) {
 		dockerTemplate.serviceConfig.validator.gossipPort+
 		"?discport=0\""
 	);
+	staticNodesExternal += (
+		"\"enode://"+temp+
+		"@"+
+		readparams.externalIPAddress+
+		":"+
+		(dockerTemplate.serviceConfig.validator.gossipPort+i)+
+		"?discport=0\""
+	);
 	let pubk = ethUtil.privateToAddress(privateKeys[i]).toString('hex');
 	privateKeyJSON["0x" + pubk] = privateKeys[i].split("0x")[1];
 	publicKeys.push(pubk);
 	if(i != privateKeys.length-1){
 		static_nodes+=",";
+		staticNodesExternal+=",";
 	}else{
 		static_nodes+="]";
+		staticNodesExternal+="]";
 	}
 }
 
@@ -61,17 +85,43 @@ data.push([]);
 
 genesisTemplate['extraData'] = vanity+ethUtil.rlp.encode(data).toString("hex");
 
-const tempDir = "./output/tmp/";
+//Remove the files
+const genesis = "genesis.json";
+const privatekeys = "privatekeys.json";
+const static = "static-nodes.json";
 
-if (!fs.existsSync(tempDir)){
+const tempDir = __dirname + "/../output/tmp/";
+if(fs.existsSync(tempDir + genesis))
+	fs.unlinkSync(tempDir + genesis);
+if(fs.existsSync(tempDir + privatekeys))
+	fs.unlinkSync(tempDir + privatekeys);
+if(fs.existsSync(tempDir + static))
+	fs.unlinkSync(tempDir + static);
+	
+if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir);
 }
 
-fs.writeFileSync(tempDir+"genesis.json",JSON.stringify(genesisTemplate));
-fs.writeFileSync(tempDir+"static-nodes.json",static_nodes);
-fs.writeFileSync(tempDir+"permissioned-nodes.json",static_nodes);
+if(readparams.modeFlag == "full") {
+	fs.writeFileSync(tempDir+"genesis.json",JSON.stringify(genesisTemplate));
+	fs.writeFileSync(tempDir+"static-nodes.json",static_nodes);
+	fs.writeFileSync(tempDir+"permissioned-nodes.json",static_nodes);
 
-if(writeprivatekeys){
+	const outputDir = __dirname + "/../../ledgeriumnetwork/";
+	if (!fs.existsSync(outputDir)) {
+		fs.mkdirSync(outputDir);
+	}
+	if(fs.existsSync(outputDir + genesis))
+		fs.unlinkSync(outputDir + genesis);
+	if(fs.existsSync(outputDir + static))
+		fs.unlinkSync(outputDir + static);
+		
+	fs.writeFileSync(outputDir+"genesis.json",JSON.stringify(genesisTemplate));
+	fs.writeFileSync(outputDir+"static-nodes.json",staticNodesExternal);
+	fs.writeFileSync(outputDir+"permissioned-nodes.json",staticNodesExternal);
+}
+
+if(writeprivatekeys) {
 	var data = JSON.stringify(privateKeyJSON,null, 2);
 	fs.writeFileSync(tempDir+"privatekeys.json",data);
 }
@@ -81,10 +131,10 @@ if (process.argv[2] == '1')
 else 
 	mode = 0;
 
-global.mode           = mode;
-exports.publicKeys    = publicKeys;
-exports.privateKeys   = privateKeys;
-exports.staticNodes   = static_nodes;
+exports.publicKeys = publicKeys;
+exports.privateKeys = privateKeys;
+exports.staticNodes = static_nodes;
+exports.staticNodesExternal = staticNodesExternal;
 exports.genesisString = JSON.stringify(genesisTemplate);
-exports.passwords     = input.passwords;
-exports.enodes        = enodes;
+exports.passwords = input.passwords;
+exports.enodes = enodes;
