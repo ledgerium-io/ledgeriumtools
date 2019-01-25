@@ -1,5 +1,6 @@
 {
-	"mode": "full",
+	"mode": "addon",
 	"externalIPAddress": "125.254.27.14",
-	"nodeName": "nodeName"
+	"nodeName": "msc",
+	"domainName": "domainName"
 }

@@ -217,7 +217,7 @@ const services = {
 			ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+base_ip.slice(0, base_ip.length-1)+"9";
 		else if(readparams.modeFlag == "addon")	
 			ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+readparams.externalIPAddress;
-		startGeth = gethCom + " --identity \"" + validatorName + "\" --nodekeyhex \""+basicConfig.privateKeys[i].split("0x")[1]+"\" "
+		startGeth = gethCom + " --rpcvhosts=" + readparams.domainName + " --identity \"" + validatorName + "\" --nodekeyhex \""+basicConfig.privateKeys[i].split("0x")[1]+"\" "
 		+"--etherbase \""+basicConfig.publicKeys[i]+"\" --port \""+serviceConfig.validator.gossipPort+"\""
 		+ipaddressText+":3000\" --rpcport "+serviceConfig.validator.rpcPort
 		+" --wsport "+serviceConfig.validator.wsPort; // quorum maker service uses this identity
@@ -452,18 +452,18 @@ const services = {
 		const startIp = serviceConfig["governance-app"].startIp.split(".");
 		const ip = startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+i);
 		const vip = serviceConfig.validator.startIp.split(".");
-		var string = "set -u\n set -e\n";
+		var string = "";
 		string+="mkdir -p /logs/governanceappLogs\n";
 		string+="DATE=`date '+%Y-%m-%d_%H-%M-%S'`\n";
 		if((i == 0) && (numberOfNodes >= 3)) {
 				string+="cd /ledgerium/governanceapp/governanceApp\n",
-				string+="node index.js protocol=http hostname=" + vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i) +" port=8545 privateKeys="
+				string+="node index.js protocol=http hostname=localhost port=8545 privateKeys="
 				+basicConfig.privateKeys[0].split("0x")[1]+","
 				+basicConfig.privateKeys[1].split("0x")[1]+","
 				+basicConfig.privateKeys[2].split("0x")[1]+"\n";
 		}
 		string+="cd /ledgerium/governanceapp/governanceApp/app\n";
-		string+="node governanceUI.js "+vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i)+" "+(serviceConfig.validator.rpcPort+i)+"\n";
+		string+="node governanceUI.js "+vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i)+" "+serviceConfig.validator.rpcPort+"\n";
 		string+=" 2>/logs/governanceappLogs/"+ "$${DATE}_" + validatorName + "_Log.txt"
 		gov.entrypoint.push(string);
 		if ( !tesseraFlag ){
