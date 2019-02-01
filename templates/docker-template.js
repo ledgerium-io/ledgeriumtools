@@ -7,7 +7,7 @@ const gethCom   = "geth --rpc --rpcaddr '0.0.0.0' --rpccorsdomain '*' \
 --ws --wsorigins '*' --wsapi 'db,eth,net,web3,personal,admin,debug,txpool' \
 --wsaddr '0.0.0.0' --networkid 2018 --targetgaslimit 9007199254740000 \
 --debug --metrics --syncmode 'full' --gasprice 0 --mine --verbosity 3 \
---emitcheckpoints --istanbul.blockperiod 1 --mine --minerthreads 1 --syncmode full";
+--emitcheckpoints --istanbul.blockperiod 5 --mine --minerthreads 1 --syncmode full";
 
 const tesseraFlag = false;
 const network_name = "test_net";
@@ -447,7 +447,8 @@ const services = {
 			"entrypoint"    : [ "/bin/sh","-c"],
 			"networks"      : {
 
-			}
+			},
+			"restart"	 : "always"
 		}
 		const startIp = serviceConfig["governance-app"].startIp.split(".");
 		const ip = startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+i);
