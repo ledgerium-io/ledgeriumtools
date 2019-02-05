@@ -14,7 +14,7 @@ Edit this file before running the application
      
 2. externalIPAddress : To host a node for a network that can be connected to by anyone outside your LAN
 3. nodeName : Hostname of the machine where nodes will be hosted.
-4. domainName : Domain name of the external IP Address (optional for addon mode)
+4. domainName : Domain name of the external IP Address. domainName is needed for every node to which any client wants to `send transactions` or do `“geth attach”`
 
 ### Run ledgeriumtools application
 
