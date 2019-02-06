@@ -143,7 +143,7 @@ const services = {
 			},
 			"restart": "always"
 		};
-		quorum.volumes.push("validator-0:/eth");
+		quorum.volumes.push("./validator-0:/eth");
 		quorum.networks[network_name] = { "ipv4_address": serviceConfig["quorum-maker"].ip }
 		var publicKeyPath = (i) => { return "/tmp/tm"+i+".pub"; };
 		if(tesseraFlag){
@@ -246,13 +246,13 @@ const services = {
 		startWait+="set -e\n";
 		if(readparams.modeFlag == "full"){
 			if ( !tesseraFlag ){
-				validator.volumes 	    = ["validator-"+i+":/eth","constellation-"+i+":/constellation:z","./tmp:/tmp"];
+				validator.volumes 	    = ["./validator-"+i+":/eth","constellation-"+i+":/constellation:z","./tmp:/tmp"];
 				validator["depends_on"] = ["constellation-"+i];
 				validator["environment"]= ["PRIVATE_CONFIG=/constellation/tm.conf"];
 				startWait 				= "while [ ! -e /constellation/tm.ipc ];do"
 				cpPubKeys = "cp /constellation/tm.pub /tmp/tm"+i+".pub";
 			}else{
-				validator.volumes 	    = ["validator-"+i+":/eth","tessera-"+i+":/priv","./tmp:/tmp"];
+				validator.volumes 	    = ["./validator-"+i+":/eth","tessera-"+i+":/priv","./tmp:/tmp"];
 				validator["depends_on"] = ["tessera-"+i];
 				validator["environment"]= ["PRIVATE_CONFIG=/priv/tm.ipc"];
 				startWait               = "while [ ! -e /priv/tm.ipc ];do";
@@ -261,13 +261,13 @@ const services = {
 		}
 		else if(readparams.modeFlag == "addon"){
 			if ( !tesseraFlag ){
-				validator.volumes 	    = ["validator-"+ readparams.nodeName +":/eth","constellation-"+ readparams.nodeName +":/constellation:z","./tmp:/tmp"];
+				validator.volumes 	    = ["./validator-"+ readparams.nodeName +":/eth","constellation-"+ readparams.nodeName +":/constellation:z","./tmp:/tmp"];
 				validator["depends_on"] = ["constellation-"+ readparams.nodeName];
 				validator["environment"]= ["PRIVATE_CONFIG=/constellation/tm.conf"];
 				startWait 				= "while [ ! -e /constellation/tm.ipc ];do"
 				cpPubKeys = "cp /constellation/tm.pub /tmp/tm"+i+".pub";
 			}else{
-				validator.volumes 	    = ["validator-"+ readparams.nodeName +":/eth","tessera-"+ readparams.nodeName +":/priv","./tmp:/tmp"];
+				validator.volumes 	    = ["./validator-"+ readparams.nodeName +":/eth","tessera-"+ readparams.nodeName +":/priv","./tmp:/tmp"];
 				validator["depends_on"] = ["tessera-"+ readparams.nodeName];
 				validator["environment"]= ["PRIVATE_CONFIG=/priv/tm.ipc"];
 				startWait               = "while [ ! -e /priv/tm.ipc ];do";
@@ -442,7 +442,7 @@ const services = {
 			"hostname" 		: governanceUIName,
 			"image"    		: "ledgeriumengineering/governance_app_ui_img:new_metamask",
 			"ports"    		: [(serviceConfig["governance-app"]["port-exp"]+i)+":"+serviceConfig["governance-app"]["port-int"]],
-			"volumes"  		: [validatorName +':/eth'],
+			"volumes"  		: ["./" + validatorName +':/eth'],
 			"depends_on" 	: [validatorName],
 			"entrypoint"    : [ "/bin/sh","-c"],
 			"networks"      : {
