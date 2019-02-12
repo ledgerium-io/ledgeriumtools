@@ -6,8 +6,8 @@ const gethCom   = "geth --rpc --rpcaddr '0.0.0.0' --rpccorsdomain '*' \
 --datadir '/eth' --rpcapi 'db,eth,net,web3,istanbul,personal,admin,debug,txpool' \
 --ws --wsorigins '*' --wsapi 'db,eth,net,web3,personal,admin,debug,txpool' \
 --wsaddr '0.0.0.0' --networkid 2018 --targetgaslimit 9007199254740000 \
---debug --metrics --syncmode 'full' --gasprice 0 --mine --verbosity 3 \
---emitcheckpoints --istanbul.blockperiod 5 --mine --minerthreads 1 --syncmode full";
+--debug --metrics --syncmode 'full' --gasprice 0 --mine --verbosity 6 \
+--emitcheckpoints --mine --minerthreads 1 --syncmode full";
 
 const tesseraFlag = false;
 const network_name = "test_net";
@@ -226,7 +226,7 @@ const services = {
 		const startIp = serviceConfig.validator.startIp.split(".");
 		var validator = {
 			"hostname"   : validatorName, 
-			"image"		 :	"ledgeriumengineering/quorum:fdlimit-bump",
+			"image"		 :	"ledgeriumengineering/quorum:blockperiod_gasprice",
 			"ports"	     : [
 				(serviceConfig.validator.gossipPort+i)+":"+serviceConfig.validator.gossipPort,
 				(serviceConfig.validator.rpcPort+i)+":"+serviceConfig.validator.rpcPort, 
