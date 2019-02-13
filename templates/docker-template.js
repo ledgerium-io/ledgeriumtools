@@ -186,7 +186,7 @@ const services = {
 				commands.push("echo \"RAFT_ID="+i+"\" >> ./setup.conf") 
 				commands.push("echo \"MODE=ACTIVE\" >> ./setup.conf")
 				commands.push("echo \"STATE=I\" >> ./setup.conf")
-				commands.push("echo \"PRIVATE_KEY="+basicConfig.privateKeys[i].split("0x")[1]+"\" >> ./setup.conf");
+				commands.push("echo \"PRIVATE_KEY="+"${PRIVATEKEY"+i+"}"+"\" >> ./setup.conf");
 			}
 			commands.push("if [ -e "+publicKeyPath(i)+" ];then")
 			commands.push("PUB=$$(cat "+publicKeyPath(i)+")");
@@ -217,7 +217,7 @@ const services = {
 			ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+base_ip.slice(0, base_ip.length-1)+"9";
 		else if(readparams.modeFlag == "addon")	
 			ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+readparams.externalIPAddress;
-		startGeth = gethCom + " --rpcvhosts=" + readparams.domainName + " --identity \"" + validatorName + "\" --nodekeyhex \""+basicConfig.privateKeys[i].split("0x")[1]+"\" "
+		startGeth = gethCom + " --rpcvhosts=" + readparams.domainName + " --identity \"" + validatorName + "\" --nodekeyhex \""+"${PRIVATEKEY"+[i]+"}"+"\" "
 		+"--etherbase \""+basicConfig.publicKeys[i]+"\" --port \""+serviceConfig.validator.gossipPort+"\""
 		+ipaddressText+":3000\" --rpcport "+serviceConfig.validator.rpcPort
 		+" --wsport "+serviceConfig.validator.wsPort; // quorum maker service uses this identity
@@ -226,7 +226,7 @@ const services = {
 		const startIp = serviceConfig.validator.startIp.split(".");
 		var validator = {
 			"hostname"   : validatorName, 
-			"image"		 :	"ledgeriumengineering/quorum:fdlimit-bump",
+			"image"		 :	"ledgeriumengineering/quorum:ledgerium-gas-price-not-zero",
 			"ports"	     : [
 				(serviceConfig.validator.gossipPort+i)+":"+serviceConfig.validator.gossipPort,
 				(serviceConfig.validator.rpcPort+i)+":"+serviceConfig.validator.rpcPort, 
@@ -290,7 +290,7 @@ const services = {
 			cpPubKeys,
 			"geth init /eth/genesis.json --datadir /eth",		
 			"echo '"+basicConfig.passwords[i]+"' > ./password",
-			"echo '"+basicConfig.privateKeys[i].split("0x")[1]+"' > ./file",
+			"echo '"+"${PRIVATEKEY"+[i]+"}"+"' > ./file",
 			"geth account import file --datadir /eth --password password",
 			"rm -f ./file && rm -f ./password",
 			"fi",
@@ -459,12 +459,13 @@ const services = {
 		if((i == 0) && (numberOfNodes >= 3)) {
 				string+="cd /ledgerium/governanceapp/governanceApp\n",
 				string+="node index.js protocol=http hostname=" + vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i) +" port=8545 privateKeys="
-				+basicConfig.privateKeys[0].split("0x")[1]+","
-				+basicConfig.privateKeys[1].split("0x")[1]+","
-				+basicConfig.privateKeys[2].split("0x")[1]+"\n";
+				+"${PRIVATEKEY0}"+","
+				+"${PRIVATEKEY1}"+","
+				+"${PRIVATEKEY2}"+"\n";
 		}
 		string+="cd /ledgerium/governanceapp/governanceApp/app\n";
-		string+="node governanceUI.js "+vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i)+" "+(serviceConfig.validator.rpcPort+i)+"\n";		string+=" 2>/logs/governanceappLogs/"+ "$${DATE}_" + validatorName + "_Log.txt"
+		string+="node governanceUI.js "+vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i)+" "+(serviceConfig.validator.rpcPort+i)+"\n";		
+		string+=" 2>/logs/governanceappLogs/"+ "$${DATE}_" + validatorName + "_Log.txt"
 		gov.entrypoint.push(string);
 		if ( !tesseraFlag ){
 			gov.volumes.push(constellationName+":/constellation:z")
