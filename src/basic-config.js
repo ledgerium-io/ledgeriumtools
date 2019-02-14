@@ -9,7 +9,8 @@ var readparams = require('../readparams');
 
 var mnemonic = input.template;
 
-var envPrivateKeys = "";
+var envParams = "";
+
 var privateKeyJSON = {}; var writeprivatekeys = true;
 var privateKeys = [], publicKeys = [], static_nodes = "[", staticNodesExternal = "[", extraData, enodes = [];
 const vanity = mnemonic.istanbul.vanity || "0x0000000000000000000000000000000000000000000000000000000000000000";
@@ -50,8 +51,9 @@ for (var i = 0; i < privateKeys.length; i++) {
 	let pubk = ethUtil.privateToAddress(privateKeys[i]).toString('hex');
 	privateKeyJSON["0x" + pubk] = privateKeys[i].split("0x")[1];
 	
-	//Append private keys to a variable
-	envPrivateKeys += "PRIVATEKEY" + i + "=" + privateKeys[i].split("0x")[1] + "\n";
+	//Append private keys and passwords to a variable
+	envParams += "PRIVATEKEY" + i + "=" + privateKeys[i].split("0x")[1] + "\n";
+	envParams += "PASSWORD" + i + "=" + input.passwords[i] + "\n";
 	
 	publicKeys.push(pubk);
 	if(i != privateKeys.length-1){
@@ -103,7 +105,7 @@ if(readparams.modeFlag == "full") {
 	fs.writeFileSync(tempDir+"genesis.json",JSON.stringify(genesisTemplate));
 	fs.writeFileSync(tempDir+"static-nodes.json",static_nodes);
 	fs.writeFileSync(tempDir+"permissioned-nodes.json",static_nodes);
-	fs.writeFileSync(envFile, envPrivateKeys); //Write private keys to .env file
+	fs.writeFileSync(envFile, envParams); //Write private keys and passwords to .env file
 
 	const outputDir = __dirname + "/../../ledgeriumnetwork/";
 	if (!fs.existsSync(outputDir)) {

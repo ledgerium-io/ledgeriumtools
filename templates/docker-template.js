@@ -6,8 +6,8 @@ const gethCom   = "geth --rpc --rpcaddr '0.0.0.0' --rpccorsdomain '*' \
 --datadir '/eth' --rpcapi 'db,eth,net,web3,istanbul,personal,admin,debug,txpool' \
 --ws --wsorigins '*' --wsapi 'db,eth,net,web3,personal,admin,debug,txpool' \
 --wsaddr '0.0.0.0' --networkid 2018 --targetgaslimit 9007199254740000 \
---debug --metrics --syncmode 'full' --gasprice 0 --mine --verbosity 3 \
---emitcheckpoints --istanbul.blockperiod 5 --mine --minerthreads 1 --syncmode full";
+--debug --metrics --syncmode 'full' --gasprice 0 --mine --verbosity 6 \
+--emitcheckpoints --mine --minerthreads 1 --syncmode full";
 
 const tesseraFlag = false;
 const network_name = "test_net";
@@ -226,7 +226,7 @@ const services = {
 		const startIp = serviceConfig.validator.startIp.split(".");
 		var validator = {
 			"hostname"   : validatorName, 
-			"image"		 :	"ledgeriumengineering/quorum:ledgerium-gas-price-not-zero",
+			"image"		 :	"ledgeriumengineering/quorum:blockperiod_gasprice",
 			"ports"	     : [
 				(serviceConfig.validator.gossipPort+i)+":"+serviceConfig.validator.gossipPort,
 				(serviceConfig.validator.rpcPort+i)+":"+serviceConfig.validator.rpcPort, 
@@ -289,7 +289,7 @@ const services = {
 			"cp /tmp/static-nodes.json /eth/static-nodes.json",
 			cpPubKeys,
 			"geth init /eth/genesis.json --datadir /eth",		
-			"echo '"+basicConfig.passwords[i]+"' > ./password",
+			"echo '"+"${PASSWORD"+[i]+"}"+"' > ./password",
 			"echo '"+"${PRIVATEKEY"+[i]+"}"+"' > ./file",
 			"geth account import file --datadir /eth --password password",
 			"rm -f ./file && rm -f ./password",
