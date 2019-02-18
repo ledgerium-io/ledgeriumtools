@@ -1,3 +1,12 @@
 node_modules/
 .idea/
 .vscode/
+output/docker-compose.yml
+output/constellationLogs/*.txt
+output/quorummakerLogs/*.txt
+output/gethLogs/*.txt
+output/tesseraLogs/*.txt
+output/governanceappLogs/*.txt
+output/validator-*
+output/tmp/tm*.pub
+
