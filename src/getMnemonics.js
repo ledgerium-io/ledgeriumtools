@@ -6,12 +6,15 @@ var mnemonics = [];
 var passwords = [];
 var numberOfNodes = parseInt(num)
 for (var i = 0; i < numberOfNodes; i++) {
-	var menmonic = readlineSync.question('Enter Mnemonic '+i+" : ", {
-		hideEchoBack: true
-	});
-	var password = readlineSync.question('Enter Password '+i+" : ", {
-		hideEchoBack: true
-	});
+	// var menmonic = readlineSync.question('Enter Mnemonic '+i+" : ", {
+	// 	hideEchoBack: true
+	// });
+	// var password = readlineSync.question('Enter Password '+i+" : ", {
+	// hideEchoBack: true
+	// 	});
+	var menmonic = `test${i}`
+	var password = `test${i}`
+
 	if(menmonic == ""){
 		i--;
 		continue;

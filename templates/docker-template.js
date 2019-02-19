@@ -28,7 +28,7 @@ const networks = {
 			"driver" : "bridge",
 			"ipam"   : {
 				"driver"  :  "default",
-				"config"  : [ 
+				"config"  : [
 					{
 						"subnet" : base_ip+"/24"
 					}
@@ -104,7 +104,7 @@ const serviceConfig = {
 				"alwaysSendTo"  : [],
 				"unixSocketFile": "/priv/tm.ipc"/*,
 				"disablePeerDiscovery": true*/
-			}	
+			}
 		},
 	},
 	"quorum-maker":{
@@ -184,7 +184,7 @@ const services = {
 				commands.push("echo \"WHISPER_PORT="+serviceConfig.validator.gossipPort+"\" >> ./setup.conf");
 				commands.push("echo \"CONSTELLATION_PORT="+serviceConfig.constellation.port+"\" >> ./setup.conf");
 				commands.push("echo \"TOTAL_NODES="+basicConfig.publicKeys.length+"\" >> ./setup.conf")
-				//commands.push("echo \"RAFT_ID="+i+"\" >> ./setup.conf") 
+				//commands.push("echo \"RAFT_ID="+i+"\" >> ./setup.conf")
 				commands.push("echo \"MODE=ACTIVE\" >> ./setup.conf")
 				commands.push("echo \"STATE=I\" >> ./setup.conf")
 				commands.push("echo \"PRIVATE_KEY="+basicConfig.privateKeys[i].split("0x")[1]+"\" >> ./setup.conf");
@@ -205,7 +205,7 @@ const services = {
 			+" 2>/logs/quorummakerLogs/" + "$${DATE}_Log.txt");
 		quorum.entrypoint.push(genCommand(commands));
 		return quorum;
-	},	    
+	},
 	"validator": (i,test)=>{
 		var validatorName;
 		if(readparams.modeFlag == "full")
@@ -216,19 +216,19 @@ const services = {
 		var startGeth;
 		if(readparams.modeFlag == "full")
 			ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+base_ip.slice(0, base_ip.length-1)+"9";
-		else if(readparams.modeFlag == "addon")	
+		else if(readparams.modeFlag == "addon")
 			ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+readparams.externalIPAddress;
-		startGeth = gethCom + " --identity \"" + validatorName + "\" --nodekeyhex \""+basicConfig.privateKeys[i].split("0x")[1]+"\" "
+		startGeth = gethCom + "\" --nodekeyhex \""+basicConfig.privateKeys[i].split("0x")[1]+"\" "
 		+"--etherbase \""+basicConfig.publicKeys[i]+"\" --port \""+serviceConfig.validator.gossipPort+"\""
 		+ipaddressText+":3000\" --rpcport "+serviceConfig.validator.rpcPort
 		+" --wsport "+serviceConfig.validator.wsPort; // quorum maker service uses this identity
 		const startIp = serviceConfig.validator.startIp.split(".");
 		var validator = {
-			"hostname"   : validatorName, 
+			"hostname"   : validatorName,
 			"image"		 :	"ledgeriumengineering/quorum:fdlimit-bump",//"quorumengineering/quorum:latest",
 			"ports"	     : [
 				(serviceConfig.validator.gossipPort+i)+":"+serviceConfig.validator.gossipPort,
-				(serviceConfig.validator.rpcPort+i)+":"+serviceConfig.validator.rpcPort, 
+				(serviceConfig.validator.rpcPort+i)+":"+serviceConfig.validator.rpcPort,
 				(serviceConfig.validator.wsPort+i)+":"+serviceConfig.validator.wsPort
 			],
 			"volumes"    : [],
@@ -286,7 +286,7 @@ const services = {
 			"cp /tmp/genesis.json /eth/genesis.json",
 			"cp /tmp/static-nodes.json /eth/static-nodes.json",
 			cpPubKeys,
-			"geth init /eth/genesis.json --datadir /eth",		
+			"geth init /eth/genesis.json --datadir /eth",
 			"echo '"+basicConfig.passwords[i]+"' > ./password",
 			"echo '"+basicConfig.privateKeys[i].split("0x")[1]+"' > ./file",
 			"geth account import file --datadir /eth --password password",
@@ -298,14 +298,16 @@ const services = {
 			validator.volumes = ["./tmp:/tmp"];
 			validator["depends_on"] = [];
 			validator.environment = [];
-			validator.image = "golra03/quorum:faultynode";
+			validator.image = "ledgeriumengineering/quorum:faulty_node";
 			validator.hostname += "-test";
-			commands.push(startGeth+" --istanbul.faultymode 0")
+			commands.push(startGeth+ " --identity \"" + validatorName + "_faulty" + "\ --istanbul.faultymode 1")
 			validator.entrypoint.push(genCommand(commands.slice(4, commands.length)));
 			validator.restart = "no";
 			return validator;
 
-		}		
+		} else {
+			startGeth+= " --identity \"" + validatorName
+		}
 		startGeth+=" --emitcheckpoints 2>/logs/gethLogs/" + "$${DATE}_" + validatorName + "_Log.txt\n";
 		commands.push(startGeth);
 		validator.entrypoint.push(genCommand(commands));
@@ -320,7 +322,7 @@ const services = {
 		} else if(readparams.modeFlag == "addon") {
 			validatorName = "validator-" + readparams.nodeName;
 			constellationName = "constellation-" + readparams.nodeName;
-		}	
+		}
 		var constellationCom = "constellation-node --socket=/constellation/tm.ipc --publickeys=/constellation/tm.pub "
 			+"--privatekeys=/constellation/tm.key --storage=/constellation --verbosity=4";
 
@@ -364,7 +366,7 @@ const services = {
 			"entrypoint" : ["/bin/sh","-c"],
 			"networks"	: {
 			},
-			"restart"	: "always"	
+			"restart"	: "always"
 		};
 		const commands = [
 			"DATE=`date '+%Y-%m-%d_%H-%M-%S'`",
@@ -405,7 +407,7 @@ const services = {
 			"entrypoint" : ["/bin/sh","-c"],
 			"networks"	 : {
 			},
-			"restart"	 : "always"	
+			"restart"	 : "always"
 		};
 		const startIp = serviceConfig.tessera.startIp.split(".");
 		var peers = [];
@@ -441,7 +443,7 @@ const services = {
 			constellationName = "constellation-" + i;
 			tesseraName = "tessera-" + i;
 			governanceUIName = "governance-ui-" + i;
-		} 
+		}
 		else if(readparams.modeFlag == "addon") {
 			validatorName = "validator-" + readparams.nodeName;
 			constellationName = "constellation-" + readparams.nodeName;
@@ -485,13 +487,13 @@ const services = {
 		return gov;
 	}
 };
-const template = {	
+const template = {
 	"version":"3",
 	"services": {
 
 	},
 	"volumes":{
-		
+
 	}
 };
 exports.template 				= template;
