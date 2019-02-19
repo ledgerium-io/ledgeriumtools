@@ -7,6 +7,7 @@ var modeFlag = "addon";
 var externalIPAddress = "127.0.0.1";
 var nodeName = "nodeName";
 var test = 0;
+var domainName = "domainName";
 readInitialParams();
 
 function readInitialParams(){
@@ -28,6 +29,9 @@ function readInitialParams(){
 
         if(initialData["test"] != undefined)
         	test = initialData["test"];
+		
+		if(initialData['domainName'] != undefined)
+			domainName = initialData['domainName'];
         console.log("YML file with mode as", modeFlag);
     }
     else{
@@ -38,3 +42,4 @@ exports.modeFlag = modeFlag;
 exports.externalIPAddress = externalIPAddress;
 exports.nodeName = nodeName;
 exports.test = test;
+exports.domainName = domainName;

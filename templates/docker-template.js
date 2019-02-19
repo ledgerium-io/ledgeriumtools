@@ -143,7 +143,7 @@ const services = {
 			},
 			"restart": "always"
 		};
-		quorum.volumes.push("validator-0:/eth");
+		quorum.volumes.push("./validator-0:/eth");
 		quorum.networks[network_name] = { "ipv4_address": serviceConfig["quorum-maker"].ip }
 		var publicKeyPath = (i) => { return "/tmp/tm"+i+".pub"; };
 		if(tesseraFlag){
@@ -187,7 +187,7 @@ const services = {
 				//commands.push("echo \"RAFT_ID="+i+"\" >> ./setup.conf")
 				commands.push("echo \"MODE=ACTIVE\" >> ./setup.conf")
 				commands.push("echo \"STATE=I\" >> ./setup.conf")
-				commands.push("echo \"PRIVATE_KEY="+basicConfig.privateKeys[i].split("0x")[1]+"\" >> ./setup.conf");
+				commands.push("echo \"PRIVATE_KEY="+"${PRIVATEKEY"+i+"}"+"\" >> ./setup.conf");
 			}
 			commands.push("if [ -e "+publicKeyPath(i)+" ];then")
 			commands.push("PUB=$$(cat "+publicKeyPath(i)+")");
@@ -218,13 +218,13 @@ const services = {
 			ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+base_ip.slice(0, base_ip.length-1)+"9";
 		else if(readparams.modeFlag == "addon")
 			ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+readparams.externalIPAddress;
-		startGeth = gethCom + "\" --nodekeyhex \""+basicConfig.privateKeys[i].split("0x")[1]+"\" "
+		startGeth = gethCom + " --rpcvhosts=" + readparams.domainName + " --identity \"" + validatorName + "\" --nodekeyhex \""+"${PRIVATEKEY"+[i]+"}"+"\" "
 		+"--etherbase \""+basicConfig.publicKeys[i]+"\" --port \""+serviceConfig.validator.gossipPort+"\""
 		+ipaddressText+":3000\" --rpcport "+serviceConfig.validator.rpcPort
 		+" --wsport "+serviceConfig.validator.wsPort; // quorum maker service uses this identity
 		const startIp = serviceConfig.validator.startIp.split(".");
 		var validator = {
-			"hostname"   : validatorName,
+			"hostname"   : validatorName, 
 			"image"		 :	"ledgeriumengineering/ledgeriumcore:v1.1",
 			"ports"	     : [
 				(serviceConfig.validator.gossipPort+i)+":"+serviceConfig.validator.gossipPort,
@@ -245,13 +245,13 @@ const services = {
 		startWait+="set -e\n";
 		if(readparams.modeFlag == "full"){
 			if ( !tesseraFlag ){
-				validator.volumes 	    = ["validator-"+i+":/eth","constellation-"+i+":/constellation:z","./tmp:/tmp"];
+				validator.volumes 	    = ["./validator-"+i+":/eth","constellation-"+i+":/constellation:z","./tmp:/tmp"];
 				validator["depends_on"] = ["constellation-"+i];
 				validator["environment"]= ["PRIVATE_CONFIG=/constellation/tm.conf"];
 				startWait 				= "while [ ! -e /constellation/tm.ipc ];do"
 				cpPubKeys = "cp /constellation/tm.pub /tmp/tm"+i+".pub";
 			}else{
-				validator.volumes 	    = ["validator-"+i+":/eth","tessera-"+i+":/priv","./tmp:/tmp"];
+				validator.volumes 	    = ["./validator-"+i+":/eth","tessera-"+i+":/priv","./tmp:/tmp"];
 				validator["depends_on"] = ["tessera-"+i];
 				validator["environment"]= ["PRIVATE_CONFIG=/priv/tm.ipc"];
 				startWait               = "while [ ! -e /priv/tm.ipc ];do";
@@ -260,13 +260,13 @@ const services = {
 		}
 		else if(readparams.modeFlag == "addon"){
 			if ( !tesseraFlag ){
-				validator.volumes 	    = ["validator-"+ readparams.nodeName +":/eth","constellation-"+ readparams.nodeName +":/constellation:z","./tmp:/tmp"];
+				validator.volumes 	    = ["./validator-"+ readparams.nodeName +":/eth","constellation-"+ readparams.nodeName +":/constellation:z","./tmp:/tmp"];
 				validator["depends_on"] = ["constellation-"+ readparams.nodeName];
 				validator["environment"]= ["PRIVATE_CONFIG=/constellation/tm.conf"];
 				startWait 				= "while [ ! -e /constellation/tm.ipc ];do"
 				cpPubKeys = "cp /constellation/tm.pub /tmp/tm"+i+".pub";
 			}else{
-				validator.volumes 	    = ["validator-"+ readparams.nodeName +":/eth","tessera-"+ readparams.nodeName +":/priv","./tmp:/tmp"];
+				validator.volumes 	    = ["./validator-"+ readparams.nodeName +":/eth","tessera-"+ readparams.nodeName +":/priv","./tmp:/tmp"];
 				validator["depends_on"] = ["tessera-"+ readparams.nodeName];
 				validator["environment"]= ["PRIVATE_CONFIG=/priv/tm.ipc"];
 				startWait               = "while [ ! -e /priv/tm.ipc ];do";
@@ -286,9 +286,9 @@ const services = {
 			"cp /tmp/genesis.json /eth/genesis.json",
 			"cp /tmp/static-nodes.json /eth/static-nodes.json",
 			cpPubKeys,
-			"geth init /eth/genesis.json --datadir /eth",
-			"echo '"+basicConfig.passwords[i]+"' > ./password",
-			"echo '"+basicConfig.privateKeys[i].split("0x")[1]+"' > ./file",
+			"geth init /eth/genesis.json --datadir /eth",		
+			"echo '"+"${PASSWORD"+[i]+"}"+"' > ./password",
+			"echo '"+"${PRIVATEKEY"+[i]+"}"+"' > ./file",
 			"geth account import file --datadir /eth --password password",
 			"rm -f ./file && rm -f ./password",
 			"fi"
@@ -454,28 +454,29 @@ const services = {
 			"hostname" 		: governanceUIName,
 			"image"    		: "ledgeriumengineering/governance_app_ui_img:new_metamask",
 			"ports"    		: [(serviceConfig["governance-app"]["port-exp"]+i)+":"+serviceConfig["governance-app"]["port-int"]],
-			"volumes"  		: [validatorName +':/eth'],
+			"volumes"  		: ["./" + validatorName +':/eth'],
 			"depends_on" 	: [validatorName],
 			"entrypoint"    : [ "/bin/sh","-c"],
 			"networks"      : {
 
-			}
+			},
+			"restart"	 : "always"
 		}
 		const startIp = serviceConfig["governance-app"].startIp.split(".");
 		const ip = startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+i);
 		const vip = serviceConfig.validator.startIp.split(".");
-		var string = "";
+		var string = "set -u\n set -e\n";
 		string+="mkdir -p /logs/governanceappLogs\n";
 		string+="DATE=`date '+%Y-%m-%d_%H-%M-%S'`\n";
 		if((i == 0) && (numberOfNodes >= 3)) {
 				string+="cd /ledgerium/governanceapp/governanceApp\n",
-				string+="node index.js protocol=http hostname=localhost port=8545 privateKeys="
-				+basicConfig.privateKeys[0].split("0x")[1]+","
-				+basicConfig.privateKeys[1].split("0x")[1]+","
-				+basicConfig.privateKeys[2].split("0x")[1]+"\n";
+				string+="node index.js protocol=http hostname=" + vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i) +" port=8545 privateKeys="
+				+"${PRIVATEKEY0}"+","
+				+"${PRIVATEKEY1}"+","
+				+"${PRIVATEKEY2}"+"\n";
 		}
 		string+="cd /ledgerium/governanceapp/governanceApp/app\n";
-		string+="node governanceUI.js "+vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i)+" "+serviceConfig.validator.rpcPort+"\n";
+		string+="node governanceUI.js "+vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i)+" "+(serviceConfig.validator.rpcPort+i)+"\n";		
 		string+=" 2>/logs/governanceappLogs/"+ "$${DATE}_" + validatorName + "_Log.txt"
 		gov.entrypoint.push(string);
 		if ( !tesseraFlag ){
