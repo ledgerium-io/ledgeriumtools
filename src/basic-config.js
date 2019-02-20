@@ -4,21 +4,14 @@ const dockerTemplate = require("../templates/docker-template");
 var genesisTemplate = require('../genesis');
 
 const amount = "0xfffffffffffffffffffffffffffffffffffff";
-var input = require('./getMnemonics');
 var readparams = require('../readparams');
- 
+var input = require('./getMnemonics');
+
 var mnemonic = input.template;
 
 var envParams = "";
 
 var privateKeyJSON = {}; var writeprivatekeys = true;
-const test = [
-	'0x'+ethUtil.keccak("some random key for test").toString('hex'),
-	'0x'+ethUtil.keccak("just to use as seed").toString('hex'),
-	'0x'+ethUtil.keccak("for faulty node test").toString('hex'),
-	'0x'+ethUtil.keccak("enaled only if test is greater than zero").toString('hex')
-];
-var testCount = readparams.test>4?4:readparams.test;
 var privateKeys = [], publicKeys = [], static_nodes = "[", staticNodesExternal = "[", extraData, enodes = [];
 const vanity = mnemonic.istanbul.vanity || "0x0000000000000000000000000000000000000000000000000000000000000000";
 const seal   = mnemonic.istanbul.seal || "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
@@ -30,10 +23,6 @@ if(mnemonic.mode == 0){
 	}
 }else {
 	privateKeys = mnemonic.keys;
-}
-
-for (var i = 0; i < testCount; i++) {
-	privateKeys.push(test[i]);
 }
 
 var baseIp = dockerTemplate.serviceConfig.validator.startIp.split(".");
