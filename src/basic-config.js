@@ -4,8 +4,8 @@ const dockerTemplate = require("../templates/docker-template");
 var genesisTemplate = require('../genesis');
 
 const amount = "0xfffffffffffffffffffffffffffffffffffff";
-var input = require('./getMnemonics');
 var readparams = require('../readparams');
+var input = require('./getMnemonics');
 
 var mnemonic = input.template;
 
@@ -125,6 +125,11 @@ if(writeprivatekeys) {
 	var data = JSON.stringify(privateKeyJSON,null, 2);
 	fs.writeFileSync(tempDir+"privatekeys.json",data);
 }
+var mode = '';
+if (process.argv[2] == '1')
+	mode = 1;
+else 
+	mode = 0;
 
 exports.publicKeys = publicKeys;
 exports.privateKeys = privateKeys;

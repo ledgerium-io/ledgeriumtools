@@ -1,20 +1,18 @@
 const readlineSync = require('readline-sync');
 const fs 		   = require('fs');
-
-/*if(!fs.existsSync(process.argv[2]))
-	throw "Provide path for output";*/
-
+const readparams = require('../readparams');
 var num = readlineSync.question('Number of Mnemonics : ');
 var mnemonics = [];
 var passwords = [];
-var numberOfNodes = parseInt(num)
+var numberOfNodes = parseInt(num) + readparams.faultynode;
 for (var i = 0; i < numberOfNodes; i++) {
 	var menmonic = readlineSync.question('Enter Mnemonic '+i+" : ", {
 		hideEchoBack: true
 	});
 	var password = readlineSync.question('Enter Password '+i+" : ", {
-		hideEchoBack: true
-	});
+	hideEchoBack: true
+		});
+
 	if(menmonic == ""){
 		i--;
 		continue;
@@ -41,5 +39,4 @@ var template = {
 template.mnemonic = mnemonics;
 exports.template  = template;
 exports.passwords = passwords;
-
 global.numberOfNodes = numberOfNodes;

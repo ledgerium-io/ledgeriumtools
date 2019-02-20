@@ -1,4 +1,7 @@
 node_modules/
+output/docker-compose.yml
+output/*
+ledgeriumtools.code-workspace
 .idea/
 .vscode/
 output/docker-compose.yml

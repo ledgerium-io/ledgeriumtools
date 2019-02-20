@@ -6,6 +6,7 @@ var randomstring = require("randomstring");
 var modeFlag = "addon";
 var externalIPAddress = "127.0.0.1";
 var nodeName = "nodeName";
+var faultynode = 0;
 var domainName = "domainName";
 readInitialParams();
 
@@ -24,7 +25,10 @@ function readInitialParams(){
 			nodeName = randomstring.generate(3);
 		
 		if(initialData["externalIPAddress"] != undefined)
-			externalIPAddress = initialData["externalIPAddress"];  
+        	externalIPAddress = initialData["externalIPAddress"];
+
+        if(initialData["faultynode"] != undefined)
+			faultynode = initialData["faultynode"];
 		
 		if(initialData['domainName'] != undefined)
 			domainName = initialData['domainName'];
@@ -37,4 +41,5 @@ function readInitialParams(){
 exports.modeFlag = modeFlag;
 exports.externalIPAddress = externalIPAddress;
 exports.nodeName = nodeName;
+exports.faultynode = faultynode;
 exports.domainName = domainName;
