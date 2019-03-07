@@ -9,7 +9,7 @@ const gethCom   = "geth --rpc --rpcaddr '0.0.0.0' --rpccorsdomain '*' \
 --debug --metrics --syncmode 'full' --mine --verbosity 6 \
 --emitcheckpoints --mine --minerthreads 1";
 
-const tesseraFlag = false;
+const tesseraFlag = true;
 const network_name = "test_net";
 var base_ip = "172.19.240.0",entrypoint, qmvolumes =[];
 
@@ -117,28 +117,9 @@ const serviceConfig = {
 		        	"username": "sa",
 		        	"password": "",
 		        	"url": "jdbc:h2:.//priv/db;MODE=Oracle;TRACE_LEVEL_SYSTEM_OUT=0",
-		        	"autoCreateTables": true
+					autoCreateTables : true
 	    		},
 		   		"serverConfigs":[
-			        {
-			            "app":"ThirdParty",
-			            "enabled": true,
-			            "serverSocket":{
-			                "type":"INET",
-			                "port": port+i,
-			                "hostName": ""
-			            },
-			            "communicationType" : "REST"
-			        },
-			        {
-			            "app":"Q2T",
-			            "enabled": true,
-			            "serverSocket":{
-			                "type":"UNIX",
-			                "path":"/priv/tm.ipc"
-			            },
-			            "communicationType" : "UNIX_SOCKET"
-			        },
 			        {
 			            "app":"P2P",
 			            "enabled": true,
@@ -148,15 +129,15 @@ const serviceConfig = {
 			                "hostName": ""
 			            },
 			            "sslConfig": {
-			                "tls": "OFF",
+			                "tls": "STRICT",
 			                "generateKeyStoreIfNotExisted": true,
-			                "serverKeyStore": "/priv/server${i}-keystore",
+			                "serverKeyStore": "/priv/server"+i+"-keystore",
 			                "serverKeyStorePassword": "quorum",
 			                "serverTrustStore": "/priv/server-truststore",
 			                "serverTrustStorePassword": "quorum",
 			                "serverTrustMode": "TOFU",
 			                "knownClientsFile": "/priv/knownClients",
-			                "clientKeyStore": "/priv/client${i}-keystore",
+			                "clientKeyStore": "/priv/client"+i+"-keystore",
 			                "clientKeyStorePassword": "quorum",
 			                "clientTrustStore": "/priv/client-truststore",
 			                "clientTrustStorePassword": "quorum",
@@ -164,7 +145,16 @@ const serviceConfig = {
 			                "knownServersFile": "/priv/knownServers"
 			            },
 			            "communicationType" : "REST"
-			        }
+			        },
+					{
+						"app":"Q2T",
+						"enabled": true,
+						"serverSocket":{
+							"type":"UNIX",
+							"path":"/priv/tm.ipc"
+						},
+						"communicationType" : "UNIX_SOCKET"
+					}
     			],
 			    "peer": [],
 			    "keys": {
@@ -176,7 +166,8 @@ const serviceConfig = {
 			            }
 			        ]
 			    },
-    			"alwaysSendTo": []
+    			"alwaysSendTo": [],
+				"unixSocketFile": "/priv/tm.ipc"
 			}
 		}
 	},
@@ -529,13 +520,12 @@ const services = {
 				peers.push({ "url" : "http://"+readparams.externalIPAddress+":"+(port+j)+"/"})
 			}
 		}
-		tesseraTemplate.server.port 				   = port+i;
-		tesseraTemplate.server.hostName 			   = "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]));
-		eTesseraTemplate.serverConfigs[0].serverSocket = "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]));
-		eTesseraTemplate.serverConfigs[2].serverSocker = "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]));
-		tesseraTemplate.peer        				   = peers;
-		eTesseraTemplate.peer 						   = peers;
-		tessera.volumes								   = ["./"+tesseraName+":/priv"];
+		tesseraTemplate.server.port 				  			= port+i;
+		tesseraTemplate.server.hostName 			   		    = "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]));
+		eTesseraTemplate.serverConfigs[0].serverSocket.hostName = "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]));
+		tesseraTemplate.peer        				   			= peers;
+		eTesseraTemplate.peer 						   			= peers;
+		tessera.volumes								   			= ["./"+tesseraName+":/priv"];
 		const commands = [
 			"DATE=`date '+%Y-%m-%d_%H-%M-%S'`",
 			"rm -f /priv/tm.ipc",
@@ -543,8 +533,8 @@ const services = {
 			"mkdir -p /priv",
 			"mkdir -p /logs/tesseraLogs",
 			"echo -e \"\\n\" | java -jar /tessera/tessera-app.jar -keygen -filename /priv/tm",
-			"echo '"+JSON.stringify(tesseraTemplate)+"' > /priv/tessera-config.json",
-			"echo '"+JSON.stringify(eTesseraTemplate)+"' > /priv/tessera-config-enhanced.json",
+			//"echo '"+JSON.stringify(tesseraTemplate)+"' > /priv/tessera-config.json",
+			"echo '"+JSON.stringify(eTesseraTemplate)+"' > /priv/tessera-config.json",
 			"cp /priv/tm.pub /tmp/tm"+i+".pub",
 			"fi",
 			startTess
