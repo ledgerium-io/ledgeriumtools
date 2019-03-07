@@ -101,11 +101,13 @@ if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir);
 }
 
+//Create env file for both full/addon mode
+fs.writeFileSync(envFile, envParams); //Write private keys and passwords to .env file
+
 if(readparams.modeFlag == "full") {
 	fs.writeFileSync(tempDir+"genesis.json",JSON.stringify(genesisTemplate));
 	fs.writeFileSync(tempDir+"static-nodes.json",static_nodes);
 	fs.writeFileSync(tempDir+"permissioned-nodes.json",static_nodes);
-	fs.writeFileSync(envFile, envParams); //Write private keys and passwords to .env file
 
 	const outputDir = __dirname + "/../../ledgeriumnetwork/";
 	if (!fs.existsSync(outputDir)) {
