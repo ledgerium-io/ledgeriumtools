@@ -7,7 +7,7 @@ const gethCom   = "geth --rpc --rpcaddr '0.0.0.0' --rpccorsdomain '*' \
 --ws --wsorigins '*' --wsapi 'db,eth,net,web3,personal,admin,debug,txpool' \
 --wsaddr '0.0.0.0' --networkid 2018 --targetgaslimit 9007199254740000 \
 --debug --metrics --syncmode 'full' --mine --verbosity 6 \
---emitcheckpoints --mine --minerthreads 1";
+--minerthreads 1";
 
 const tesseraFlag = false;
 const network_name = "test_net";
