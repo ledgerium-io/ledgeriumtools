@@ -144,7 +144,7 @@ const serviceConfig = {
 			                "clientTrustMode": "TOFU",
 			                "knownServersFile": "/priv/knownServers"
 			            },
-			            "communicationType" : "GRPC"
+			            "communicationType" : "REST"
 			        },
 					{
 						"app":"Q2T",
