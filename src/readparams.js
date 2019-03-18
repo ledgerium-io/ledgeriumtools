@@ -11,7 +11,7 @@ var domainName = "domainName";
 readInitialParams();
 
 function readInitialParams(){
-	var initialParamFileName = __dirname + "/initialparams.json";
+	var initialParamFileName = __dirname + "/../initialparams.json";
     if(fs.existsSync(initialParamFileName)){
         var initialDataRaw = fs.readFileSync(initialParamFileName,"utf8");
 		var initialData = JSON.parse(initialDataRaw);

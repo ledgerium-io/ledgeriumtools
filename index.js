@@ -1,2 +1,2 @@
-const readparams = require('./readparams');
-const gen = require('./src/generate-yaml');
+const readparams = require('./src/readparams');
+const gen = require('./src/generateyaml');

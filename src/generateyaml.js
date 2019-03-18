@@ -1,8 +1,8 @@
-const basicConfig = require('./basic-config');
-const readparams = require('../readparams');
+const basicConfig = require('./basicconfig');
+const readparams = require('./readparams');
 const fs = require('fs'); 
 var exec = require('child_process').exec;
-const dockerTemplate = require('../templates/docker-template');
+const dockerTemplate = require('../templates/dockertemplate');
 const yaml = require('js-yaml');
 
 var dockerCompose  = dockerTemplate.template;
@@ -85,16 +85,35 @@ else if(readparams.modeFlag == "addon"){
 	}
 }
 
+const YMLFile = "./output/docker-compose.yml";
 //Final output to the yml
-fs.writeFileSync("./output/docker-compose.yml",yaml.dump(dockerCompose,{
+fs.writeFileSync(YMLFile, yaml.dump(dockerCompose,{
 	styles: {
 		'!!null' : 'canonical'
 	}
 }));
 
-var replace = "sed -i -e 's/~//g' ./output/docker-compose.yml";
+//var replace = "sed -i -e 's/~//g' ./output/docker-compose.yml";
+var replace = "sed -i -e 's/~//g' " + YMLFile;
 exec(replace, function(error, stdout, stderr) {
 	if (error) {
 	  console.log(error.code);
 	}
-  });
+});
+
+sleep(1000, function() {
+	// executes after one second, and blocks the thread
+	//Remove the -e file on MAC platform
+	if (process.platform == "darwin") {
+	if(fs.existsSync(YMLFile+"-e"))
+		fs.unlinkSync(YMLFile+"-e");
+	}
+});
+
+function sleep(time, callback) {
+    var stop = new Date().getTime();
+    while(new Date().getTime() < stop + time) {
+        ;
+    }
+    callback();
+}

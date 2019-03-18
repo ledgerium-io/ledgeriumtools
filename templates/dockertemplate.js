@@ -1,6 +1,6 @@
 //'use strict';
-const basicConfig = require('../src/basic-config');
-const readparams = require('../readparams');
+const basicConfig = require('../src/basicconfig');
+const readparams = require('../src/readparams');
 
 const gethCom   = "geth --rpc --rpcaddr '0.0.0.0' --rpccorsdomain '*' \
 --datadir '/eth' --rpcapi 'db,eth,net,web3,istanbul,personal,admin,debug,txpool' \
@@ -174,8 +174,6 @@ const services = {
 			const ip   = startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+i);
 			if(i != 0){
 				prefix = i+"_";
-				//commands.push("echo \""+prefix+"RAFT_ID="+i+"\"  >> ./setup.conf");
-				//commands.push("echo \""+prefix+"ROLE=Unassigned\" >> ./setup.conf");
 				commands.push("echo \""+prefix+"ENODE="+basicConfig.enodes[i]+"\" >> ./setup.conf")
 			}else{
 				commands.push("echo \"CONTRACT_ADD=\" >> setup.conf");
@@ -184,7 +182,6 @@ const services = {
 				commands.push("echo \"WHISPER_PORT="+serviceConfig.validator.gossipPort+"\" >> ./setup.conf");
 				commands.push("echo \"CONSTELLATION_PORT="+serviceConfig.constellation.port+"\" >> ./setup.conf");
 				commands.push("echo \"TOTAL_NODES="+basicConfig.publicKeys.length+"\" >> ./setup.conf")
-				//commands.push("echo \"RAFT_ID="+i+"\" >> ./setup.conf")
 				commands.push("echo \"MODE=ACTIVE\" >> ./setup.conf")
 				commands.push("echo \"STATE=I\" >> ./setup.conf")
 				commands.push("echo \"PRIVATE_KEY="+"${PRIVATEKEY"+i+"}"+"\" >> ./setup.conf");
@@ -320,11 +317,7 @@ const services = {
 			validator.environment = ["PRIVATE_CONFIG=/constellation/tm.conf"];
 			validator.image = "ledgeriumengineering/quorum:faulty_node";
 			
-			//commands.push(startGeth+ " --identity \"" + validatorName + "_faulty\"" + "\ --istanbul.faultymode 1")
 			startGeth += " --identity \"" + validatorName + "_faulty\"" + "\ --istanbul.faultymode 1";
-			//validator.entrypoint.push(genCommand(commands.slice(4, commands.length)));
-			//validator.restart = "always";
-//			return validator;
 		} else {
 			startGeth+= " --identity \"" + validatorName + "\"";
 		}
@@ -515,13 +508,18 @@ const services = {
 		var string = "set -u\n set -e\n";
 		string+="mkdir -p /logs/governanceappLogs\n";
 		string+="DATE=`date '+%Y-%m-%d_%H-%M-%S'`\n";
-		if((i == 0) && (numberOfNodes >= 3)) {
-				string+="cd /ledgerium/governanceapp/governanceApp\n",
-				string+="node index.js protocol=http hostname=" + vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i) +" port=8545 privateKeys="
-				+"${PRIVATEKEY0}"+","
-				+"${PRIVATEKEY1}"+","
-				+"${PRIVATEKEY2}"+"\n";
-		}
+		if(i == 0) { //Initialisation is to be done only for one node. We are doing for the first node -> i == 0
+			string+="cd /ledgerium/governanceapp/governanceApp\n",
+			string+="node index.js protocol=http hostname=" + vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i) +" port=8545 privateKeys="
+			for(nodeIndex = 0; nodeIndex < numberOfNodes;) {
+			//if((i == 0) && (numberOfNodes >= 3)) {
+				string+= "${PRIVATEKEY" + (nodeIndex++) + "}"
+				if(nodeIndex < numberOfNodes) //the last node
+				string+= ","
+			}
+			string+= "\n"
+			string+="node index.js protocol=http hostname=" + vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i) +" port=8545 initialiseApp=/eth/nodedetails.json\n";
+		}	
 		string+="cd /ledgerium/governanceapp/governanceApp/app\n";
 		string+="node governanceUI.js "+vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i)+" "+(serviceConfig.validator.rpcPort+i)+"\n";		
 		string+=" 2>/logs/governanceappLogs/"+ "$${DATE}_" + validatorName + "_Log.txt"

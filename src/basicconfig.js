@@ -1,18 +1,21 @@
 const fs = require('fs');
 const ethUtil = require('ethereumjs-util');
-const dockerTemplate = require("../templates/docker-template");
-var genesisTemplate = require('../genesis');
+const dockerTemplate = require("../templates/dockertemplate");
+var genesisTemplate = require('../templates/genesistemplate');
 
 const amount = "0xfffffffffffffffffffffffffffffffffffff";
-var readparams = require('../readparams');
-var input = require('./getMnemonics');
+var readparams = require('./readparams');
+var input = require('./getmnemonics');
 
 var mnemonic = input.template;
 
 var envParams = "";
-
+var rpcPort = 8545;
+var nodeJSON = {};
+var nodeDetails = [];
+var faultyNodeFlag = readparams.faultynode;
 var privateKeyJSON = {}; var writeprivatekeys = true;
-var privateKeys = [], publicKeys = [], static_nodes = "[", staticNodesExternal = "[", extraData, enodes = [];
+var validatorIDs = [], hostNames = [], privateKeys = [], publicKeys = [], static_nodes = "[", staticNodesExternal = "[", extraData, enodes = [];
 const vanity = mnemonic.istanbul.vanity || "0x0000000000000000000000000000000000000000000000000000000000000000";
 const seal   = mnemonic.istanbul.seal || "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
 
@@ -63,7 +66,28 @@ for (var i = 0; i < privateKeys.length; i++) {
 		static_nodes+="]";
 		staticNodesExternal+="]";
 	}
+
+	var validatorName = "validator-";
+	if(faultyNodeFlag)
+		validatorName += "test-" + i;
+	else {
+		validatorName += i;
+	}
+	validatorIDs.push(validatorName);
+	hostNames.push(validatorName);
+
+	var node = {
+		nodename:validatorName,
+		hostname: validatorName,
+		role: readparams.modeFlag + " node",
+		ipaddress:readparams.externalIPAddress,
+		port:(rpcPort + i),
+		publickey: "0x" + pubk,
+		enodeUrl: temp
+	};
+	nodeDetails.push(node);
 }
+nodeJSON["nodes"] = nodeDetails;
 
 temp = [];
 var data = [];
@@ -82,18 +106,22 @@ data.push([]);
 genesisTemplate['extraData'] = vanity+ethUtil.rlp.encode(data).toString("hex");
 
 //Remove the files
-const genesis = "genesis.json";
-const privatekeys = "privatekeys.json";
-const static = "static-nodes.json";
+const genesisFile = "genesis.json";
+const privatekeysFile = "privatekeys.json";
+const staticFile = "static-nodes.json";
+const permissionedFile = "permissioned-nodes.json";
 const envFile = __dirname + "/../output/.env"; //.env file path
+const nodeDetailsFile = "nodesdetails.json";
 
 const tempDir = __dirname + "/../output/tmp/";
-if(fs.existsSync(tempDir + genesis))
-	fs.unlinkSync(tempDir + genesis);
-if(fs.existsSync(tempDir + privatekeys))
-	fs.unlinkSync(tempDir + privatekeys);
-if(fs.existsSync(tempDir + static))
-	fs.unlinkSync(tempDir + static);
+if(fs.existsSync(tempDir + genesisFile))
+	fs.unlinkSync(tempDir + genesisFile);
+if(fs.existsSync(tempDir + privatekeysFile))
+	fs.unlinkSync(tempDir + privatekeysFile);
+if(fs.existsSync(tempDir + staticFile))
+	fs.unlinkSync(tempDir + staticFile);
+if(fs.existsSync(tempDir + permissionedFile))
+	fs.unlinkSync(tempDir + permissionedFile);
 if(fs.existsSync(envFile))
 	fs.unlinkSync(envFile);
 	
@@ -105,27 +133,31 @@ if (!fs.existsSync(tempDir)) {
 fs.writeFileSync(envFile, envParams); //Write private keys and passwords to .env file
 
 if(readparams.modeFlag == "full") {
-	fs.writeFileSync(tempDir+"genesis.json",JSON.stringify(genesisTemplate));
-	fs.writeFileSync(tempDir+"static-nodes.json",static_nodes);
-	fs.writeFileSync(tempDir+"permissioned-nodes.json",static_nodes);
+	fs.writeFileSync(tempDir + genesisFile, JSON.stringify(genesisTemplate));
+	fs.writeFileSync(tempDir + staticFile, static_nodes);
+	fs.writeFileSync(tempDir + permissionedFile, static_nodes);
+	fs.writeFileSync(tempDir + nodeDetailsFile, JSON.stringify(nodeJSON, null, 2));
 
 	const outputDir = __dirname + "/../../ledgeriumnetwork/";
 	if (!fs.existsSync(outputDir)) {
 		fs.mkdirSync(outputDir);
 	}
-	if(fs.existsSync(outputDir + genesis))
-		fs.unlinkSync(outputDir + genesis);
-	if(fs.existsSync(outputDir + static))
-		fs.unlinkSync(outputDir + static);
+	if(fs.existsSync(outputDir + genesisFile))
+		fs.unlinkSync(outputDir + genesisFile);
+	if(fs.existsSync(outputDir + staticFile))
+		fs.unlinkSync(outputDir + staticFile);
+	if(fs.existsSync(outputDir + permissionedFile))
+		fs.unlinkSync(outputDir + permissionedFile);
 		
-	fs.writeFileSync(outputDir+"genesis.json",JSON.stringify(genesisTemplate));
-	fs.writeFileSync(outputDir+"static-nodes.json",staticNodesExternal);
-	fs.writeFileSync(outputDir+"permissioned-nodes.json",staticNodesExternal);
+	fs.writeFileSync(outputDir + genesisFile, JSON.stringify(genesisTemplate));
+	fs.writeFileSync(outputDir + staticFile, staticNodesExternal);
+	fs.writeFileSync(outputDir + permissionedFile, staticNodesExternal);
+	fs.writeFileSync(outputDir + nodeDetailsFile, JSON.stringify(nodeJSON, null, 2));
 }
 
 if(writeprivatekeys) {
 	var data = JSON.stringify(privateKeyJSON,null, 2);
-	fs.writeFileSync(tempDir+"privatekeys.json",data);
+	fs.writeFileSync(tempDir + privatekeysFile, data);
 }
 var mode = '';
 if (process.argv[2] == '1')
@@ -133,6 +165,8 @@ if (process.argv[2] == '1')
 else 
 	mode = 0;
 
+exports.validatorIDs = hostNames;
+exports.hostNames = hostNames;
 exports.publicKeys = publicKeys;
 exports.privateKeys = privateKeys;
 exports.staticNodes = static_nodes;
