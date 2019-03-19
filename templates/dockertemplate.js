@@ -115,10 +115,54 @@ const serviceConfig = {
 		"port-exp": 3545,
 		"port-int": 3003,
 		"startIp" : base_ip.slice(0, base_ip.length-1)+"150"
+	},
+	"docusaurus" : {
+		"ip" : base_ip.slice(0, base_ip.length-1)+"91"
 	}
 };
 
 const services = {
+	"rest" : () => {
+		var rest = {
+			"image" : "blkio10/explorer-free:2.1.2",
+			"container_name" : "blk-free-explorer",
+			"ports" : ["8081:8081"],
+			"environment": ['NODE_ENDPOINT=http://125.254.27.14:8545/',"ENABLE_PRIVATE_QUORUM=enabled", "JAVA_OPTS=", "EXPLORER_PORT=8081", "MONGO_CLIENT_URI=mongodb://mongodb:27017", "MONGO_DB_NAME=test", "UI_IP=http://localhost:5000", "USE_COSMOS=false"],
+			"depends_on" : ["mongodb"]
+		}
+		return rest;
+	},
+	"mongodb": () => {
+		var mongodb = {
+			"image": "mongo:3.4.10",
+			"container_name": "blk-free-mongodb",
+			"ports": ["27017:27017"],
+			"entrypoint": "mongod --smallfiles --logpath=/dev/null --bind_ip '0.0.0.0'"
+		}
+		return mongodb;
+	},
+	"web" : () => {
+		var web = {
+			"image": "blkio10/explorer-ui-free:2.1.2",
+			"container_name": "blk-free-explorer-ui",
+			"ports": ["5000:5000"],
+			"environment": ["REACT_APP_EXPLORER=http://localhost:8081"]
+		}
+		return web;
+	},
+	"docusaurus" : () => {
+		var doc = {
+			"image" : "ledgeriumengineering/ledgeriumdocusaurus:v1.0",
+			"ports" : ["4000:3000"],
+			"entrypoint" : ["/bin/sh", "-c"],
+			"networks" : {}
+		};
+		
+		var commands = ["npm start"]
+		doc.entrypoint.push(genCommand(commands))
+		doc.networks[network_name] = {"ipv4_address": serviceConfig["docusaurus"].ip};
+		return doc;
+	},
 	"ledgeriumstats": ()=>{
 		var eth = {
 			"image"        : "ledgeriumengineering/ledgeriumstats:v1.0",
