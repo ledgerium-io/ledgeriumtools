@@ -9,7 +9,7 @@ const gethCom   = "geth --rpc --rpcaddr '0.0.0.0' --rpccorsdomain '*' \
 --debug --metrics --syncmode 'full' --mine --verbosity 6 \
 --minerthreads 1";
 
-const tesseraFlag = true;
+const tesseraFlag = false;
 const network_name = "test_net";
 var base_ip = "172.19.240.0",entrypoint, qmvolumes =[];
 
@@ -492,9 +492,9 @@ const services = {
 		}
 		var gov = {
 			"hostname" 		: governanceUIName,
-			"image"    		: "ledgeriumengineering/governance_app_ui_img:new_metamask",
+			"image"    		: "ledgeriumengineering/governance_app_ui_img:v1.0",
 			"ports"    		: [(serviceConfig["governance-app"]["port-exp"]+i)+":"+serviceConfig["governance-app"]["port-int"]],
-			"volumes"  		: ["./" + validatorName +':/eth'],
+			"volumes"  		: ["./" + validatorName +':/eth',"./tmp:/tmp"],
 			"depends_on" 	: [validatorName],
 			"entrypoint"    : [ "/bin/sh","-c"],
 			"networks"      : {
@@ -508,6 +508,7 @@ const services = {
 		var string = "set -u\n set -e\n";
 		string+="mkdir -p /logs/governanceappLogs\n";
 		string+="DATE=`date '+%Y-%m-%d_%H-%M-%S'`\n";
+		string+="cp /tmp/nodesdetails.json /eth/nodesdetails.json\n";
 		if(i == 0) { //Initialisation is to be done only for one node. We are doing for the first node -> i == 0
 			string+="cd /ledgerium/governanceapp/governanceApp\n",
 			string+="node index.js protocol=http hostname=" + vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i) +" port=8545 privateKeys="
@@ -517,8 +518,8 @@ const services = {
 				if(nodeIndex < numberOfNodes) //the last node
 				string+= ","
 			}
-			string+= "\n"
-			string+="node index.js protocol=http hostname=" + vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i) +" port=8545 initialiseApp=/eth/nodedetails.json\n";
+			//string+= "\n"
+			string+=" initialiseApp=/eth/nodedetails.json\n";
 		}	
 		string+="cd /ledgerium/governanceapp/governanceApp/app\n";
 		string+="node governanceUI.js "+vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i)+" "+(serviceConfig.validator.rpcPort+i)+"\n";		
