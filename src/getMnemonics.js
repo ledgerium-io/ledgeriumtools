@@ -1,6 +1,6 @@
 const readlineSync = require('readline-sync');
 const fs 		   = require('fs');
-const readparams = require('../readparams');
+const readparams = require('./readparams');
 var num = readlineSync.question('Number of Mnemonics : ');
 var mnemonics = [];
 var passwords = [];
