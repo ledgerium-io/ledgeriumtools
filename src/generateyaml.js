@@ -8,7 +8,7 @@ const yaml = require('js-yaml');
 var dockerCompose  = dockerTemplate.template;
 
 if(readparams.modeFlag == "full"){
-	dockerCompose.services["eth-stats"] = dockerTemplate.services['eth-stats']();
+	dockerCompose.services["ledgeriumstats"] = dockerTemplate.services['ledgeriumstats']();
 	dockerCompose["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
 }	
 

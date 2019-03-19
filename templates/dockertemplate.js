@@ -46,7 +46,7 @@ const networks = {
 	}
 };
 const serviceConfig = {
-	"eth-stats":{
+	"ledgeriumstats":{
 		"ip" : base_ip.slice(0, base_ip.length-1)+"9"
 	},
 	"validator":{
@@ -119,16 +119,16 @@ const serviceConfig = {
 };
 
 const services = {
-	"eth-stats": ()=>{
+	"ledgeriumstats": ()=>{
 		var eth = {
-			"image"        : "quay.io/amis/ethstats:latest",
+			"image"        : "ledgeriumengineering/ledgeriumstats:v1.0",
 			"ports"        : ["3000:3000"],
 			"environment"  : ["WS_SECRET=bb98a0b6442334d0cdf8a31b267892c1"],
 			"restart"	   : "always",
 			"networks"	   : {
 			}
 		};
-		eth.networks[network_name] = { "ipv4_address":serviceConfig["eth-stats"].ip };
+		eth.networks[network_name] = { "ipv4_address":serviceConfig["ledgeriumstats"].ip };
 		return eth;
 	},
 	"quorum-maker": ()=>{
@@ -425,7 +425,7 @@ const services = {
 		var tesseraTemplate  = serviceConfig.tessera.tesseraTemplate(i);
 		var tessera          = {
 			"hostname"   : tesseraName,
-			"image"		 : "quorumengineering/tessera:latest",
+			"image"		 : "ledgeriumengineering/ledgeriumtessera:v1.0",
 			"ports"	     : [(serviceConfig.tessera.port+i)+":"+serviceConfig.tessera.port],
 			"volumes"    : [],
 			"entrypoint" : ["/bin/sh","-c"],
