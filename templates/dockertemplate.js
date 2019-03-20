@@ -47,7 +47,7 @@ const networks = {
 };
 const serviceConfig = {
 	"ledgeriumstats":{
-		"ip" : base_ip.slice(0, base_ip.length-1)+"9"
+		"ip" : base_ip.slice(0, base_ip.length-1)+"8"
 	},
 	"validator":{
 		"startIp": base_ip.slice(0, base_ip.length-1)+"10",
@@ -116,53 +116,27 @@ const serviceConfig = {
 		"port-int": 3003,
 		"startIp" : base_ip.slice(0, base_ip.length-1)+"150"
 	},
+	"mongodb" : {
+		"ip" : base_ip.slice(0, base_ip.length-1)+"2"
+	},
+	"redis" : {
+		"ip" : base_ip.slice(0, base_ip.length-1)+"3"
+	},
 	"docusaurus" : {
-		"ip" : base_ip.slice(0, base_ip.length-1)+"91"
+		"ip" : base_ip.slice(0, base_ip.length-1)+"4"
+	},
+	"blockexplorer" : {
+		"ip" : base_ip.slice(0, base_ip.length-1)+"5"
+	},
+	"ledgeriumfaucet" : {
+		"ip" : base_ip.slice(0, base_ip.length-1)+"6"
+	},
+	"web" : {
+		"ip" : base_ip.slice(0, base_ip.length-1)+"7"
 	}
 };
 
 const services = {
-	"rest" : () => {
-		var rest = {
-			"image" : "blkio10/explorer-free:2.1.2",
-			"container_name" : "blk-free-explorer",
-			"ports" : ["8081:8081"],
-			"environment": ['NODE_ENDPOINT=http://125.254.27.14:8545/',"ENABLE_PRIVATE_QUORUM=enabled", "JAVA_OPTS=", "EXPLORER_PORT=8081", "MONGO_CLIENT_URI=mongodb://mongodb:27017", "MONGO_DB_NAME=test", "UI_IP=http://localhost:5000", "USE_COSMOS=false"],
-			"depends_on" : ["mongodb"]
-		}
-		return rest;
-	},
-	"mongodb": () => {
-		var mongodb = {
-			"image": "mongo:3.4.10",
-			"container_name": "blk-free-mongodb",
-			"ports": ["27017:27017"],
-			"entrypoint": "mongod --smallfiles --logpath=/dev/null --bind_ip '0.0.0.0'"
-		}
-		return mongodb;
-	},
-	"web" : () => {
-		var web = {
-			"image": "blkio10/explorer-ui-free:2.1.2",
-			"container_name": "blk-free-explorer-ui",
-			"ports": ["5000:5000"],
-			"environment": ["REACT_APP_EXPLORER=http://localhost:8081"]
-		}
-		return web;
-	},
-	"docusaurus" : () => {
-		var doc = {
-			"image" : "ledgeriumengineering/ledgeriumdocusaurus:v1.0",
-			"ports" : ["4000:3000"],
-			"entrypoint" : ["/bin/sh", "-c"],
-			"networks" : {}
-		};
-		
-		var commands = ["npm start"]
-		doc.entrypoint.push(genCommand(commands))
-		doc.networks[network_name] = {"ipv4_address": serviceConfig["docusaurus"].ip};
-		return doc;
-	},
 	"ledgeriumstats": ()=>{
 		var eth = {
 			"image"        : "ledgeriumengineering/ledgeriumstats:v1.0",
@@ -576,6 +550,88 @@ const services = {
 		}
 		gov.networks[network_name] = { "ipv4_address":ip };
 		return gov;
+	},
+	"blockexplorer" : () => {
+		var blockexplorer = {
+			"image" : "blkio10/explorer-free:2.1.2",
+			"container_name" : "blk-free-explorer",
+			"ports" : ["8081:8081"],
+			"environment": ["ENABLE_PRIVATE_QUORUM=enabled", "JAVA_OPTS=", "EXPLORER_PORT=8081", "MONGO_DB_NAME=test", "USE_COSMOS=false"],
+			"depends_on" : ["mongodb"],
+			"networks" : {}
+		}
+		blockexplorer.networks[network_name] = { "ipv4_address":serviceConfig["blockexplorer"].ip };
+		blockexplorer.environment.push("NODE_ENDPOINT=http://"+serviceConfig.validator.startIp+":"+serviceConfig.validator.rpcPort);
+		blockexplorer.environment.push("MONGO_CLIENT_URI=mongodb://"+serviceConfig.mongodb.ip+":27017");
+		blockexplorer.environment.push("UI_IP=http://"+serviceConfig.web.ip+":5000");
+		return blockexplorer;
+	},
+	"mongodb": () => {
+		var mongodb = {
+			"image": "mongo:3.4.10",
+			"container_name": "blk-free-mongodb",
+			"ports": ["27017:27017"],
+			"entrypoint": "mongod --smallfiles --logpath=/dev/null --bind_ip '0.0.0.0'",
+			"networks" : {}
+		}
+		mongodb.networks[network_name] = { "ipv4_address":serviceConfig["mongodb"].ip };
+		return mongodb;
+	},
+	"web" : () => {
+		var web = {
+			"image": "blkio10/explorer-ui-free:2.1.2",
+			"container_name": "blk-free-explorer-ui",
+			"ports": ["5000:5000"],
+			"environment": ["REACT_APP_EXPLORER=http://localhost:8081"],
+			"networks" : {}
+		}
+		web.networks[network_name] = { "ipv4_address":serviceConfig["web"].ip };
+		return web;
+	},
+	"docusaurus" : () => {
+		var doc = {
+			"image" : "ledgeriumengineering/ledgeriumdocusaurus:v1.0",
+			"ports" : ["4000:3000"],
+			"entrypoint" : ["/bin/sh", "-c"],
+			"networks" : {}
+		};
+		var commands = ["npm start"]
+		doc.entrypoint.push(genCommand(commands))
+		doc.networks[network_name] = {"ipv4_address": serviceConfig["docusaurus"].ip};
+		return doc;
+	},
+	"ledgeriumfaucet" : () => {
+		var ledgeriumfaucet = {
+			"image" : "ledgeriumengineering/ledgeriumfaucet:v1.0",
+			"ports" : ["8000:8000"],
+			"entrypoint" : ["/bin/sh", "-c"],
+			"volumes"  	: ["./logs:/logs"],
+			"environment": ["GOOGLE_CAPTCHA_SECRET=6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe", "REDIS_EXPIRE_SECONDS=86400"],
+			"networks" : {}
+		};
+		var startEntryPoint = "";
+		startEntryPoint+="set -u\n";
+		startEntryPoint+="set -e\n";
+		startEntryPoint+="mkdir -p /logs/ledgeriumfaucetLogs";
+		const commands = [
+			startEntryPoint,
+			"DATE=`date '+%Y-%m-%d_%H-%M-%S'`",
+			"node index.js ${PRIVATEKEY0} 2>/logs/ledgeriumfaucetLogs/$${DATE}_ledgeriumfaucet_Log.txt"
+		];
+		ledgeriumfaucet.entrypoint.push(genCommand(commands))
+		ledgeriumfaucet.networks[network_name] = {"ipv4_address": serviceConfig["ledgeriumfaucet"].ip};
+		ledgeriumfaucet.environment.push("NODE_URL=http://"+serviceConfig.validator.startIp+":"+serviceConfig.validator.rpcPort);
+		ledgeriumfaucet.environment.push("REDIS_URL=redis://"+serviceConfig.redis.ip+":6379");
+		return ledgeriumfaucet;
+	},
+	"redis": () => {
+		var redis = {
+			"image": "redis:alpine",
+			"ports": ["6379:6379"],
+			"networks" : {}
+		}
+		redis.networks[network_name] = {"ipv4_address": serviceConfig["redis"].ip};
+		return redis;
 	}
 };
 const template = {

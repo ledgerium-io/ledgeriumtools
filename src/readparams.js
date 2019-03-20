@@ -36,7 +36,7 @@ function readInitialParams(){
 		
 		if(initialData['domainName'] != undefined)
 			domainName = initialData['domainName'];
-			console.log("YML file with mode as", modeFlag, "and working env is", env);
+			console.log("YML file with", modeFlag, "mode for", env, "setup");
     }
     else{
         console.log("initialparams.json file does not exist! The program may not function properly!");
