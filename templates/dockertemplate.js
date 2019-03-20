@@ -639,7 +639,7 @@ const services = {
 	"ledgeriumdocs" : () => {
 		var doc = {
 			"image" : "ledgeriumengineering/ledgeriumdocs:v1.0",
-			"ports" : ["8000:8000"],
+			"ports" : ["7000:8000"],
 			"networks" : {}
 		};
 		// var commands = ["npm start"]
