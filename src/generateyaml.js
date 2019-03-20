@@ -7,29 +7,28 @@ const yaml = require('js-yaml');
 
 var dockerCompose  = dockerTemplate.template;
 
-switch (readparams.env) {
-	case "dev":
-		
-		dockerCompose.services["docusaurus"] = dockerTemplate.services['docusaurus']();
-		dockerCompose.services["REST"] = dockerTemplate.services['rest']();
-		dockerCompose.services["mongodb"] = dockerTemplate.services['mongodb']();
-		dockerCompose.services["web"] = dockerTemplate.services['web']();
-		break;
-	
-	case "prod":
-		
-		dockerCompose.services["REST"] = dockerTemplate.services['rest']();
-		dockerCompose.services["mongodb"] = dockerTemplate.services['mongodb']();
-		dockerCompose.services["web"] = dockerTemplate.services['web']();
-		break;
-	
-	default:
-		break;
-}
-
 if(readparams.modeFlag == "full"){
 	dockerCompose.services["ledgeriumstats"] = dockerTemplate.services['ledgeriumstats']();
 	dockerCompose["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
+	dockerCompose["services"]["ledgeriumdocs"] = dockerTemplate.services["ledgeriumdocs"]();
+
+	switch (readparams.env) {
+		case "testnet":
+			dockerCompose.services["ledgeriumfaucet"] = dockerTemplate.services['ledgeriumfaucet']();
+			dockerCompose.services["redis"] = dockerTemplate.services['redis']();
+			dockerCompose.services["docusaurus"] = dockerTemplate.services['docusaurus']();
+			dockerCompose.services["blockexplorer"] = dockerTemplate.services['blockexplorer']();
+			dockerCompose.services["mongodb"] = dockerTemplate.services['mongodb']();
+			dockerCompose.services["web"] = dockerTemplate.services['web']();
+			break;
+		case "mainnet":
+			// dockerCompose.services["blockexplorer"] = dockerTemplate.services['blockexplorer']();
+			// dockerCompose.services["mongodb"] = dockerTemplate.services['mongodb']();
+			// dockerCompose.services["web"] = dockerTemplate.services['web']();
+			break;
+		default:
+			break;
+	}
 }	
 
 if(!dockerTemplate.networks.Externalflag){
