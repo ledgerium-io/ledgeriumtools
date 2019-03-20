@@ -5,7 +5,7 @@ var genesisTemplate = require('../templates/genesistemplate');
 
 const amount = "0xfffffffffffffffffffffffffffffffffffff";
 var readparams = require('./readparams');
-var input = require('./getmnemonics');
+var input = require('./getMnemonics');
 
 var mnemonic = input.template;
 
