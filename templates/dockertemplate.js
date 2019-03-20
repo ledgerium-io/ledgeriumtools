@@ -46,8 +46,29 @@ const networks = {
 	}
 };
 const serviceConfig = {
+	"mongodb" : {
+		"ip" : base_ip.slice(0, base_ip.length-1)+"2"
+	},
+	"redis" : {
+		"ip" : base_ip.slice(0, base_ip.length-1)+"3"
+	},
+	"docusaurus" : {
+		"ip" : base_ip.slice(0, base_ip.length-1)+"4"
+	},
+	"blockexplorer" : {
+		"ip" : base_ip.slice(0, base_ip.length-1)+"5"
+	},
+	"ledgeriumfaucet" : {
+		"ip" : base_ip.slice(0, base_ip.length-1)+"6"
+	},
+	"web" : {
+		"ip" : base_ip.slice(0, base_ip.length-1)+"7"
+	},
 	"ledgeriumstats":{
 		"ip" : base_ip.slice(0, base_ip.length-1)+"8"
+	},
+	"ledgeriumdocs" : {
+		"ip" : base_ip.slice(0, base_ip.length-1)+"9"
 	},
 	"validator":{
 		"startIp": base_ip.slice(0, base_ip.length-1)+"10",
@@ -115,24 +136,6 @@ const serviceConfig = {
 		"port-exp": 3545,
 		"port-int": 3003,
 		"startIp" : base_ip.slice(0, base_ip.length-1)+"150"
-	},
-	"mongodb" : {
-		"ip" : base_ip.slice(0, base_ip.length-1)+"2"
-	},
-	"redis" : {
-		"ip" : base_ip.slice(0, base_ip.length-1)+"3"
-	},
-	"docusaurus" : {
-		"ip" : base_ip.slice(0, base_ip.length-1)+"4"
-	},
-	"blockexplorer" : {
-		"ip" : base_ip.slice(0, base_ip.length-1)+"5"
-	},
-	"ledgeriumfaucet" : {
-		"ip" : base_ip.slice(0, base_ip.length-1)+"6"
-	},
-	"web" : {
-		"ip" : base_ip.slice(0, base_ip.length-1)+"7"
 	}
 };
 
@@ -632,6 +635,17 @@ const services = {
 		}
 		redis.networks[network_name] = {"ipv4_address": serviceConfig["redis"].ip};
 		return redis;
+	},
+	"ledgeriumdocs" : () => {
+		var doc = {
+			"image" : "ledgeriumengineering/ledgeriumdocs:v1.0",
+			"ports" : ["8000:8000"],
+			"networks" : {}
+		};
+		// var commands = ["npm start"]
+		// doc.entrypoint.push(genCommand(commands))
+		doc.networks[network_name] = {"ipv4_address": serviceConfig["ledgeriumdocs"].ip};
+		return doc;
 	}
 };
 const template = {

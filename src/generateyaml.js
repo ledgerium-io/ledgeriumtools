@@ -10,6 +10,7 @@ var dockerCompose  = dockerTemplate.template;
 if(readparams.modeFlag == "full"){
 	dockerCompose.services["ledgeriumstats"] = dockerTemplate.services['ledgeriumstats']();
 	dockerCompose["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
+	dockerCompose["services"]["ledgeriumdocs"] = dockerTemplate.services["ledgeriumdocs"]();
 
 	switch (readparams.env) {
 		case "testnet":
