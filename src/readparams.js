@@ -4,6 +4,7 @@ var randomstring = require("randomstring");
 //Possible values are "full" to generate yml with quorum-maker and eth-stat
 //And "single" mode to generate yml without these two containers
 var modeFlag = "addon";
+var env = "dev";
 var externalIPAddress = "127.0.0.1";
 var nodeName = "nodeName";
 var faultynode = 0;
@@ -17,7 +18,10 @@ function readInitialParams(){
 		var initialData = JSON.parse(initialDataRaw);
 		
 		if(initialData["mode"] != undefined)
-            modeFlag = initialData["mode"];
+			modeFlag = initialData["mode"];
+			
+		if(initialData["env"] != undefined)
+			env = initialData["env"];
 		
 		if(initialData["nodeName"] != undefined)
 			nodeName = initialData["nodeName"];
@@ -32,13 +36,14 @@ function readInitialParams(){
 		
 		if(initialData['domainName'] != undefined)
 			domainName = initialData['domainName'];
-        console.log("YML file with mode as", modeFlag);
+			console.log("YML file with mode as", modeFlag, "and working env is", env);
     }
     else{
         console.log("initialparams.json file does not exist! The program may not function properly!");
     }    
 }
 exports.modeFlag = modeFlag;
+exports.env = env;
 exports.externalIPAddress = externalIPAddress;
 exports.nodeName = nodeName;
 exports.faultynode = faultynode;
