@@ -144,7 +144,7 @@ const serviceConfig = {
 			                "clientTrustMode": "TOFU",
 			                "knownServersFile": "/priv/knownServers"
 			            },
-			            "communicationType" : "REST"
+						"communicationType" : "REST"
 			        },
 					{
 						"app":"Q2T",
@@ -154,17 +154,17 @@ const serviceConfig = {
 							"path":"/priv/tm.ipc"
 						},
 						"communicationType" : "UNIX_SOCKET"
-					}/* ,
+					},
 					{
 						"app":"ThirdParty",
 						"enabled": true,
 						"serverSocket":{
 							"type":"INET",
-							"port": port+i,
+							"port": port+100+i,
 							"hostName": ""
 						},
 						"communicationType" : "REST"
-					} */
+					}
     			],
 			    "peer": [],
 			    "keys": {
@@ -508,7 +508,7 @@ const services = {
 		var tessera          = {
 			"hostname"   : tesseraName,
 			"image"		 : "quorumengineering/tessera:latest",
-			"ports"	     : [(port+i)+":"+port],
+			"ports"	     : [(port+i)+":"+port,(port+100+i)+":"+(port+100+i)],
 			"volumes"    : [],
 			"entrypoint" : ["/bin/sh","-c"],
 			"networks"	 : {
@@ -533,7 +533,7 @@ const services = {
 		tesseraTemplate.server.port 				  			= port+i;
 		tesseraTemplate.server.hostName 			   		    = "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]));
 		eTesseraTemplate.serverConfigs[0].serverSocket.hostName = "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]));
-		// eTesseraTemplate.serverConfigs[2].serverSocket.hostName = "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]));
+		eTesseraTemplate.serverConfigs[2].serverSocket.hostName = "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]));
 		tesseraTemplate.peer        				   			= peers;
 		eTesseraTemplate.peer 						   			= peers;
 		tessera.volumes								   			= ["./"+tesseraName+":/priv"];
