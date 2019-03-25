@@ -556,6 +556,10 @@ const services = {
 			string+= "\n"
 		}	
 		string+="cd /ledgerium/governanceapp/governanceapp/app\n";
+		string+="while [ ! -e /eth/geth.ipc ];do\n";
+		string+="sleep 1\n";
+		string+="echo \"Waiting for validator to be ready...\"";
+		string+="done";
 		string+="node governanceUI.js "+vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i)+" "+(serviceConfig.validator.rpcPort+i)+"\n";		
 		string+=" 2>/logs/governanceappLogs/"+ "$${DATE}_" + validatorName + "_Log.txt"
 		gov.entrypoint.push(string);
