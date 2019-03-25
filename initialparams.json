@@ -1,7 +1,7 @@
 {
 	"mode": "full",
 	"env" : "testnet",
-	"externalIPAddress": "125.254.27.14",
+	"externalIPAddress": "localhost",
 	"nodeName": "msc",
 	"domainName": "localhost"
 }

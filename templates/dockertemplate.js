@@ -420,7 +420,7 @@ const services = {
 			"fi",
 			startConst
 		];
-		if(!tesseraFlag)//if(!tesseraFlag && i == 0)
+		if(!tesseraFlag)
 			constellation.volumes.push("./logs:/logs");
 		constellation.entrypoint.push(genCommand(commands));
 		constellation.networks[network_name] = { "ipv4_address":startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+i) };
@@ -485,13 +485,13 @@ const services = {
 			"fi",
 			startTess
 		];
-		if(tesseraFlag)//if(tesseraFlag && i == 0)
+		if(tesseraFlag)
 			tessera.volumes.push("./logs:/logs");
 		tessera.entrypoint.push(genCommand(commands));
 		tessera.networks[network_name] = { "ipv4_address":startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3])) };
 		return tessera;
 	},
-	"governanceApp": (i,test)=>{
+	"governanceapp": (i,test)=>{
 		var validatorName = "validator-", constellationName = "constellation-", tesseraName = "tessera-", governanceUIName = "governance-ui-";
 		if(test){
 			validatorName += "test-"; 
@@ -531,18 +531,31 @@ const services = {
 		string+="DATE=`date '+%Y-%m-%d_%H-%M-%S'`\n";
 		string+="cp /tmp/nodesdetails.json /eth/nodesdetails.json\n";
 		if(i == 0) { //Initialisation is to be done only for one node. We are doing for the first node -> i == 0
-			string+="cd /ledgerium/governanceapp/governanceApp\n",
-			string+="node index.js protocol=http hostname=" + vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i) +" port=8545 privateKeys="
-			for(nodeIndex = 0; nodeIndex < numberOfNodes;) {
-			//if((i == 0) && (numberOfNodes >= 3)) {
-				string+= "${PRIVATEKEY" + (nodeIndex++) + "}"
-				if(nodeIndex < numberOfNodes) //the last node
-				string+= ","
+			string+="cd /ledgerium/governanceapp/governanceapp\n",
+			string+="node index.js protocol=http hostname=" + vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i) +" port=" + serviceConfig.validator.rpcPort + " initiateApp="
+			var privateKeyString="";
+			for(var nodeIndex = 0; nodeIndex < numberOfNodes;) {
+				privateKeyString+= "${PRIVATEKEY" + (nodeIndex++) + "}"
+				if(nodeIndex < numberOfNodes){ //if not the last node
+					privateKeyString+= ",";
+				}	
 			}
-			//string+= "\n"
-			string+=" initialiseApp=/eth/nodedetails.json\n";
+			string+=privateKeyString;
+			string+=",/eth/nodesdetails.json";
+
+			var accountString="";
+			for(nodeIndex = 3; nodeIndex < numberOfNodes;) {
+				//first 3 accounts are init from initiateApp, rest of them should be added as adminValidatorSet and simpleValidatorSet
+				accountString+= "0x" + basicConfig.publicKeys[nodeIndex++];
+				if(nodeIndex < numberOfNodes){ //if not the last node
+					accountString+=",";
+				}	
+			}
+			string+=" runadminvalidator=addOneAdmin,"+accountString;
+			string+=" runsimplevalidator=addSimpleSetContractValidatorForAdmin,"+accountString;
+			string+= "\n"
 		}	
-		string+="cd /ledgerium/governanceapp/governanceApp/app\n";
+		string+="cd /ledgerium/governanceapp/governanceapp/app\n";
 		string+="node governanceUI.js "+vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i)+" "+(serviceConfig.validator.rpcPort+i)+"\n";		
 		string+=" 2>/logs/governanceappLogs/"+ "$${DATE}_" + validatorName + "_Log.txt"
 		gov.entrypoint.push(string);
@@ -606,10 +619,10 @@ const services = {
 	"ledgeriumfaucet" : () => {
 		var ledgeriumfaucet = {
 			"image" : "ledgeriumengineering/ledgeriumfaucet:v1.0",
-			"ports" : ["8000:8000"],
+			"ports" : ["5577:5577"],
 			"entrypoint" : ["/bin/sh", "-c"],
 			"volumes"  	: ["./logs:/logs"],
-			"environment": ["GOOGLE_CAPTCHA_SECRET=6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe", "REDIS_EXPIRE_SECONDS=86400"],
+			"environment": ["GOOGLE_CAPTCHA_SECRET=6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe","REQUEST_LIMIT=3","REDIS_EXPIRE_SECONDS=86400"],
 			"networks" : {}
 		};
 		var startEntryPoint = "";
@@ -642,8 +655,6 @@ const services = {
 			"ports" : ["7000:8000"],
 			"networks" : {}
 		};
-		// var commands = ["npm start"]
-		// doc.entrypoint.push(genCommand(commands))
 		doc.networks[network_name] = {"ipv4_address": serviceConfig["ledgeriumdocs"].ip};
 		return doc;
 	}
