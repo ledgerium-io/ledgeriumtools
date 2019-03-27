@@ -545,8 +545,8 @@ const services = {
 		}
 		tesseraTemplate.server.port 				   = port+i;
 		tesseraTemplate.server.hostName 			   = "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]));
-		eTesseraTemplate.serverConfigs[0].serverSocket = "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]));
-		eTesseraTemplate.serverConfigs[2].serverSocker = "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]));
+		eTesseraTemplate.serverConfigs[0].serverSocket.hostName = "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]));
+		eTesseraTemplate.serverConfigs[2].serverSocket.hostName = "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]));
 		tesseraTemplate.peer        				   = peers;
 		eTesseraTemplate.peer 						   = peers;
 		tessera.volumes								   = ["./"+tesseraName+":/priv"];
