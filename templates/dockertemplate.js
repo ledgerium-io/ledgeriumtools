@@ -557,8 +557,8 @@ const services = {
 			"mkdir -p /priv",
 			"mkdir -p /logs/tesseraLogs",
 			"echo -e \"\\n\" | java -jar /tessera/tessera-app.jar -keygen -filename /priv/tm",
-			"echo '"+JSON.stringify(tesseraTemplate)+"' > /priv/tessera-config.json",
-			"echo '"+JSON.stringify(eTesseraTemplate)+"' > /priv/tessera-config-enhanced.json",
+			//"echo '"+JSON.stringify(tesseraTemplate)+"' > /priv/tessera-config.json",
+			"echo '"+JSON.stringify(eTesseraTemplate)+"' > /priv/tessera-config.json",
 			"cp /priv/tm.pub /tmp/tm"+i+".pub",
 			"fi",
 			startTess
