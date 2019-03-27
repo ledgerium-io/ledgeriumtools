@@ -1,9 +1,14 @@
 const readlineSync = require('readline-sync');
 const fs 		   = require('fs');
-const readparams = require('../readparams');
+const readparams = require('./readparams');
 var num = readlineSync.question('Number of Mnemonics : ');
 var mnemonics = [];
 var passwords = [];
+if(num < 4 || num > 10) {
+	console.log("Number of nodes should not be less than 4 and more than 10");
+	process.exit(1);
+}
+
 var numberOfNodes = parseInt(num) + readparams.faultynode;
 for (var i = 0; i < numberOfNodes; i++) {
 	var menmonic = readlineSync.question('Enter Mnemonic '+i+" : ", {
