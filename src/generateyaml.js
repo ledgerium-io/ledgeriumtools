@@ -47,7 +47,7 @@ if(readparams.modeFlag == "full"){
 		} else {
 			dockerCompose.services["tessera-"+i] = dockerTemplate.services.tessera(i);		
 		}
-		dockerCompose.services["governance-ui-"+i] = dockerTemplate.services.governanceApp(i);
+		dockerCompose.services["governance-ui-"+i] = dockerTemplate.services.governanceapp(i);
 		let volumes = dockerCompose.services["validator-"+i].volumes;
 		for (var j = volumes.length - 1; j >= 0; j--) {
 			if(volumes[j].slice(0,1) != ".")
@@ -62,7 +62,7 @@ if(readparams.modeFlag == "full"){
 			} else {
 				dockerCompose.services["tessera-test-"+i] = dockerTemplate.services.tessera(i,true);		
 			}
-			dockerCompose.services["governance-ui-test-"+i] = dockerTemplate.services.governanceApp(i,true);
+			dockerCompose.services["governance-ui-test-"+i] = dockerTemplate.services.governanceapp(i,true);
 			let volumes = dockerCompose.services["validator-test-"+i].volumes;
 			for (var j = volumes.length - 1; j >= 0; j--) {
 				if(volumes[j].slice(0,1) != ".")
@@ -79,7 +79,7 @@ else if(readparams.modeFlag == "addon"){
 		}else{
 			dockerCompose.services["tessera-" + readparams.nodeName] = dockerTemplate.services.tessera(i);		
 		}
-		dockerCompose.services["governance-ui-" + readparams.nodeName] = dockerTemplate.services.governanceApp(i);
+		dockerCompose.services["governance-ui-" + readparams.nodeName] = dockerTemplate.services.governanceapp(i);
 		let volumes = dockerCompose.services["validator-" + readparams.nodeName].volumes;
 		for (var j = volumes.length - 1; j >= 0; j--) {
 			if(volumes[j].slice(0,1) != ".")
@@ -94,7 +94,7 @@ else if(readparams.modeFlag == "addon"){
 			} else {
 				dockerCompose.services["tessera-test-"+i] = dockerTemplate.services.tessera(i);		
 			}
-			dockerCompose.services["governance-ui-test-"+i] = dockerTemplate.services.governanceApp(i);
+			dockerCompose.services["governance-ui-test-"+i] = dockerTemplate.services.governanceapp(i);
 			let volumes = dockerCompose.services["validator-test-"+i].volumes;
 			for (var j = volumes.length - 1; j >= 0; j--) {
 				if(volumes[j].slice(0,1) != ".")
