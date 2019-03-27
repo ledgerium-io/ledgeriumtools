@@ -9,7 +9,7 @@ const gethCom   = "geth --rpc --rpcaddr '0.0.0.0' --rpccorsdomain '*' \
 --debug --metrics --syncmode 'full' --mine --verbosity 6 \
 --minerthreads 1";
 
-const tesseraFlag = false;
+const tesseraFlag = true;
 const network_name = "test_net";
 var base_ip = "172.19.240.0",entrypoint, qmvolumes =[];
 
@@ -146,7 +146,7 @@ const serviceConfig = {
 			            "enabled": true,
 			            "serverSocket":{
 			                "type":"INET",
-			                "port": port+i,
+			                "port": port+100+i,
 			                "hostName": ""
 			            },
 			            "communicationType" : "REST"
@@ -520,7 +520,7 @@ const services = {
 		var tessera          = {
 			"hostname"   : tesseraName,
 			"image"		 : "quorumengineering/tessera:latest",
-			"ports"	     : [(port+i)+":"+port],
+			"ports"	     : [(port+i)+":"+port,(port+100+i)+":"+(port+100+i)],
 			"volumes"    : [],
 			"entrypoint" : ["/bin/sh","-c"],
 			"networks"	 : {
