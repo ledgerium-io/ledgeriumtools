@@ -383,14 +383,10 @@ const services = {
 		}
 		else if(readparams.modeFlag == "addon") {
 			for (var j = 0; j < limit; j++) {
-				//if(i != j) {
 				othernodes+="http://"+readparams.externalIPAddress+":"+(serviceConfig.constellation.port+j)+"/";
 				if(j != limit-1) {
 					othernodes+=",";
 				}
-				// } else {
-				// 	limit++;
-				// }
 			}
 		}
 		var startConst = constellationCom + othernodes
@@ -530,6 +526,10 @@ const services = {
 		string+="mkdir -p /logs/governanceappLogs\n";
 		string+="DATE=`date '+%Y-%m-%d_%H-%M-%S'`\n";
 		string+="cp /tmp/nodesdetails.json /eth/nodesdetails.json\n";
+		string+="while [ ! -e /eth/geth.ipc ];do\n";
+		string+="sleep 1\n";
+		string+="echo \"Waiting for validator to be ready...\"\n";
+		string+="done\n";
 		if(i == 0) { //Initialisation is to be done only for one node. We are doing for the first node -> i == 0
 			string+="cd /ledgerium/governanceapp/governanceapp\n",
 			string+="node index.js protocol=http hostname=" + vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i) +" port=" + serviceConfig.validator.rpcPort + " initiateApp="
@@ -556,10 +556,7 @@ const services = {
 			string+= "\n"
 		}	
 		string+="cd /ledgerium/governanceapp/governanceapp/app\n";
-		string+="while [ ! -e /eth/geth.ipc ];do\n";
-		string+="sleep 1\n";
-		string+="echo \"Waiting for validator to be ready...\"";
-		string+="done";
+		
 		string+="node governanceUI.js "+vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i)+" "+(serviceConfig.validator.rpcPort+i)+"\n";		
 		string+=" 2>/logs/governanceappLogs/"+ "$${DATE}_" + validatorName + "_Log.txt"
 		gov.entrypoint.push(string);
