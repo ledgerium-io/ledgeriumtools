@@ -520,7 +520,7 @@ const services = {
 		var eTesseraTemplate = serviceConfig["tessera-enhanced"].tesseraTemplate(i,port);
 		var tessera          = {
 			"hostname"   : tesseraName,
-			"image"		 : "quorumengineering/tessera:0.8",
+			"image"		 : "quorumengineering/tessera:latest",
 			"ports"	     : [(port+i)+":"+port,(port+100+i)+":"+(port+100+i)],
 			"volumes"    : [],
 			"entrypoint" : ["/bin/sh","-c"],
