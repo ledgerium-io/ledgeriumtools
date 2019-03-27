@@ -138,28 +138,9 @@ const serviceConfig = {
 		        	"username": "sa",
 		        	"password": "",
 		        	"url": "jdbc:h2:.//priv/db;MODE=Oracle;TRACE_LEVEL_SYSTEM_OUT=0",
-		        	"autoCreateTables": true
+					autoCreateTables : true
 	    		},
 		   		"serverConfigs":[
-			        {
-			            "app":"ThirdParty",
-			            "enabled": true,
-			            "serverSocket":{
-			                "type":"INET",
-			                "port": port+100+i,
-			                "hostName": ""
-			            },
-			            "communicationType" : "REST"
-			        },
-			        {
-			            "app":"Q2T",
-			            "enabled": true,
-			            "serverSocket":{
-			                "type":"UNIX",
-			                "path":"/priv/tm.ipc"
-			            },
-			            "communicationType" : "UNIX_SOCKET"
-			        },
 			        {
 			            "app":"P2P",
 			            "enabled": true,
@@ -171,21 +152,40 @@ const serviceConfig = {
 			            "sslConfig": {
 			                "tls": "OFF",
 			                "generateKeyStoreIfNotExisted": true,
-			                "serverKeyStore": "/priv/server${i}-keystore",
+			                "serverKeyStore": "/priv/server"+i+"-keystore",
 			                "serverKeyStorePassword": "quorum",
 			                "serverTrustStore": "/priv/server-truststore",
 			                "serverTrustStorePassword": "quorum",
 			                "serverTrustMode": "TOFU",
 			                "knownClientsFile": "/priv/knownClients",
-			                "clientKeyStore": "/priv/client${i}-keystore",
+			                "clientKeyStore": "/priv/client"+i+"-keystore",
 			                "clientKeyStorePassword": "quorum",
 			                "clientTrustStore": "/priv/client-truststore",
 			                "clientTrustStorePassword": "quorum",
 			                "clientTrustMode": "TOFU",
 			                "knownServersFile": "/priv/knownServers"
 			            },
-			            "communicationType" : "REST"
-			        }
+						"communicationType" : "REST"
+			        },
+					{
+						"app":"Q2T",
+						"enabled": true,
+						"serverSocket":{
+							"type":"UNIX",
+							"path":"/priv/tm.ipc"
+						},
+						"communicationType" : "UNIX_SOCKET"
+					},
+					{
+						"app":"ThirdParty",
+						"enabled": true,
+						"serverSocket":{
+							"type":"INET",
+							"port": port+100+i,
+							"hostName": ""
+						},
+						"communicationType" : "REST"
+					}
     			],
 			    "peer": [],
 			    "keys": {
@@ -197,7 +197,8 @@ const serviceConfig = {
 			            }
 			        ]
 			    },
-    			"alwaysSendTo": []
+    			"alwaysSendTo": [],
+				"unixSocketFile": "/priv/tm.ipc"
 			}
 		}
 	},
@@ -519,7 +520,7 @@ const services = {
 		var eTesseraTemplate = serviceConfig["tessera-enhanced"].tesseraTemplate(i,port);
 		var tessera          = {
 			"hostname"   : tesseraName,
-			"image"		 : "quorumengineering/tessera:latest",
+			"image"		 : "quorumengineering/tessera:0.8",
 			"ports"	     : [(port+i)+":"+port,(port+100+i)+":"+(port+100+i)],
 			"volumes"    : [],
 			"entrypoint" : ["/bin/sh","-c"],

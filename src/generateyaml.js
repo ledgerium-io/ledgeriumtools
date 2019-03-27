@@ -14,12 +14,12 @@ if(readparams.modeFlag == "full"){
 
 	switch (readparams.env) {
 		case "testnet":
-			dockerCompose.services["ledgeriumfaucet"] = dockerTemplate.services['ledgeriumfaucet']();
+			/* dockerCompose.services["ledgeriumfaucet"] = dockerTemplate.services['ledgeriumfaucet']();
 			dockerCompose.services["redis"] = dockerTemplate.services['redis']();
 			dockerCompose.services["docusaurus"] = dockerTemplate.services['docusaurus']();
 			dockerCompose.services["blockexplorer"] = dockerTemplate.services['blockexplorer']();
 			dockerCompose.services["mongodb"] = dockerTemplate.services['mongodb']();
-			dockerCompose.services["web"] = dockerTemplate.services['web']();
+			dockerCompose.services["web"] = dockerTemplate.services['web'](); */
 			break;
 		case "mainnet":
 			// dockerCompose.services["blockexplorer"] = dockerTemplate.services['blockexplorer']();
