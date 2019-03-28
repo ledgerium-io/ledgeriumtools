@@ -413,6 +413,9 @@ const services = {
 			validator.image = "ledgeriumengineering/quorum:faulty_node";
 			
 			startGeth += " --identity \"" + validatorName + "_faulty\"" + "\ --istanbul.faultymode 1";
+			//validator.entrypoint.push(genCommand(commands.slice(4, commands.length)));
+			//validator.restart = "always";
+			//return validator;
 		} else {
 			startGeth+= " --identity \"" + validatorName + "\"";
 		}
@@ -517,7 +520,7 @@ const services = {
 		var eTesseraTemplate = serviceConfig["tessera-enhanced"].tesseraTemplate(i,port);
 		var tessera          = {
 			"hostname"   : tesseraName,
-			"image"		 : "quorumengineering/tessera:latest",
+			"image"		 : "quorumengineering/tessera:0.8",
 			"ports"	     : [(port+i)+":"+port,(port+100+i)+":"+(port+100+i)],
 			"volumes"    : [],
 			"entrypoint" : ["/bin/sh","-c"],
@@ -540,13 +543,13 @@ const services = {
 				peers.push({ "url" : "http://"+readparams.externalIPAddress+":"+(port+j)+"/"})
 			}
 		}
-		tesseraTemplate.server.port 				  			= port+i;
-		tesseraTemplate.server.hostName 			   		    = "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]));
+		tesseraTemplate.server.port 				   = port+i;
+		tesseraTemplate.server.hostName 			   = "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]));
 		eTesseraTemplate.serverConfigs[0].serverSocket.hostName = "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]));
 		eTesseraTemplate.serverConfigs[2].serverSocket.hostName = "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]));
-		tesseraTemplate.peer        				   			= peers;
-		eTesseraTemplate.peer 						   			= peers;
-		tessera.volumes								   			= ["./"+tesseraName+":/priv"];
+		tesseraTemplate.peer        				   = peers;
+		eTesseraTemplate.peer 						   = peers;
+		tessera.volumes								   = ["./"+tesseraName+":/priv"];
 		const commands = [
 			"DATE=`date '+%Y-%m-%d_%H-%M-%S'`",
 			"rm -f /priv/tm.ipc",
