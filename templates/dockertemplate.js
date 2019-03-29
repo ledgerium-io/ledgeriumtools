@@ -232,20 +232,20 @@ const services = {
 			"image"   : "ledgeriumengineering/quorum-maker:v0.1",
 			"ports"	  : [serviceConfig["quorum-maker"].port+":"+serviceConfig["quorum-maker"].port],
 			"volumes" : ["./logs:/logs","./tmp:/tmp","quorum-maker:/quorum-maker"],
-			"depends_on": ["validator-0"],
+			"depends_on": ["validator-" + readparams.nodeName + "0"],
 			"entrypoint":[ "/bin/sh", "-c"],
 			"networks": {
 			},
 			"restart": "always"
 		};
-		quorum.volumes.push("./validator-0:/eth");
+		quorum.volumes.push("./validator-" + readparams.nodeName + "0" + ":/eth");
 		quorum.networks[network_name] = { "ipv4_address": serviceConfig["quorum-maker"].ip }
 		var publicKeyPath = (i) => { return "/tmp/tm"+i+".pub"; };
 		if(tesseraFlag){
-			quorum.volumes.push("./tessera-0:/priv");
+			quorum.volumes.push("./tessera-" + readparams.nodeName + "0" + ":/priv");
 		}
 		else{
-			quorum.volumes.push("constellation-0:/constellation:z");
+			quorum.volumes.push("constellation-" + readparams.nodeName + "0" + ":/constellation:z");
 		}
 		var commands = [
 			"set -u",
@@ -306,18 +306,18 @@ const services = {
 			tesseraName += "test-";
 			governanceUIName += "test-";
 		}
-		if(readparams.modeFlag == "full") {
-			validatorName += i;
-			constellationName += i;
-			tesseraName += i;
-			governanceUIName += i;
-		}
-		else if(readparams.modeFlag == "addon") {
-			validatorName += readparams.nodeName;
-			constellationName += readparams.nodeName;
-			tesseraName += readparams.nodeName;
-			governanceUIName += readparams.nodeName;
-		}
+		//if(readparams.modeFlag == "full") {
+			validatorName += readparams.nodeName + i;
+			constellationName += readparams.nodeName + i;
+			tesseraName += readparams.nodeName + i;
+			governanceUIName += readparams.nodeName + i;
+		// }
+		// else if(readparams.modeFlag == "addon") {
+		// 	validatorName += readparams.nodeName + i;
+		// 	constellationName += readparams.nodeName + i;
+		// 	tesseraName += readparams.nodeName + i;
+		// 	governanceUIName += readparams.nodeName + i;
+		// }
 		var ipaddressText;
 		var startGeth;
 		if(readparams.modeFlag == "full")
@@ -431,14 +431,14 @@ const services = {
 			validatorName += "test-"; 
 			constellationName += "test-";
 		}
-		if(readparams.modeFlag == "full") {
-			validatorName += i;
-			constellationName += i;
-		}
-		else if(readparams.modeFlag == "addon") {
-			validatorName += readparams.nodeName;
-			constellationName += readparams.nodeName;
-		}
+		//if(readparams.modeFlag == "full") {
+			validatorName += readparams.nodeName + i;
+			constellationName += readparams.nodeName + i;
+		// }
+		// else if(readparams.modeFlag == "addon") {
+		// 	validatorName += readparams.nodeName + i;
+		// 	constellationName += readparams.nodeName + i;
+		// }
 
 		var constellationCom = "constellation-node --socket=/constellation/tm.ipc --publickeys=/constellation/tm.pub "
 			+"--privatekeys=/constellation/tm.key --storage=/constellation --verbosity=4";
@@ -505,14 +505,14 @@ const services = {
 			validatorName += "test-"; 
 			tesseraName += "test-";
 		}
-		if(readparams.modeFlag == "full") {
-			validatorName += i;
-			tesseraName += i;
-		}
-		else if(readparams.modeFlag == "addon") {
-			validatorName += readparams.nodeName;
-			tesseraName += readparams.nodeName;
-		}
+		//if(readparams.modeFlag == "full") {
+			validatorName += readparams.nodeName + i;
+			tesseraName += readparams.nodeName + i;
+		// }
+		// else if(readparams.modeFlag == "addon") {
+		// 	validatorName += readparams.nodeName + i;
+		// 	tesseraName += readparams.nodeName + i;
+		// }
 		var startTess = "java -Xms128M -Xmx128M -jar /tessera/tessera-app.jar -configfile /priv/tessera-config.json";
 		startTess+=" 2>/logs/tesseraLogs/"+ "$${DATE}_" + validatorName + "_Log.txt"
 		var port = serviceConfig.tessera.port; //serviceConfig["tessera-enhanced"].port;
@@ -577,18 +577,18 @@ const services = {
 			tesseraName += "test-";
 			governanceUIName += "test-";
 		}
-		if(readparams.modeFlag == "full") {
-			validatorName += i;
-			constellationName += i;
-			tesseraName += i;
-			governanceUIName += i;
-		}
-		else if(readparams.modeFlag == "addon") {
-			validatorName += readparams.nodeName;
-			constellationName += readparams.nodeName;
-			tesseraName += readparams.nodeName;
-			governanceUIName += readparams.nodeName;
-		}
+		//if(readparams.modeFlag == "full") {
+			validatorName += readparams.nodeName + i;
+			constellationName += readparams.nodeName + i;
+			tesseraName += readparams.nodeName + i;
+			governanceUIName += readparams.nodeName + i;
+		// }
+		// else if(readparams.modeFlag == "addon") {
+		// 	validatorName += readparams.nodeName;
+		// 	constellationName += readparams.nodeName;
+		// 	tesseraName += readparams.nodeName;
+		// 	governanceUIName += readparams.nodeName;
+		// }
 		var gov = {
 			"hostname" 		: governanceUIName,
 			"image"    		: "ledgeriumengineering/governance_app_ui_img:v1.0",

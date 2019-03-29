@@ -41,14 +41,14 @@ const type = dockerTemplate.tesseraFlag;
 if(readparams.modeFlag == "full"){
 	dockerCompose.volumes["quorum-maker"] = null;
 	for (var i = 0; i < numberOfNodes - readparams.faultynode; i++) {	
-		dockerCompose.services["validator-"+i] = dockerTemplate.services.validator(i);
+		dockerCompose.services["validator-"+readparams.nodeName + i] = dockerTemplate.services.validator(i);
 		if(!type) {
-			dockerCompose.services["constellation-"+i] = dockerTemplate.services.constellation(i);
+			dockerCompose.services["constellation-"+readparams.nodeName + i] = dockerTemplate.services.constellation(i);
 		} else {
-			dockerCompose.services["tessera-"+i] = dockerTemplate.services.tessera(i);		
+			dockerCompose.services["tessera-"+readparams.nodeName + i] = dockerTemplate.services.tessera(i);		
 		}
-		dockerCompose.services["governance-ui-"+i] = dockerTemplate.services.governanceapp(i);
-		let volumes = dockerCompose.services["validator-"+i].volumes;
+		dockerCompose.services["governance-ui-"+readparams.nodeName + i] = dockerTemplate.services.governanceapp(i);
+		let volumes = dockerCompose.services["validator-"+readparams.nodeName + i].volumes;
 		for (var j = volumes.length - 1; j >= 0; j--) {
 			if(volumes[j].slice(0,1) != ".")
 				dockerCompose.volumes[volumes[j].split(":")[0]] = null;
@@ -56,14 +56,14 @@ if(readparams.modeFlag == "full"){
 	}
 	if( readparams.faultynode > 0 ){
 		for (var i = numberOfNodes - readparams.faultynode; i < numberOfNodes; i++) {
-			dockerCompose.services["validator-test-"+i] = dockerTemplate.services.validator(i,true);
+			dockerCompose.services["validator-test-"+readparams.nodeName + i] = dockerTemplate.services.validator(i,true);
 			if(!type) {
-				dockerCompose.services["constellation-test-"+i] = dockerTemplate.services.constellation(i,true);
+				dockerCompose.services["constellation-test-"+readparams.nodeName + i] = dockerTemplate.services.constellation(i,true);
 			} else {
-				dockerCompose.services["tessera-test-"+i] = dockerTemplate.services.tessera(i,true);		
+				dockerCompose.services["tessera-test-"+readparams.nodeName + i] = dockerTemplate.services.tessera(i,true);		
 			}
-			dockerCompose.services["governance-ui-test-"+i] = dockerTemplate.services.governanceapp(i,true);
-			let volumes = dockerCompose.services["validator-test-"+i].volumes;
+			dockerCompose.services["governance-ui-test-"+readparams.nodeName + i] = dockerTemplate.services.governanceapp(i,true);
+			let volumes = dockerCompose.services["validator-test-"+readparams.nodeName + i].volumes;
 			for (var j = volumes.length - 1; j >= 0; j--) {
 				if(volumes[j].slice(0,1) != ".")
 					dockerCompose.volumes[volumes[j].split(":")[0]] = null;
@@ -73,14 +73,14 @@ if(readparams.modeFlag == "full"){
 }
 else if(readparams.modeFlag == "addon"){
 	for (var i = 0; i < numberOfNodes - readparams.faultynode ; i++) {
-		dockerCompose.services["validator-" + readparams.nodeName] = dockerTemplate.services.validator(i);
+		dockerCompose.services["validator-" + readparams.nodeName + i] = dockerTemplate.services.validator(i);
 		if(!type){
-			dockerCompose.services["constellation-" + readparams.nodeName] = dockerTemplate.services.constellation(i);
+			dockerCompose.services["constellation-" + readparams.nodeName + i] = dockerTemplate.services.constellation(i);
 		}else{
-			dockerCompose.services["tessera-" + readparams.nodeName] = dockerTemplate.services.tessera(i);		
+			dockerCompose.services["tessera-" + readparams.nodeName + i] = dockerTemplate.services.tessera(i);		
 		}
-		dockerCompose.services["governance-ui-" + readparams.nodeName] = dockerTemplate.services.governanceapp(i);
-		let volumes = dockerCompose.services["validator-" + readparams.nodeName].volumes;
+		dockerCompose.services["governance-ui-" + readparams.nodeName + i] = dockerTemplate.services.governanceapp(i);
+		let volumes = dockerCompose.services["validator-" + readparams.nodeName + i].volumes;
 		for (var j = volumes.length - 1; j >= 0; j--) {
 			if(volumes[j].slice(0,1) != ".")
 				dockerCompose.volumes[volumes[j].split(":")[0]] = null;
@@ -88,14 +88,14 @@ else if(readparams.modeFlag == "addon"){
 	}
 	if( readparams.faultynode > 0 ){
 		for (var i = numberOfNodes - readparams.faultynode; i < numberOfNodes; i++) {
-			dockerCompose.services["validator-test-"+i] = dockerTemplate.services.validator(i,true);
+			dockerCompose.services["validator-test-"+ readparams.nodeName + i] = dockerTemplate.services.validator(i,true);
 			if(!type) {
-				dockerCompose.services["constellation-test-"+i] = dockerTemplate.services.constellation(i);
+				dockerCompose.services["constellation-test-"+ readparams.nodeName + i] = dockerTemplate.services.constellation(i,true);
 			} else {
-				dockerCompose.services["tessera-test-"+i] = dockerTemplate.services.tessera(i);		
+				dockerCompose.services["tessera-test-"+ readparams.nodeName + i] = dockerTemplate.services.tessera(i,true);		
 			}
-			dockerCompose.services["governance-ui-test-"+i] = dockerTemplate.services.governanceapp(i);
-			let volumes = dockerCompose.services["validator-test-"+i].volumes;
+			dockerCompose.services["governance-ui-test-"+ readparams.nodeName + i] = dockerTemplate.services.governanceapp(i,true);
+			let volumes = dockerCompose.services["validator-test-"+ readparams.nodeName + i].volumes;
 			for (var j = volumes.length - 1; j >= 0; j--) {
 				if(volumes[j].slice(0,1) != ".")
 					dockerCompose.volumes[volumes[j].split(":")[0]] = null;
