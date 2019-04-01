@@ -14,7 +14,7 @@ if(readparams.modeFlag == "full") {
 		process.exit(1);
 	}
 }
-else {
+else if(readparams.modeFlag == "addon") {
 	if(num < 1 || num > 10) {
 		console.log("Number of nodes should be atleast 1 and not more than 10 for addon mode");
 		process.exit(1);
