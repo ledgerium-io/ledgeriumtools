@@ -6,25 +6,26 @@ const dockerTemplate = require('../templates/dockertemplate');
 const yaml = require('js-yaml');
 
 var dockerCompose  = dockerTemplate.template;
+var dockerComposefull  = dockerTemplate.templatefull;
 
 if(readparams.modeFlag == "full"){
+
 	dockerCompose.services["ledgeriumstats"] = dockerTemplate.services['ledgeriumstats']();
 	dockerCompose["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
-	dockerCompose["services"]["ledgeriumdocs"] = dockerTemplate.services["ledgeriumdocs"]();
-
 	switch (readparams.env) {
 		case "testnet":
-			dockerCompose.services["ledgeriumfaucet"] = dockerTemplate.services['ledgeriumfaucet']();
-			dockerCompose.services["redis"] = dockerTemplate.services['redis']();
-			dockerCompose.services["docusaurus"] = dockerTemplate.services['docusaurus']();
-			dockerCompose.services["blockexplorer"] = dockerTemplate.services['blockexplorer']();
-			dockerCompose.services["mongodb"] = dockerTemplate.services['mongodb']();
-			dockerCompose.services["web"] = dockerTemplate.services['web']();
-			break;
+		dockerComposefull.services["ledgeriumdocs"] = dockerTemplate.services["ledgeriumdocs"]();
+		dockerComposefull.services["ledgeriumfaucet"] = dockerTemplate.services['ledgeriumfaucet']();
+		dockerComposefull.services["redis"] = dockerTemplate.services['redis']();
+		dockerComposefull.services["docusaurus"] = dockerTemplate.services['docusaurus']();
+		dockerComposefull.services["blockexplorer"] = dockerTemplate.services['blockexplorer']();
+		dockerComposefull.services["mongodb"] = dockerTemplate.services['mongodb']();
+		dockerComposefull.services["web"] = dockerTemplate.services['web']();
+		break;
 		case "mainnet":
-			// dockerCompose.services["blockexplorer"] = dockerTemplate.services['blockexplorer']();
-			// dockerCompose.services["mongodb"] = dockerTemplate.services['mongodb']();
-			// dockerCompose.services["web"] = dockerTemplate.services['web']();
+			// dockerComposefull.services["blockexplorer"] = dockerTemplate.services['blockexplorer']();
+			// dockerComposefull.services["mongodb"] = dockerTemplate.services['mongodb']();
+			// dockerComposefull.services["web"] = dockerTemplate.services['web']();
 			break;
 		default:
 			break;
@@ -33,8 +34,10 @@ if(readparams.modeFlag == "full"){
 
 if(!dockerTemplate.networks.Externalflag){
 	dockerCompose['networks'] = dockerTemplate.networks['internal']();
+	dockerComposefull['networks'] = dockerTemplate.networks['internal']();
 }else{
 	dockerCompose['networks'] = dockerTemplate.networks['external']();
+	dockerComposefull['networks'] = dockerTemplate.networks['external']();
 }
 
 const type = dockerTemplate.tesseraFlag;
@@ -112,8 +115,22 @@ fs.writeFileSync(YMLFile, yaml.dump(dockerCompose,{
 	}
 }));
 
-//var replace = "sed -i -e 's/~//g' ./output/docker-compose.yml";
 var replace = "sed -i -e 's/~//g' " + YMLFile;
+exec(replace, function(error, stdout, stderr) {
+	if (error) {
+	  console.log(error.code);
+	}
+});
+
+const YMLFileFull = "./output/fullnode/docker-compose.yml";
+//Final output to the fullnode yml
+fs.writeFileSync(YMLFileFull, yaml.dump(dockerComposefull,{
+	styles: {
+		'!!null' : 'canonical'
+	}
+}));
+
+replace = "sed -i -e 's/~//g' " + YMLFileFull;
 exec(replace, function(error, stdout, stderr) {
 	if (error) {
 	  console.log(error.code);
@@ -124,8 +141,10 @@ sleep(1000, function() {
 	// executes after one second, and blocks the thread
 	//Remove the -e file on MAC platform
 	if (process.platform == "darwin") {
-	if(fs.existsSync(YMLFile+"-e"))
-		fs.unlinkSync(YMLFile+"-e");
+		if(fs.existsSync(YMLFile+"-e"))
+			fs.unlinkSync(YMLFile+"-e");
+		if(fs.existsSync(YMLFileFull+"-e"))
+		fs.unlinkSync(YMLFileFull+"-e");
 	}
 });
 
