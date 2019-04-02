@@ -124,7 +124,6 @@ if(fs.existsSync(tempDir + permissionedFile))
 	fs.unlinkSync(tempDir + permissionedFile);
 if(fs.existsSync(envFile))
 	fs.unlinkSync(envFile);
-	
 if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir);
 }
@@ -133,6 +132,16 @@ if (!fs.existsSync(tempDir)) {
 fs.writeFileSync(envFile, envParams); //Write private keys and passwords to .env file
 
 if(readparams.modeFlag == "full") {
+	const fullnodeDir = __dirname + "/../output/fullnode"
+	if (!fs.existsSync(fullnodeDir)) {
+		fs.mkdirSync(fullnodeDir);
+	}
+	const envFilefullnode = __dirname + "/../output/fullnode/.env"; //.env file path
+	if(fs.existsSync(envFilefullnode))
+		fs.unlinkSync(envFilefullnode);
+	//Create env file for full node, will be used by faucet
+	fs.writeFileSync(envFilefullnode, envParams); //Write private keys and passwords to .env file
+	
 	fs.writeFileSync(tempDir + genesisFile, JSON.stringify(genesisTemplate));
 	fs.writeFileSync(tempDir + staticFile, static_nodes);
 	fs.writeFileSync(tempDir + permissionedFile, static_nodes);
@@ -159,11 +168,11 @@ if(writeprivatekeys) {
 	var data = JSON.stringify(privateKeyJSON,null, 2);
 	fs.writeFileSync(tempDir + privatekeysFile, data);
 }
-var mode = '';
-if (process.argv[2] == '1')
-	mode = 1;
-else 
-	mode = 0;
+// var mode = '';
+// if (process.argv[2] == '1')
+// 	mode = 1;
+// else 
+// 	mode = 0;
 
 exports.validatorIDs = hostNames;
 exports.hostNames = hostNames;

@@ -1,4 +1,3 @@
-//'use strict';
 const basicConfig = require('../src/basicconfig');
 const readparams = require('../src/readparams');
 
@@ -45,30 +44,10 @@ const networks = {
 		return temp;
 	}
 };
+
 const serviceConfig = {
-	"mongodb" : {
-		"ip" : base_ip.slice(0, base_ip.length-1)+"2"
-	},
-	"redis" : {
-		"ip" : base_ip.slice(0, base_ip.length-1)+"3"
-	},
-	"docusaurus" : {
-		"ip" : base_ip.slice(0, base_ip.length-1)+"4"
-	},
-	"blockexplorer" : {
-		"ip" : base_ip.slice(0, base_ip.length-1)+"5"
-	},
-	"ledgeriumfaucet" : {
-		"ip" : base_ip.slice(0, base_ip.length-1)+"6"
-	},
-	"web" : {
-		"ip" : base_ip.slice(0, base_ip.length-1)+"7"
-	},
 	"ledgeriumstats":{
 		"ip" : base_ip.slice(0, base_ip.length-1)+"8"
-	},
-	"ledgeriumdocs" : {
-		"ip" : base_ip.slice(0, base_ip.length-1)+"9"
 	},
 	"validator": {
 		"startIp": base_ip.slice(0, base_ip.length-1)+"10",
@@ -210,6 +189,27 @@ const serviceConfig = {
 		"port-exp": 3545,
 		"port-int": 3003,
 		"startIp" : base_ip.slice(0, base_ip.length-1)+"150"
+	},
+	"mongodb" : {
+		"ip" : base_ip.slice(0, base_ip.length-1)+"2"
+	},
+	"redis" : {
+		"ip" : base_ip.slice(0, base_ip.length-1)+"3"
+	},
+	"docusaurus" : {
+		"ip" : base_ip.slice(0, base_ip.length-1)+"4"
+	},
+	"blockexplorer" : {
+		"ip" : base_ip.slice(0, base_ip.length-1)+"5"
+	},
+	"ledgeriumfaucet" : {
+		"ip" : base_ip.slice(0, base_ip.length-1)+"6"
+	},
+	"web" : {
+		"ip" : base_ip.slice(0, base_ip.length-1)+"7"
+	},
+	"ledgeriumdocs" : {
+		"ip" : base_ip.slice(0, base_ip.length-1)+"9"
 	}
 };
 
@@ -754,8 +754,18 @@ const template = {
 
 	}
 };
-exports.template 				= template;
-exports.services 				= services;
-exports.serviceConfig			= serviceConfig;
-exports.networks				= networks;
-exports.tesseraFlag				= tesseraFlag;
+const templatefull = {
+	"version":"3",
+	"services": {
+
+	},
+	"volumes":{
+
+	}
+};
+exports.template 			= template;
+exports.templatefull 		= templatefull;
+exports.services 			= services;
+exports.serviceConfig		= serviceConfig;
+exports.networks			= networks;
+exports.tesseraFlag			= tesseraFlag;
