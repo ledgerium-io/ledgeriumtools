@@ -11,6 +11,7 @@ const gethCom   = "geth --rpc --rpcaddr '0.0.0.0' --rpccorsdomain '*' \
 const tesseraFlag = true;
 const network_name = "test_net";
 var base_ip = "172.19.240.0",entrypoint, qmvolumes =[];
+var gateway = "172.19.240.1"
 
 const genCommand = (commands)=>{
 	var commandString = "";
@@ -299,7 +300,8 @@ const services = {
 			tranStr = "/logs/tesseralogs";
 		}
 		var commandString = " /logs/validatorlogs/ " +  tranStr + " /quorum-maker/setup.conf" + " 2>/logs/quorummakerlogs/" + "$${DATE}_log.txt";
-		commands.push("./NodeManager http://"+serviceConfig.validator.startIp+":"+serviceConfig.validator.rpcPort+" "
+		//commands.push("./NodeManager http://"+serviceConfig.validator.startIp+":"+serviceConfig.validator.rpcPort+" "
+		commands.push("./NodeManager http://"+gateway+":"+serviceConfig.validator.rpcPort+" "
 			+serviceConfig["quorum-maker"]["port"]+ commandString);
 		quorum.entrypoint.push(genCommand(commands));
 		return quorum;
@@ -516,7 +518,7 @@ const services = {
 		// 	validatorName += readparams.nodeName + i;
 		// 	tesseraName += readparams.nodeName + i;
 		// }
-		var startTess = "java -Xms128M -Xmx128M -jar /tessera/tessera-app.jar -configfile /priv/tessera-config.json";
+		var startTess = "java -Xms1024M -Xmx1024M -jar /tessera/tessera-app.jar -configfile /priv/tessera-config.json";
 		startTess+=" 2>/logs/tesseralogs/"+ tesseraName + "_log_$${DATE}.txt";
 		var port = serviceConfig.tessera.port; //serviceConfig["tessera-enhanced"].port;
 		var tesseraTemplate  = serviceConfig.tessera.tesseraTemplate(i);
@@ -617,7 +619,8 @@ const services = {
 		if((i == 0) && (readparams.modeFlag == "full")) { //Initialisation is to be done only for one node. We are doing for the first node -> i == 0
 			string+="cp /tmp/nodesdetails.json /eth/nodesdetails.json\n";
 			string+="cd /ledgerium/governanceapp/governanceapp\n",
-			string+="node index.js protocol=http hostname=" + vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i) +" port=" + serviceConfig.validator.rpcPort + " initiateApp="
+			//string+="node index.js protocol=http hostname=" + vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i) +" port=" + serviceConfig.validator.rpcPort + " initiateApp="
+			string+="node index.js protocol=http hostname=" + gateway + " port=" + serviceConfig.validator.rpcPort + " initiateApp="
 			var privateKeyString="";
 			for(var nodeIndex = 0; nodeIndex < numberOfNodes;) {
 				privateKeyString+= "${PRIVATEKEY" + (nodeIndex++) + "}"
@@ -642,7 +645,8 @@ const services = {
 		}	
 		string+="cd /ledgerium/governanceapp/governanceapp/app\n";
 		
-		string+="node governanceUI.js "+vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i)+" "+(serviceConfig.validator.rpcPort+i)+"\n";		
+		//string+="node governanceUI.js "+vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i)+" "+(serviceConfig.validator.rpcPort+i)+"\n";
+		string+="node governanceUI.js "+ gateway +" "+(serviceConfig.validator.rpcPort+i)+"\n";
 		string+=" 2>/logs/governanceapplogs/"+ governanceUIName + "_log_$${DATE}.txt";
 		gov.entrypoint.push(string);
 		if ( !tesseraFlag ){
@@ -663,7 +667,8 @@ const services = {
 			"networks" : {}
 		}
 		blockexplorer.networks[network_name] = { "ipv4_address":serviceConfig["blockexplorer"].ip };
-		blockexplorer.environment.push("NODE_ENDPOINT=http://"+serviceConfig.validator.startIp+":"+serviceConfig.validator.rpcPort);
+		//blockexplorer.environment.push("NODE_ENDPOINT=http://"+serviceConfig.validator.startIp+":"+serviceConfig.validator.rpcPort);
+		blockexplorer.environment.push("NODE_ENDPOINT=http://"+gateway+":"+serviceConfig.validator.rpcPort);
 		blockexplorer.environment.push("MONGO_CLIENT_URI=mongodb://"+serviceConfig.mongodb.ip+":27017");
 		blockexplorer.environment.push("UI_IP=http://"+serviceConfig.web.ip+":5000");
 		return blockexplorer;
@@ -722,7 +727,8 @@ const services = {
 		];
 		ledgeriumfaucet.entrypoint.push(genCommand(commands))
 		ledgeriumfaucet.networks[network_name] = {"ipv4_address": serviceConfig["ledgeriumfaucet"].ip};
-		ledgeriumfaucet.environment.push("NODE_URL=http://"+serviceConfig.validator.startIp+":"+serviceConfig.validator.rpcPort);
+		//ledgeriumfaucet.environment.push("NODE_URL=http://"+serviceConfig.validator.startIp+":"+serviceConfig.validator.rpcPort);
+		ledgeriumfaucet.environment.push("NODE_URL=http://"+ gateway +":"+serviceConfig.validator.rpcPort);
 		ledgeriumfaucet.environment.push("REDIS_URL=redis://"+serviceConfig.redis.ip+":6379");
 		return ledgeriumfaucet;
 	},
