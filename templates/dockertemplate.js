@@ -8,7 +8,7 @@ const gethCom   = "geth --rpc --rpcaddr '0.0.0.0' --rpccorsdomain '*' \
 --debug --metrics --syncmode 'full' --mine --verbosity 6 \
 --minerthreads 1";
 
-const tesseraFlag = false;
+const tesseraFlag = true;
 const network_name = "test_net";
 var base_ip = "172.19.240.0",entrypoint, qmvolumes =[];
 
@@ -610,12 +610,12 @@ const services = {
 		var string = "set -u\n set -e\n";
 		string+="mkdir -p /logs/governanceapplogs\n";
 		string+="DATE=`date '+%Y-%m-%d_%H-%M-%S'`\n";
-		string+="cp /tmp/nodesdetails.json /eth/nodesdetails.json\n";
 		string+="while [ ! -e /eth/geth.ipc ];do\n";
 		string+="sleep 1\n";
 		string+="echo \"Waiting for validator to be ready...\"\n";
 		string+="done\n";
 		if((i == 0) && (readparams.modeFlag == "full")) { //Initialisation is to be done only for one node. We are doing for the first node -> i == 0
+			string+="cp /tmp/nodesdetails.json /eth/nodesdetails.json\n";
 			string+="cd /ledgerium/governanceapp/governanceapp\n",
 			string+="node index.js protocol=http hostname=" + vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i) +" port=" + serviceConfig.validator.rpcPort + " initiateApp="
 			var privateKeyString="";
