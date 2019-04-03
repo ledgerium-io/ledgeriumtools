@@ -144,7 +144,7 @@ if(readparams.modeFlag == "full") {
 	
 	fs.writeFileSync(tempDir + genesisFile, JSON.stringify(genesisTemplate));
 	fs.writeFileSync(tempDir + staticFile, static_nodes);
-	fs.writeFileSync(tempDir + permissionedFile, static_nodes);
+	//fs.writeFileSync(tempDir + permissionedFile, static_nodes);
 	fs.writeFileSync(tempDir + nodeDetailsFile, JSON.stringify(nodeJSON, null, 2));
 
 	const outputDir = __dirname + "/../../ledgeriumnetwork/";
@@ -160,8 +160,8 @@ if(readparams.modeFlag == "full") {
 		
 	fs.writeFileSync(outputDir + genesisFile, JSON.stringify(genesisTemplate));
 	fs.writeFileSync(outputDir + staticFile, staticNodesExternal);
-	fs.writeFileSync(outputDir + permissionedFile, staticNodesExternal);
-	fs.writeFileSync(outputDir + nodeDetailsFile, JSON.stringify(nodeJSON, null, 2));
+	//fs.writeFileSync(outputDir + permissionedFile, staticNodesExternal);
+	//fs.writeFileSync(outputDir + nodeDetailsFile, JSON.stringify(nodeJSON, null, 2));
 }
 
 if(writeprivatekeys) {
