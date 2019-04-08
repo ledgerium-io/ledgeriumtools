@@ -582,18 +582,11 @@ const services = {
 			tesseraName += "test-";
 			governanceUIName += "test-";
 		}
-		//if(readparams.modeFlag == "full") {
-			validatorName += readparams.nodeName + i;
-			constellationName += readparams.nodeName + i;
-			tesseraName += readparams.nodeName + i;
-			governanceUIName += readparams.nodeName + i;
-		// }
-		// else if(readparams.modeFlag == "addon") {
-		// 	validatorName += readparams.nodeName;
-		// 	constellationName += readparams.nodeName;
-		// 	tesseraName += readparams.nodeName;
-		// 	governanceUIName += readparams.nodeName;
-		// }
+		validatorName += readparams.nodeName + i;
+		constellationName += readparams.nodeName + i;
+		tesseraName += readparams.nodeName + i;
+		governanceUIName += readparams.nodeName + i;
+		
 		var gov = {
 			"hostname" 		: governanceUIName,
 			"image"    		: "ledgeriumengineering/governance_app_ui_img:v1.0",
@@ -646,7 +639,12 @@ const services = {
 		string+="cd /ledgerium/governanceapp/governanceapp/app\n";
 		
 		//string+="node governanceUI.js "+vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i)+" "+(serviceConfig.validator.rpcPort+i)+"\n";
-		string+="node governanceUI.js "+ gateway +" "+(serviceConfig.validator.rpcPort+i)+"\n";
+		if((i == 0) && (readparams.modeFlag == "full")) {
+			string+="node governanceUI.js "+ gateway +" "+(serviceConfig.validator.rpcPort+i)+ " " + "0x${PRIVATEKEY0}" + "\n";
+		}
+		else {
+			string+="node governanceUI.js "+ gateway +" "+(serviceConfig.validator.rpcPort+i)+"\n";
+		}	
 		string+=" 2>/logs/governanceapplogs/"+ governanceUIName + "_log_$${DATE}.txt";
 		gov.entrypoint.push(string);
 		if ( !tesseraFlag ){
@@ -702,7 +700,7 @@ const services = {
 			"entrypoint" : ["/bin/sh", "-c"],
 			"networks" : {}
 		};
-		var commands = ["npm start"]
+		var commands = ["node sidebars.js && npm start"]
 		doc.entrypoint.push(genCommand(commands))
 		doc.networks[network_name] = {"ipv4_address": serviceConfig["docusaurus"].ip};
 		return doc;
