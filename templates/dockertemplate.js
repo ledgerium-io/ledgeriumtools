@@ -299,7 +299,7 @@ const services = {
 		} else {
 			tranStr = "/logs/tesseralogs";
 		}
-		var commandString = " /logs/validatorlogs/ " +  tranStr + " /quorum-maker/setup.conf" + " 2>/logs/quorummakerlogs/" + "$${DATE}_log.txt";
+		var commandString = " /logs/validatorlogs/ " +  tranStr + " /quorum-maker/setup.conf" + " >/logs/quorummakerlogs/" + "$${DATE}_log.txt";
 		//commands.push("./NodeManager http://"+serviceConfig.validator.startIp+":"+serviceConfig.validator.rpcPort+" "
 		commands.push("./NodeManager http://"+gateway+":"+serviceConfig.validator.rpcPort+" "
 			+serviceConfig["quorum-maker"]["port"]+ commandString);
@@ -475,7 +475,7 @@ const services = {
 		+" --url=http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+i)+":"+(serviceConfig.constellation.port+i)
 		+"/ --port="+(serviceConfig.constellation.port+i);
 		//if(i == 0)
-		startConst+=" 2>/logs/constellationlogs/" + constellationName + "_log_$${DATE}.txt";
+		startConst+=" >/logs/constellationlogs/" + constellationName + "_log_$${DATE}.txt";
 		var constellation = {
 			"hostname"   : constellationName,
 			"image"		 : "quorumengineering/constellation:latest",
@@ -519,7 +519,7 @@ const services = {
 		// 	tesseraName += readparams.nodeName + i;
 		// }
 		var startTess = "java -Xms1024M -Xmx1024M -jar /tessera/tessera-app.jar -configfile /priv/tessera-config.json";
-		startTess+=" 2>/logs/tesseralogs/"+ tesseraName + "_log_$${DATE}.txt";
+		startTess+=" >/logs/tesseralogs/"+ tesseraName + "_log_$${DATE}.txt";
 		var port = serviceConfig.tessera.port; //serviceConfig["tessera-enhanced"].port;
 		var tesseraTemplate  = serviceConfig.tessera.tesseraTemplate(i);
 		var eTesseraTemplate = serviceConfig["tessera-enhanced"].tesseraTemplate(i,port);
@@ -721,7 +721,7 @@ const services = {
 		const commands = [
 			startEntryPoint,
 			"DATE=`date '+%Y-%m-%d_%H-%M-%S'`",
-			"node index.js ${PRIVATEKEY0} 2>/logs/ledgeriumfaucetlogs/ledgeriumfaucet_$${DATE}_log.txt"
+			"node index.js ${PRIVATEKEY0} >/logs/ledgeriumfaucetlogs/ledgeriumfaucet_$${DATE}_log.txt"
 		];
 		ledgeriumfaucet.entrypoint.push(genCommand(commands))
 		ledgeriumfaucet.networks[network_name] = {"ipv4_address": serviceConfig["ledgeriumfaucet"].ip};
