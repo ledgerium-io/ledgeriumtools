@@ -591,7 +591,7 @@ const services = {
 			"hostname" 		: governanceUIName,
 			"image"    		: "ledgeriumengineering/governance_app_ui_img:v1.0",
 			"ports"    		: [(serviceConfig["governance-app"]["port-exp"]+i)+":"+serviceConfig["governance-app"]["port-int"]],
-			"volumes"  		: ["./" + validatorName +':/eth',"./tmp:/tmp"],
+			"volumes"  		: ["./logs:/logs","./" + validatorName +':/eth',"./tmp:/tmp"],
 			"depends_on" 	: [validatorName],
 			"entrypoint"    : [ "/bin/sh","-c"],
 			"networks"      : {
@@ -640,12 +640,12 @@ const services = {
 		
 		//string+="node governanceUI.js "+vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i)+" "+(serviceConfig.validator.rpcPort+i)+"\n";
 		if((i == 0) && (readparams.modeFlag == "full")) {
-			string+="node governanceUI.js "+ gateway +" "+(serviceConfig.validator.rpcPort+i)+ " " + "0x${PRIVATEKEY0}" + "\n";
+			string+="node governanceUI.js "+ gateway +" "+(serviceConfig.validator.rpcPort+i)+ " " + "0x${PRIVATEKEY0}";
 		}
 		else {
-			string+="node governanceUI.js "+ gateway +" "+(serviceConfig.validator.rpcPort+i)+"\n";
+			string+="node governanceUI.js "+ gateway +" "+(serviceConfig.validator.rpcPort+i);
 		}	
-		string+=" 2>/logs/governanceapplogs/"+ governanceUIName + "_log_$${DATE}.txt";
+		string+= " >/logs/governanceapplogs/"+ governanceUIName + "_log_$${DATE}.txt";
 		gov.entrypoint.push(string);
 		if ( !tesseraFlag ){
 			gov.volumes.push(constellationName+":/constellation:z")
