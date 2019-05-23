@@ -8,7 +8,7 @@ const gethCom   = "geth --rpc --rpcaddr '0.0.0.0' --rpccorsdomain '*' \
 --debug --metrics --syncmode 'full' --mine --verbosity 6 \
 --minerthreads 1";
 
-const tesseraFlag = false;
+const tesseraFlag = true;
 const network_name = "test_net";
 var base_ip = "172.19.240.0",entrypoint, qmvolumes =[];
 
@@ -19,6 +19,20 @@ const genCommand = (commands)=>{
 	}
 	return commandString;
 }
+
+const deployConfig=(maxMem,minMem)=>{
+	return {
+		"resources":{
+			"limits":{
+				"memory": maxMem+'M'
+			},
+			"reservations":{
+				"memory": minMem+'M'
+			}
+		}
+	};
+}
+
 const networks = {
 	"Externalflag"    : true,
 	"internal":()=>{
@@ -47,21 +61,25 @@ const networks = {
 
 const serviceConfig = {
 	"ledgeriumstats":{
-		"ip" : base_ip.slice(0, base_ip.length-1)+"8"
+		"ip" : base_ip.slice(0, base_ip.length-1)+"8",
+		"deploy": deployConfig(500,128)
 	},
 	"validator": {
 		"startIp": base_ip.slice(0, base_ip.length-1)+"10",
 		"gossipPort":30303,
 		"rpcPort":8545,
-		"wsPort":9000
+		"wsPort":9000,
+		"deploy":deployConfig(1024,128)
 	},
 	"constellation": {
 		"startIp":base_ip.slice(0, base_ip.length-1)+"100",
-		"port":10000
+		"port":10000,
+		'deploy':deployConfig(1024,128)
 	},
 	"tessera": {
 		"startIp":base_ip.slice(0, base_ip.length-1)+"100",
 		"port":10000,
+		'deploy':deployConfig(1024,128),
 		"tesseraTemplate": (i)=>{
 			return {
 				"useWhiteList"  : false,
@@ -110,6 +128,7 @@ const serviceConfig = {
 	"tessera-enhanced": {
 		"startIp":base_ip.slice(0, base_ip.length-1)+"100",
 		"port":10000,
+		'deploy':deployConfig(1024,128),
 		"tesseraTemplate":(i,port)=>{
     		return	{
     			"useWhiteList": false,
@@ -183,12 +202,14 @@ const serviceConfig = {
 	},
 	"quorum-maker": {
 		"ip"   : base_ip.slice(0, base_ip.length-1)+"196",
-		"port" : 9999
+		"port" : 9999,
+		'deploy': deployConfig(500,128)
 	},
 	"governance-app": {
 		"port-exp": 3545,
 		"port-int": 3003,
-		"startIp" : base_ip.slice(0, base_ip.length-1)+"150"
+		"startIp" : base_ip.slice(0, base_ip.length-1)+"150",
+		'deploy': deployConfig(500,128)
 	},
 	"mongodb" : {
 		"ip" : base_ip.slice(0, base_ip.length-1)+"2"
@@ -223,6 +244,7 @@ const services = {
 			"networks"	   : {
 			}
 		};
+		eth.deploy                 = serviceConfig['ledgeriumstats'].deploy;
 		eth.networks[network_name] = { "ipv4_address":serviceConfig["ledgeriumstats"].ip };
 		return eth;
 	},
@@ -239,6 +261,7 @@ const services = {
 			"restart": "always"
 		};
 		quorum.volumes.push("./validator-" + readparams.nodeName + "0" + ":/eth");
+		quorum.deploy = serviceConfig['quorum-maker'].deploy;
 		quorum.networks[network_name] = { "ipv4_address": serviceConfig["quorum-maker"].ip }
 		var publicKeyPath = (i) => { return "/tmp/tm"+i+".pub"; };
 		if(tesseraFlag) {
@@ -402,6 +425,7 @@ const services = {
 			"rm -f ./file && rm -f ./password",
 			"fi"
 		];
+		validator.deploy = serviceConfig['validator'].deploy;
 		validator.networks[network_name] = { "ipv4_address":startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+i) };
 		if(test){
 			validator.hostname = validatorName;
@@ -496,6 +520,7 @@ const services = {
 			"fi",
 			startConst
 		];
+		constellation.deploy = serviceConfig['constellation'].deploy;
 		if(!tesseraFlag)
 			constellation.volumes.push("./logs:/logs");
 		constellation.entrypoint.push(genCommand(commands));
@@ -516,7 +541,7 @@ const services = {
 		// 	validatorName += readparams.nodeName + i;
 		// 	tesseraName += readparams.nodeName + i;
 		// }
-		var startTess = "java -Xms128M -Xmx128M -jar /tessera/tessera-app.jar -configfile /priv/tessera-config.json";
+		var startTess = "java -Xms128M -Xmx1024M -jar /tessera/tessera-app.jar -configfile /priv/tessera-config.json";
 		startTess+=" 2>/logs/tesseralogs/"+ tesseraName + "_log_$${DATE}.txt";
 		var port = serviceConfig.tessera.port; //serviceConfig["tessera-enhanced"].port;
 		var tesseraTemplate  = serviceConfig.tessera.tesseraTemplate(i);
@@ -566,6 +591,8 @@ const services = {
 			"fi",
 			startTess
 		];
+		tessera.deploy = serviceConfig['tessera-enhanced'].deploy;
+		//tessera.deploy = serviceConfig['tessera'].deploy;
 		if(tesseraFlag)
 			tessera.volumes.push("./logs:/logs");
 		tessera.entrypoint.push(genCommand(commands));
@@ -651,6 +678,7 @@ const services = {
 			gov.volumes.push("./"+tesseraName+":/priv")
 		}
 		gov.networks[network_name] = { "ipv4_address":ip };
+		gov.deploy = serviceConfig['governance-app'].deploy;
 		return gov;
 	},
 	"blockexplorer" : () => {
