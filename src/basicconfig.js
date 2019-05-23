@@ -111,7 +111,6 @@ const privatekeysFile = "privatekeys.json";
 const staticFile = "static-nodes.json";
 const permissionedFile = "permissioned-nodes.json";
 const envFile = __dirname + "/../output/.env"; //.env file path
-const nodeDetailsFile = "nodesdetails.json";
 
 const tempDir = __dirname + "/../output/tmp/";
 if(fs.existsSync(tempDir + genesisFile))
@@ -132,6 +131,7 @@ if (!fs.existsSync(tempDir)) {
 fs.writeFileSync(envFile, envParams); //Write private keys and passwords to .env file
 
 if(readparams.modeFlag == "full") {
+	const nodeDetailsFile = "nodesdetails.json";
 	const fullnodeDir = __dirname + "/../output/fullnode"
 	if (!fs.existsSync(fullnodeDir)) {
 		fs.mkdirSync(fullnodeDir);
@@ -144,7 +144,7 @@ if(readparams.modeFlag == "full") {
 	
 	fs.writeFileSync(tempDir + genesisFile, JSON.stringify(genesisTemplate));
 	fs.writeFileSync(tempDir + staticFile, static_nodes);
-	fs.writeFileSync(tempDir + permissionedFile, static_nodes);
+	//fs.writeFileSync(tempDir + permissionedFile, static_nodes);
 	fs.writeFileSync(tempDir + nodeDetailsFile, JSON.stringify(nodeJSON, null, 2));
 
 	const outputDir = __dirname + "/../../ledgeriumnetwork/";
@@ -160,19 +160,14 @@ if(readparams.modeFlag == "full") {
 		
 	fs.writeFileSync(outputDir + genesisFile, JSON.stringify(genesisTemplate));
 	fs.writeFileSync(outputDir + staticFile, staticNodesExternal);
-	fs.writeFileSync(outputDir + permissionedFile, staticNodesExternal);
-	fs.writeFileSync(outputDir + nodeDetailsFile, JSON.stringify(nodeJSON, null, 2));
+	//fs.writeFileSync(outputDir + permissionedFile, staticNodesExternal);
+	//fs.writeFileSync(outputDir + nodeDetailsFile, JSON.stringify(nodeJSON, null, 2));
 }
 
 if(writeprivatekeys) {
 	var data = JSON.stringify(privateKeyJSON,null, 2);
 	fs.writeFileSync(tempDir + privatekeysFile, data);
 }
-// var mode = '';
-// if (process.argv[2] == '1')
-// 	mode = 1;
-// else 
-// 	mode = 0;
 
 exports.validatorIDs = hostNames;
 exports.hostNames = hostNames;
