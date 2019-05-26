@@ -526,7 +526,7 @@ const services = {
 		var tessera          = {
 			"hostname"   : tesseraName,
 			"image"		 : "quorumengineering/tessera:0.8",
-			"ports"	     : [(port+i)+":"+port,(port+100+i)+":"+(port+100+i)],
+			"ports"	     : [(port+i)+":"+(port+i),(port+100+i)+":"+(port+100+i)],
 			"volumes"    : [],
 			"entrypoint" : ["/bin/sh","-c"],
 			"networks"	 : {
