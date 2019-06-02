@@ -5,6 +5,7 @@ var exec = require('child_process').exec;
 const dockerTemplate = require('../templates/dockertemplate');
 const yaml = require('js-yaml');
 
+var dockerComposeSplit  = dockerTemplate.splitTemplate;
 var dockerCompose  = dockerTemplate.template;
 var dockerComposefull  = dockerTemplate.templatefull;
 
@@ -35,27 +36,49 @@ if(readparams.modeFlag == "full") {
 if(!dockerTemplate.networks.Externalflag) {
 	dockerCompose['networks'] = dockerTemplate.networks['internal']();
 	dockerComposefull['networks'] = dockerTemplate.networks['internal']();
+	dockerComposeSplit['networks'] = dockerTemplate.networks['internal']();
 } else {
 	dockerCompose['networks'] = dockerTemplate.networks['external']();
 	dockerComposefull['networks'] = dockerTemplate.networks['external']();
+	dockerComposeSplit['networks'] = dockerTemplate.networks['external']();
 }
 
 const type = dockerTemplate.tesseraFlag;
 if(readparams.modeFlag == "full") {
 	dockerCompose.volumes["quorum-maker"] = null;
 	for (var i = 0; i < numberOfNodes - readparams.faultynode; i++) {	
+		//Clear services for every yml file
+		dockerComposeSplit.services = {};
+		
+		//Add ledgeriumstats to first yml file
+		if(i == 0)
+		dockerComposeSplit.services["ledgeriumstats"] = dockerTemplate.services['ledgeriumstats']();
+
 		dockerCompose.services["validator-"+readparams.nodeName + i] = dockerTemplate.services.validator(i);
+		dockerComposeSplit.services["validator-"+readparams.nodeName + i] = dockerTemplate.services.validator(i);
 		if(!type) {
 			dockerCompose.services["constellation-"+readparams.nodeName + i] = dockerTemplate.services.constellation(i);
+			dockerComposeSplit.services["constellation-"+readparams.nodeName + i] = dockerTemplate.services.constellation(i);
 		} else {
 			dockerCompose.services["tessera-"+readparams.nodeName + i] = dockerTemplate.services.tessera(i);		
+			dockerComposeSplit.services["tessera-"+readparams.nodeName + i] = dockerTemplate.services.tessera(i);		
 		}
 		dockerCompose.services["governance-ui-"+readparams.nodeName + i] = dockerTemplate.services.governanceapp(i);
+		dockerComposeSplit.services["governance-ui-"+readparams.nodeName + i] = dockerTemplate.services.governanceapp(i);
+
 		let volumes = dockerCompose.services["validator-"+readparams.nodeName + i].volumes;
 		for (var j = volumes.length - 1; j >= 0; j--) {
 			if(volumes[j].slice(0,1) != ".")
 				dockerCompose.volumes[volumes[j].split(":")[0]] = null;
 		}
+		
+		let YMLFileSplit = "./output/fullnode/docker-compose_" + i + "_" + ipAddress[i] +".yml";
+		//Final output to the fullnode yml
+		fs.writeFileSync(YMLFileSplit, yaml.dump(dockerComposeSplit, {
+			styles: {
+				'!!null' : 'canonical'
+			}
+		}));
 	}
 	if( readparams.faultynode > 0 ) {
 		for (var i = numberOfNodes - readparams.faultynode; i < numberOfNodes; i++) {

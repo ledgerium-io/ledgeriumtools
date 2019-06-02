@@ -326,7 +326,8 @@ const services = {
 		var ipaddressText;
 		var startGeth;
 		if(readparams.modeFlag == "full")
-			ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+serviceConfig["ledgeriumstats"].ip;
+			// ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+serviceConfig["ledgeriumstats"].ip;
+			ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+ipAddress[0];
 		else if(readparams.modeFlag == "addon")
 			ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+readparams.externalIPAddress;
 		startGeth = gethCom + " --rpcvhosts=" + readparams.domainName + " --nodekeyhex \""+"${PRIVATEKEY"+[i]+"}"+"\" "
@@ -767,8 +768,18 @@ const templatefull = {
 
 	}
 };
+const splitTemplate = {
+	"version":"3",
+	"services": {
+
+	},
+	"volumes":{
+
+	}
+};
 exports.template 			= template;
 exports.templatefull 		= templatefull;
+exports.splitTemplate 		= splitTemplate;
 exports.services 			= services;
 exports.serviceConfig		= serviceConfig;
 exports.networks			= networks;

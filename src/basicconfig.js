@@ -37,16 +37,15 @@ for (var i = 0; i < privateKeys.length; i++) {
 	static_nodes += (
 		"\"enode://"+temp+
 		"@"+
-		baseIp+
-		(startIp+i)+
+		ipAddress[i]+
 		":"+
-		dockerTemplate.serviceConfig.validator.gossipPort+
+		(dockerTemplate.serviceConfig.validator.gossipPort + i) +
 		"?discport=0\""
 	);
 	staticNodesExternal += (
 		"\"enode://"+temp+
 		"@"+
-		readparams.externalIPAddress+
+		ipAddress[i]+
 		":"+
 		(dockerTemplate.serviceConfig.validator.gossipPort+i)+
 		"?discport=0\""
