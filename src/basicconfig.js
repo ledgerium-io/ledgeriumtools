@@ -39,7 +39,7 @@ for (var i = 0; i < privateKeys.length; i++) {
 		"@"+
 		ipAddress[i]+
 		":"+
-		(dockerTemplate.serviceConfig.validator.gossipPort + i) +
+		(dockerTemplate.serviceConfig.validator.gossipPort+i) +
 		"?discport=0\""
 	);
 	staticNodesExternal += (
