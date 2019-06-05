@@ -20,6 +20,20 @@ const genCommand = (commands)=>{
 	}
 	return commandString;
 }
+
+const deployConfig=(maxMem,minMem)=>{
+	return {
+		"resources":{
+			"limits":{
+				"memory": maxMem+'M'
+			},
+			"reservations":{
+				"memory": minMem+'M'
+			}
+		}
+	};
+}
+
 const networks = {
 	"Externalflag"    : true,
 	"internal":()=>{
@@ -48,21 +62,25 @@ const networks = {
 
 const serviceConfig = {
 	"ledgeriumstats":{
-		"ip" : base_ip.slice(0, base_ip.length-1)+"8"
+		"ip" : base_ip.slice(0, base_ip.length-1)+"8",
+		"deploy": deployConfig(500,128)
 	},
 	"validator": {
 		"startIp": base_ip.slice(0, base_ip.length-1)+"10",
 		"gossipPort":30303,
 		"rpcPort":8545,
-		"wsPort":9000
+		"wsPort":9000,
+		"deploy":deployConfig(1024,128)
 	},
 	"constellation": {
 		"startIp":base_ip.slice(0, base_ip.length-1)+"100",
-		"port":10000
+		"port":10000,
+		'deploy':deployConfig(1024,128)
 	},
 	"tessera": {
 		"startIp":base_ip.slice(0, base_ip.length-1)+"100",
 		"port":10000,
+		'deploy':deployConfig(1024,128),
 		"tesseraTemplate": (i)=>{
 			return {
 				"useWhiteList"  : false,
@@ -111,6 +129,7 @@ const serviceConfig = {
 	"tessera-enhanced": {
 		"startIp":base_ip.slice(0, base_ip.length-1)+"100",
 		"port":10000,
+		'deploy':deployConfig(1024,128),
 		"tesseraTemplate":(i,port)=>{
     		return	{
     			"useWhiteList": false,
@@ -182,14 +201,82 @@ const serviceConfig = {
 			}
 		}
 	},
+	"tessera-nine" : {
+		"startIp":base_ip.slice(0, base_ip.length-1)+"100",
+		"port":10000,
+		'deploy':deployConfig(1024,128),
+		'tesseraTemplate': ( i, port ) =>{
+			return {
+				"useWhiteList" : false,
+				"jdbc"         : {
+					"username" : "sa",
+					"password" : "",
+					"url"      : "jdbc:h2:.//priv/db;MODE=Oracle;TRACE_LEVEL_SYSTEM_OUT=0",
+					"autoCreateTables" : true
+				},
+				"serverConfigs" : [
+					{
+					    "app":"P2P",
+					    "enabled": true,
+					    "serverAddress"  : (port+i),
+					    "bindingAddress" : "http://0.0.0.0:"+(port+i),
+					    "sslConfig": {
+					        "tls": "OFF",
+					        "generateKeyStoreIfNotExisted": true,
+					        "serverKeyStore": "/priv/server"+i+"-keystore",
+					        "serverKeyStorePassword": "quorum",
+					        "serverTrustStore": "/priv/server-truststore",
+					        "serverTrustStorePassword": "quorum",
+					        "serverTrustMode": "TOFU",
+					        "knownClientsFile": "/priv/knownClients",
+					        "clientKeyStore": "/priv/client"+i+"-keystore",
+					        "clientKeyStorePassword": "quorum",
+					        "clientTrustStore": "/priv/client-truststore",
+					        "clientTrustStorePassword": "quorum",
+					        "clientTrustMode": "TOFU",
+					        "knownServersFile": "/priv/knownServers"
+					    },
+						"communicationType" : "REST"
+					},
+					{
+						"app":"Q2T",
+						"enabled": true,
+						"serverAddress": "unix:/priv/tm.ipc",
+						"communicationType" : "REST"
+					},
+					{
+						"app":"ThirdParty",
+						"enabled": true,
+						"serverAddress" : (port+100+i),
+						"bindingAddress": "http://0.0.0.0:"+(port+100+i),
+						"communicationType" : "REST"
+					}
+				],
+				"peer" : [],
+				"keys": {
+			        "passwords": [],
+			        "keyData": [
+			            {
+			                "privateKeyPath": "/priv/tm.key",
+			                "publicKeyPath": "/priv/tm.pub"
+			            }
+			        ]
+			    },
+    			"alwaysSendTo": [],
+				"unixSocketFile": "/priv/tm.ipc"
+			}
+		}
+	},
 	"quorum-maker": {
 		"ip"   : base_ip.slice(0, base_ip.length-1)+"196",
-		"port" : 9999
+		"port" : 9999,
+		'deploy': deployConfig(500,128)
 	},
 	"governance-app": {
 		"port-exp": 3545,
 		"port-int": 3003,
-		"startIp" : base_ip.slice(0, base_ip.length-1)+"150"
+		"startIp" : base_ip.slice(0, base_ip.length-1)+"150",
+		'deploy': deployConfig(500,128)
 	},
 	"mongodb" : {
 		"ip" : base_ip.slice(0, base_ip.length-1)+"2"
@@ -224,6 +311,7 @@ const services = {
 			"networks"	   : {
 			}
 		};
+		eth.deploy                 = serviceConfig['ledgeriumstats'].deploy;
 		eth.networks[network_name] = { "ipv4_address":serviceConfig["ledgeriumstats"].ip };
 		return eth;
 	},
@@ -240,6 +328,7 @@ const services = {
 			"restart": "always"
 		};
 		quorum.volumes.push("./validator-" + readparams.nodeName + "0" + ":/eth");
+		quorum.deploy = serviceConfig['quorum-maker'].deploy;
 		quorum.networks[network_name] = { "ipv4_address": serviceConfig["quorum-maker"].ip }
 		var publicKeyPath = (i) => { return "/tmp/tm"+i+".pub"; };
 		if(tesseraFlag) {
@@ -337,7 +426,7 @@ const services = {
 		const startIp = serviceConfig.validator.startIp.split(".");
 		var validator = {
 			"hostname"   : validatorName, 
-			"image"		 :	"ledgeriumengineering/ledgeriumcore:v1.0",
+			"image"		 :	"ledgeriumengineering/ledgeriumcore:v1.2",
 			"ports"	     : [
 				(serviceConfig.validator.gossipPort+i)+":"+serviceConfig.validator.gossipPort,
 				(serviceConfig.validator.rpcPort+i)+":"+serviceConfig.validator.rpcPort,
@@ -405,6 +494,7 @@ const services = {
 			"rm -f ./file && rm -f ./password",
 			"fi"
 		];
+		validator.deploy = serviceConfig['validator'].deploy;
 		validator.networks[network_name] = { "ipv4_address":startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+i) };
 		if(test){
 			validator.hostname = validatorName;
@@ -499,6 +589,7 @@ const services = {
 			"fi",
 			startConst
 		];
+		constellation.deploy = serviceConfig['constellation'].deploy;
 		if(!tesseraFlag)
 			constellation.volumes.push("./logs:/logs");
 		constellation.entrypoint.push(genCommand(commands));
@@ -511,22 +602,25 @@ const services = {
 			validatorName += "test-"; 
 			tesseraName += "test-";
 		}
-		//if(readparams.modeFlag == "full") {
-			validatorName += readparams.nodeName + i;
-			tesseraName += readparams.nodeName + i;
-		// }
-		// else if(readparams.modeFlag == "addon") {
-		// 	validatorName += readparams.nodeName + i;
-		// 	tesseraName += readparams.nodeName + i;
-		// }
+		validatorName += readparams.nodeName + i;
+		tesseraName += readparams.nodeName + i;
+
 		var startTess = "java -Xms1024M -Xmx1024M -jar /tessera/tessera-app.jar -configfile /priv/tessera-config.json";
 		startTess+=" >/logs/tesseralogs/"+ tesseraName + "_log_$${DATE}.txt";
+		var port = serviceConfig["tessera-nine"].port;
+		/* old tessera versions
+		var port = serviceConfig.tessera.port; 
+		var port = serviceConfig["tessera-enhanced"].port;
+		*/
+		/* old tessera
 		var port = serviceConfig.tessera.port; //serviceConfig["tessera-enhanced"].port;
 		var tesseraTemplate  = serviceConfig.tessera.tesseraTemplate(i);
 		var eTesseraTemplate = serviceConfig["tessera-enhanced"].tesseraTemplate(i,port);
+		*/
+		var tesseraNineTemplate = serviceConfig["tessera-nine"].tesseraTemplate( i, port );
 		var tessera          = {
 			"hostname"   : tesseraName,
-			"image"		 : "quorumengineering/tessera:0.8",
+			"image"		 : "ledgeriumengineering/tessera:0.9",
 			"ports"	     : [(port+i)+":"+(port+i),(port+100+i)+":"+(port+100+i)],
 			"volumes"    : [],
 			"entrypoint" : ["/bin/sh","-c"],
@@ -543,19 +637,30 @@ const services = {
 					peers.push({ "url" : "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+j)+":"+(port+j)+"/"})
 				}	
 			}
+			const serverPortP2p 		= tesseraNineTemplate.serverConfigs[0].serverAddress;
+			const serverPortThirdParty  = tesseraNineTemplate.serverConfigs[2].serverAddress;
+			tesseraNineTemplate.serverConfigs[0].serverAddress = "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]))+":"+serverPortP2p;
+			tesseraNineTemplate.serverConfigs[2].serverAddress = "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]))+":"+serverPortThirdParty;
 		}
 		else if(readparams.modeFlag == "addon") {
 			for (var j = 0; j < basicConfig.publicKeys.length; j++) {
 				peers.push({ "url" : "http://"+readparams.externalIPAddress+":"+(port+j)+"/"})
 			}
+			const serverPortP2p 		= tesseraNineTemplate.serverConfigs[0].serverAddress;
+			const serverPortThirdParty  = tesseraNineTemplate.serverConfigs[2].serverAddress;
+			tesseraNineTemplate.serverConfigs[0].serverAddress = "http://"+readparams.externalIPAddress+":"+serverPortP2p;
+			tesseraNineTemplate.serverConfigs[2].serverAddress = "http://"+readparams.externalIPAddress+":"+serverPortThirdParty;
 		}
+		/* old tessera versions
 		tesseraTemplate.server.port 				   = port+i;
 		tesseraTemplate.server.hostName 			   = "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]));
 		eTesseraTemplate.serverConfigs[0].serverSocket.hostName = "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]));
 		eTesseraTemplate.serverConfigs[2].serverSocket.hostName = "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]));
 		tesseraTemplate.peer        				   = peers;
 		eTesseraTemplate.peer 						   = peers;
-		tessera.volumes								   = ["./"+tesseraName+":/priv"];
+		*/
+		tesseraNineTemplate.peer              			   = peers;
+		tessera.volumes								       = ["./"+tesseraName+":/priv"];
 		const commands = [
 			"DATE=`date '+%Y-%m-%d_%H-%M-%S'`",
 			"rm -f /priv/tm.ipc",
@@ -563,12 +668,19 @@ const services = {
 			"mkdir -p /priv",
 			"mkdir -p /logs/tesseralogs",
 			"echo -e \"\\n\" | java -jar /tessera/tessera-app.jar -keygen -filename /priv/tm",
-			//"echo '"+JSON.stringify(tesseraTemplate)+"' > /priv/tessera-config.json",
+			/* old tessera versions
+			"echo '"+JSON.stringify(tesseraTemplate)+"' > /priv/tessera-config.json",
 			"echo '"+JSON.stringify(eTesseraTemplate)+"' > /priv/tessera-config.json",
+			*/
+			"echo '"+JSON.stringify(tesseraNineTemplate)+"' > /priv/tessera-config.json",
 			"cp /priv/tm.pub /tmp/tm"+i+".pub",
 			"fi",
 			startTess
 		];
+		/* old tessera versions
+		tessera.deploy = serviceConfig['tessera-enhanced'].deploy;
+		tessera.deploy = serviceConfig['tessera'].deploy;
+		*/
 		if(tesseraFlag)
 			tessera.volumes.push("./logs:/logs");
 		tessera.entrypoint.push(genCommand(commands));
@@ -654,6 +766,7 @@ const services = {
 			gov.volumes.push("./"+tesseraName+":/priv")
 		}
 		gov.networks[network_name] = { "ipv4_address":ip };
+		gov.deploy = serviceConfig['governance-app'].deploy;
 		return gov;
 	},
 	"blockexplorer" : () => {
