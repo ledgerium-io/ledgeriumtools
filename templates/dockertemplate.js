@@ -321,21 +321,24 @@ const services = {
 			"image"   : "ledgeriumengineering/quorum-maker:v0.1",
 			"ports"	  : [serviceConfig["quorum-maker"].port+":"+serviceConfig["quorum-maker"].port],
 			"volumes" : ["./logs:/logs","./tmp:/tmp","quorum-maker:/quorum-maker"],
-			"depends_on": ["validator-" + readparams.nodeName + "0"],
+			"depends_on": ["validator-" + ipAddress[0]],
 			"entrypoint":[ "/bin/sh", "-c"],
 			"networks": {
 			},
 			"restart": "always"
 		};
-		quorum.volumes.push("./validator-" + readparams.nodeName + "0" + ":/eth");
+		// quorum.volumes.push("./validator-" + readparams.nodeName + "0" + ":/eth");
+		quorum.volumes.push("./validator-" + ipAddress[0] + ":/eth");
 		quorum.deploy = serviceConfig['quorum-maker'].deploy;
 		quorum.networks[network_name] = { "ipv4_address": serviceConfig["quorum-maker"].ip }
 		var publicKeyPath = (i) => { return "/tmp/tm"+i+".pub"; };
 		if(tesseraFlag) {
-			quorum.volumes.push("./tessera-" + readparams.nodeName + "0" + ":/priv");
+			// quorum.volumes.push("./tessera-" + readparams.nodeName + "0" + ":/priv");
+			quorum.volumes.push("./tessera-" + ipAddress[0] + ":/priv");
 		}
 		else{
-			quorum.volumes.push("constellation-" + readparams.nodeName + "0" + ":/constellation:z");
+			// quorum.volumes.push("constellation-" + readparams.nodeName + "0" + ":/constellation:z");
+			quorum.volumes.push("constellation-" + ipAddress[0] + ":/constellation:z");
 		}
 		var commands = [
 			"set -u",
@@ -356,7 +359,8 @@ const services = {
 		for (var i = 0; i < basicConfig.publicKeys.length; i++) {
 			var prefix = "";
 			const startIp = serviceConfig.validator.startIp.split(".");
-			const ip   = startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+i);
+			// const ip   = startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+i);
+			const ip = ipAddress[i];
 			if(i != 0){
 				prefix = i+"_";
 				commands.push("echo \""+prefix+"ENODE="+basicConfig.enodes[i]+"\" >> ./setup.conf")
@@ -403,9 +407,12 @@ const services = {
 			tesseraName += "test-";
 		}
 		//if(readparams.modeFlag == "full") {
-			validatorName += readparams.nodeName + i;
-			constellationName += readparams.nodeName + i;
-			tesseraName += readparams.nodeName + i;
+			// validatorName += readparams.nodeName + i;
+			// constellationName += readparams.nodeName + i;
+			// tesseraName += readparams.nodeName + i;
+			validatorName += ipAddress[i];
+			constellationName += ipAddress[i];
+			tesseraName += ipAddress[i];
 		// }
 		// else if(readparams.modeFlag == "addon") {
 		// 	validatorName += readparams.nodeName + i;
@@ -528,8 +535,10 @@ const services = {
 			constellationName += "test-";
 		}
 		//if(readparams.modeFlag == "full") {
-			validatorName += readparams.nodeName + i;
-			constellationName += readparams.nodeName + i;
+			// validatorName += readparams.nodeName + i;
+			// constellationName += readparams.nodeName + i;
+			validatorName += ipAddress[i];
+			constellationName += ipAddress[i];
 		// }
 		// else if(readparams.modeFlag == "addon") {
 		// 	validatorName += readparams.nodeName + i;
@@ -602,8 +611,10 @@ const services = {
 			validatorName += "test-"; 
 			tesseraName += "test-";
 		}
-		validatorName += readparams.nodeName + i;
-		tesseraName += readparams.nodeName + i;
+		// validatorName += readparams.nodeName + i;
+		// tesseraName += readparams.nodeName + i;
+		validatorName += ipAddress[i];
+		tesseraName += ipAddress[i];
 
 		var startTess = "java -Xms1024M -Xmx1024M -jar /tessera/tessera-app.jar -configfile /priv/tessera-config.json";
 		startTess+=" >/logs/tesseralogs/"+ tesseraName + "_log_$${DATE}.txt";
@@ -634,13 +645,16 @@ const services = {
 		if(readparams.modeFlag == "full") {
 			for (var j = 0; j < basicConfig.publicKeys.length; j++) {
 				if(i != j){
-					peers.push({ "url" : "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+j)+":"+(port+j)+"/"})
+					// peers.push({ "url" : "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+j)+":"+(port+j)+"/"})
+					peers.push({ "url" : "http://"+ ipAddress[j] +":"+(port+j)+"/"})
 				}	
 			}
 			const serverPortP2p 		= tesseraNineTemplate.serverConfigs[0].serverAddress;
 			const serverPortThirdParty  = tesseraNineTemplate.serverConfigs[2].serverAddress;
-			tesseraNineTemplate.serverConfigs[0].serverAddress = "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]))+":"+serverPortP2p;
-			tesseraNineTemplate.serverConfigs[2].serverAddress = "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]))+":"+serverPortThirdParty;
+			// tesseraNineTemplate.serverConfigs[0].serverAddress = "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]))+":"+serverPortP2p;
+			// tesseraNineTemplate.serverConfigs[2].serverAddress = "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]))+":"+serverPortThirdParty;
+			tesseraNineTemplate.serverConfigs[0].serverAddress = "http://"+ ipAddress[i] +":"+serverPortP2p;
+			tesseraNineTemplate.serverConfigs[2].serverAddress = "http://"+ ipAddress[i] +":"+serverPortThirdParty;
 		}
 		else if(readparams.modeFlag == "addon") {
 			for (var j = 0; j < basicConfig.publicKeys.length; j++) {
@@ -695,10 +709,14 @@ const services = {
 			tesseraName += "test-";
 			governanceUIName += "test-";
 		}
-		validatorName += readparams.nodeName + i;
-		constellationName += readparams.nodeName + i;
-		tesseraName += readparams.nodeName + i;
-		governanceUIName += readparams.nodeName + i;
+		// validatorName += readparams.nodeName + i;
+		// constellationName += readparams.nodeName + i;
+		// tesseraName += readparams.nodeName + i;
+		// governanceUIName += readparams.nodeName + i;
+		validatorName += ipAddress[i];
+		constellationName += ipAddress[i];
+		tesseraName += ipAddress[i];
+		governanceUIName += ipAddress[i];
 		
 		var gov = {
 			"hostname" 		: governanceUIName,
@@ -713,7 +731,8 @@ const services = {
 			"restart"	 : "always"
 		}
 		const startIp = serviceConfig["governance-app"].startIp.split(".");
-		const ip = startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+i);
+		// const ip = startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+i);
+		const ip = ipAddress[i];
 		const vip = serviceConfig.validator.startIp.split(".");
 		var string = "set -u\n set -e\n";
 		string+="mkdir -p /logs/governanceapplogs\n";
