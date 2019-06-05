@@ -14,13 +14,13 @@ if(readparams.modeFlag == "full") {
 	dockerCompose["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
 	switch (readparams.env) {
 		case "testnet":
-		/* dockerComposefull.services["ledgeriumdocs"] = dockerTemplate.services["ledgeriumdocs"]();
+		dockerComposefull.services["ledgeriumdocs"] = dockerTemplate.services["ledgeriumdocs"]();
 		dockerComposefull.services["ledgeriumfaucet"] = dockerTemplate.services['ledgeriumfaucet']();
 		dockerComposefull.services["redis"] = dockerTemplate.services['redis']();
 		dockerComposefull.services["docusaurus"] = dockerTemplate.services['docusaurus']();
 		dockerComposefull.services["blockexplorer"] = dockerTemplate.services['blockexplorer']();
 		dockerComposefull.services["mongodb"] = dockerTemplate.services['mongodb']();
-		dockerComposefull.services["web"] = dockerTemplate.services['web'](); */
+		dockerComposefull.services["web"] = dockerTemplate.services['web']();
 		break;
 		case "mainnet":
 			// dockerComposefull.services["blockexplorer"] = dockerTemplate.services['blockexplorer']();
