@@ -619,7 +619,7 @@ const services = {
 		var tesseraNineTemplate = serviceConfig["tessera-nine"].tesseraTemplate( i, port );
 		var tessera          = {
 			"hostname"   : tesseraName,
-			"image"		 : "ledgeriumengineering/tessera:0.9",
+			"image"		 : "ledgeriumengineering/tessera:v0.9",
 			"ports"	     : [(port+i)+":"+(port+i),(port+100+i)+":"+(port+100+i)],
 			"volumes"    : [],
 			"entrypoint" : ["/bin/sh","-c"],
