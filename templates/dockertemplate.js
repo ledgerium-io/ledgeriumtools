@@ -358,7 +358,7 @@ const services = {
 		];
 		for (var i = 0; i < basicConfig.publicKeys.length; i++) {
 			var prefix = "";
-			const startIp = serviceConfig.validator.startIp.split(".");
+			// const startIp = serviceConfig.validator.startIp.split(".");
 			// const ip   = startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+i);
 			const ip = ipAddress[i];
 			if(i != 0){
@@ -731,7 +731,7 @@ const services = {
 			"restart"	 : "always"
 		}
 		const startIp = serviceConfig["governance-app"].startIp.split(".");
-		// const ip = startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+i);
+		const networkIp = startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3]));
 		const ip = ipAddress[i];
 		const vip = serviceConfig.validator.startIp.split(".");
 		var string = "set -u\n set -e\n";
@@ -784,7 +784,7 @@ const services = {
 		}else{
 			gov.volumes.push("./"+tesseraName+":/priv")
 		}
-		gov.networks[network_name] = { "ipv4_address":ip };
+		gov.networks[network_name] = { "ipv4_address":networkIp };
 		gov.deploy = serviceConfig['governance-app'].deploy;
 		return gov;
 	},
