@@ -49,11 +49,14 @@ if(readparams.modeFlag == "full") {
 	for (var i = 0; i < numberOfNodes - readparams.faultynode; i++) {	
 		//Clear services for every yml file
 		dockerComposeSplit.services = {};
-		
+		dockerComposeSplit.volumes = {};
 		//Add ledgeriumstats to first yml file
-		if(i == 0)
-		dockerComposeSplit.services["ledgeriumstats"] = dockerTemplate.services['ledgeriumstats']();
-		dockerComposeSplit["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
+		if(i == 0) {
+
+			dockerComposeSplit.services["ledgeriumstats"] = dockerTemplate.services['ledgeriumstats']();
+			dockerComposeSplit["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
+			dockerComposeSplit.volumes["quorum-maker"] = null;
+		}
 
 		dockerCompose.services["validator-"+ipAddress[i]] = dockerTemplate.services.validator(i);
 		dockerComposeSplit.services["validator-"+ipAddress[i]] = dockerTemplate.services.validator(i);
