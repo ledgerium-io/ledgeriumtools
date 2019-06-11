@@ -2,29 +2,33 @@ const readlineSync = require('readline-sync');
 const fs 		   = require('fs');
 const readparams = require('./readparams');
 
-var num = readlineSync.question('Number of Nodes : ');
-if(readparams.faultynode > 0) {
-	console.log("Number of faulty nodes ", readparams.faultynode);
-}
 var mnemonics = [];
 var passwords = [];
 var ipAddress = [];
+var numberOfNodes;
+
 if(readparams.modeFlag == "full") {
+	var num = readlineSync.question('Number of Nodes : ');
 	if(num < 4 || num > 10) {
 		console.log("Number of nodes should not be less than 4 and more than 10 for full mode");
 		process.exit(1);
 	}
+	numberOfNodes = parseInt(num) + readparams.faultynode;
+	console.log("Total number of nodes ", numberOfNodes);
 }
 else if(readparams.modeFlag == "addon") {
 	if(num < 1 || num > 10) {
 		console.log("Number of nodes should be atleast 1 and not more than 10 for addon mode");
 		process.exit(1);
 	}
+	numberOfNodes = 1 + readparams.faultynode; //There can be only one addon node
+	ipAddress.push(readparams.externalIPAddress) //To name services in yml file
 }
 
-console.log("Total number of nodes ", parseInt(num) + readparams.faultynode);
+if(readparams.faultynode > 0) {
+	console.log("Number of faulty nodes ", readparams.faultynode);
+}
 
-var numberOfNodes = parseInt(num) + readparams.faultynode;
 for (var i = 0; i < numberOfNodes; i++) {
 	
 	if(readparams.modeFlag == "full") {
