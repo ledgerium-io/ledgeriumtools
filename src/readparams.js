@@ -9,6 +9,7 @@ var externalIPAddress = "127.0.0.1";
 var nodeName = "nodeName";
 var faultynode = 0;
 var domainName = "domainName";
+var networkId = "2019";
 readInitialParams();
 
 function readInitialParams(){
@@ -34,6 +35,9 @@ function readInitialParams(){
         if(initialData["faultynode"] != undefined)
 			faultynode = initialData["faultynode"];
 		
+		if(initialData["networkId"] != undefined)
+			networkId = initialData["networkId"];
+
 		if(initialData['domainName'] != undefined)
 			domainName = initialData['domainName'];
 			console.log("YML file with", modeFlag, "mode for", env, "setup");
@@ -48,3 +52,4 @@ exports.externalIPAddress = externalIPAddress;
 exports.nodeName = nodeName;
 exports.faultynode = faultynode;
 exports.domainName = domainName;
+exports.networkId = networkId;

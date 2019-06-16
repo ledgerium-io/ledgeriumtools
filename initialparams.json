@@ -3,5 +3,6 @@
 	"env" : "testnet",
 	"externalIPAddress": "localhost",
 	"nodeName": "msc",
-	"domainName": "localhost"
+	"domainName": "localhost",
+	"networkId" : "2019"
 }

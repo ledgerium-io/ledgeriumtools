@@ -1,12 +1,12 @@
 const basicConfig = require('../src/basicconfig');
 const readparams = require('../src/readparams');
 
-const gethCom   = "geth --rpc --rpcaddr '0.0.0.0' --rpccorsdomain '*' \
+const gethCom   = `geth --rpc --rpcaddr '0.0.0.0' --rpccorsdomain '*' \
 --datadir '/eth' --rpcapi 'db,eth,net,web3,istanbul,personal,admin,debug,txpool' \
 --ws --wsorigins '*' --wsapi 'db,eth,net,web3,personal,admin,debug,txpool' \
---wsaddr '0.0.0.0' --networkid 2018 --targetgaslimit 9007199254740000 \
+--wsaddr '0.0.0.0' --networkid ${readparams.networkId} --targetgaslimit 9007199254740000 \
 --debug --metrics --syncmode 'full' --mine --verbosity 6 \
---minerthreads 1";
+--minerthreads 1`;
 
 const tesseraFlag = true;
 const network_name = "test_net";
