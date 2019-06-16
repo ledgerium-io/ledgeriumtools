@@ -406,19 +406,19 @@ const services = {
 			constellationName += "test-";
 			tesseraName += "test-";
 		}
-		//if(readparams.modeFlag == "full") {
+		if(readparams.modeFlag == "full") {
 			// validatorName += readparams.nodeName + i;
 			// constellationName += readparams.nodeName + i;
 			// tesseraName += readparams.nodeName + i;
 			validatorName += ipAddress[i];
 			constellationName += ipAddress[i];
 			tesseraName += ipAddress[i];
-		// }
-		// else if(readparams.modeFlag == "addon") {
-		// 	validatorName += readparams.nodeName + i;
-		// 	constellationName += readparams.nodeName + i;
-		// 	tesseraName += readparams.nodeName + i;
-		// }
+		}
+		else if(readparams.modeFlag == "addon") {
+			validatorName += readparams.nodeName;
+			constellationName += readparams.nodeName;
+			tesseraName += readparams.nodeName;
+		}
 		var ipaddressText;
 		var startGeth;
 		if(readparams.modeFlag == "full")
@@ -611,10 +611,17 @@ const services = {
 			validatorName += "test-"; 
 			tesseraName += "test-";
 		}
-		// validatorName += readparams.nodeName + i;
-		// tesseraName += readparams.nodeName + i;
-		validatorName += ipAddress[i];
-		tesseraName += ipAddress[i];
+
+		if(readparams.modeFlag == "full") {
+			// validatorName += readparams.nodeName + i;
+			// tesseraName += readparams.nodeName + i;
+			validatorName += ipAddress[i];
+			tesseraName += ipAddress[i];
+		}
+		else if(readparams.modeFlag == "addon") {
+			validatorName += readparams.nodeName;
+			tesseraName += readparams.nodeName;
+		}
 
 		var startTess = "java -Xms1024M -Xmx1024M -jar /tessera/tessera-app.jar -configfile /priv/tessera-config.json";
 		startTess+=" >/logs/tesseralogs/"+ tesseraName + "_log_$${DATE}.txt";
@@ -709,15 +716,20 @@ const services = {
 			tesseraName += "test-";
 			governanceUIName += "test-";
 		}
-		// validatorName += readparams.nodeName + i;
-		// constellationName += readparams.nodeName + i;
-		// tesseraName += readparams.nodeName + i;
-		// governanceUIName += readparams.nodeName + i;
-		validatorName += ipAddress[i];
-		constellationName += ipAddress[i];
-		tesseraName += ipAddress[i];
-		governanceUIName += ipAddress[i];
-		
+
+		if(readparams.modeFlag == "full") {
+			validatorName += ipAddress[i];
+			constellationName += ipAddress[i];
+			tesseraName += ipAddress[i];
+			governanceUIName += ipAddress[i];
+		}
+		else if(readparams.modeFlag == "addon") {
+			validatorName += readparams.nodeName;
+			constellationName += readparams.nodeName;
+			tesseraName += readparams.nodeName;
+			governanceUIName += readparams.nodeName;
+		}
+
 		var gov = {
 			"hostname" 		: governanceUIName,
 			"image"    		: "ledgeriumengineering/governance_app_ui_img:v1.0",

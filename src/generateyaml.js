@@ -127,14 +127,14 @@ if(readparams.modeFlag == "full") {
 }
 else if(readparams.modeFlag == "addon") {
 	for (var i = 0; i < numberOfNodes - readparams.faultynode ; i++) {
-		dockerCompose.services["validator-" + ipAddress[i]] = dockerTemplate.services.validator(i);
+		dockerCompose.services["validator-" + readparams.nodeName] = dockerTemplate.services.validator(i);
 		if(!type){
-			dockerCompose.services["constellation-" + ipAddress[i]] = dockerTemplate.services.constellation(i);
+			dockerCompose.services["constellation-" + readparams.nodeName] = dockerTemplate.services.constellation(i);
 		}else{
-			dockerCompose.services["tessera-" + ipAddress[i]] = dockerTemplate.services.tessera(i);		
+			dockerCompose.services["tessera-" + readparams.nodeName] = dockerTemplate.services.tessera(i);		
 		}
-		dockerCompose.services["governance-ui-" + ipAddress[i]] = dockerTemplate.services.governanceapp(i);
-		let volumes = dockerCompose.services["validator-" + ipAddress[i]].volumes;
+		dockerCompose.services["governance-ui-" + readparams.nodeName] = dockerTemplate.services.governanceapp(i);
+		let volumes = dockerCompose.services["validator-" + readparams.nodeName].volumes;
 		for (var j = volumes.length - 1; j >= 0; j--) {
 			if(volumes[j].slice(0,1) != ".")
 				dockerCompose.volumes[volumes[j].split(":")[0]] = null;
