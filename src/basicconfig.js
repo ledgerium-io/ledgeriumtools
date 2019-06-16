@@ -126,7 +126,7 @@ if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir);
 }
 
-//Create env file for both full/addon mode
+//Create env file for both full/master mode
 fs.writeFileSync(envFile, envParams); //Write private keys and passwords to .env file
 
 if(readparams.modeFlag == "full") {

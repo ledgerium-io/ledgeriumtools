@@ -414,7 +414,7 @@ const services = {
 			constellationName += ipAddress[i];
 			tesseraName += ipAddress[i];
 		}
-		else if(readparams.modeFlag == "addon") {
+		else if(readparams.modeFlag == "master") {
 			validatorName += readparams.nodeName;
 			constellationName += readparams.nodeName;
 			tesseraName += readparams.nodeName;
@@ -424,7 +424,7 @@ const services = {
 		if(readparams.modeFlag == "full")
 			// ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+serviceConfig["ledgeriumstats"].ip;
 			ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+ipAddress[0];
-		else if(readparams.modeFlag == "addon")
+		else if(readparams.modeFlag == "master")
 			ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+readparams.externalIPAddress;
 		startGeth = gethCom + " --rpcvhosts=" + readparams.domainName + " --nodekeyhex \""+"${PRIVATEKEY"+[i]+"}"+"\" "
 		+"--etherbase \""+basicConfig.publicKeys[i]+"\" --port \""+serviceConfig.validator.gossipPort+"\""
@@ -466,7 +466,7 @@ const services = {
 				cpPubKeys = "cp /priv/tm.pub /tmp/tm"+i+".pub";
 			}
 		}
-		else if(readparams.modeFlag == "addon"){
+		else if(readparams.modeFlag == "master"){
 			if ( !tesseraFlag ){
 				validator.volumes 	    = ["./" + validatorName +":/eth", constellationName +":/constellation:z","./tmp:/tmp"];
 				validator["depends_on"] = [constellationName];
@@ -540,7 +540,7 @@ const services = {
 			validatorName += ipAddress[i];
 			constellationName += ipAddress[i];
 		// }
-		// else if(readparams.modeFlag == "addon") {
+		// else if(readparams.modeFlag == "master") {
 		// 	validatorName += readparams.nodeName + i;
 		// 	constellationName += readparams.nodeName + i;
 		// }
@@ -563,7 +563,7 @@ const services = {
 				}
 			}
 		}
-		else if(readparams.modeFlag == "addon") {
+		else if(readparams.modeFlag == "master") {
 			for (var j = 0; j < limit; j++) {
 				othernodes+="http://"+readparams.externalIPAddress+":"+(serviceConfig.constellation.port+j)+"/";
 				if(j != limit-1) {
@@ -618,7 +618,7 @@ const services = {
 			validatorName += ipAddress[i];
 			tesseraName += ipAddress[i];
 		}
-		else if(readparams.modeFlag == "addon") {
+		else if(readparams.modeFlag == "master") {
 			validatorName += readparams.nodeName;
 			tesseraName += readparams.nodeName;
 		}
@@ -663,7 +663,7 @@ const services = {
 			tesseraNineTemplate.serverConfigs[0].serverAddress = "http://"+ ipAddress[i] +":"+serverPortP2p;
 			tesseraNineTemplate.serverConfigs[2].serverAddress = "http://"+ ipAddress[i] +":"+serverPortThirdParty;
 		}
-		else if(readparams.modeFlag == "addon") {
+		else if(readparams.modeFlag == "master") {
 			for (var j = 0; j < basicConfig.publicKeys.length; j++) {
 				peers.push({ "url" : "http://"+readparams.externalIPAddress+":"+(port+j)+"/"})
 			}
@@ -723,7 +723,7 @@ const services = {
 			tesseraName += ipAddress[i];
 			governanceUIName += ipAddress[i];
 		}
-		else if(readparams.modeFlag == "addon") {
+		else if(readparams.modeFlag == "master") {
 			validatorName += readparams.nodeName;
 			constellationName += readparams.nodeName;
 			tesseraName += readparams.nodeName;

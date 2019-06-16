@@ -1,5 +1,5 @@
 {
-	"mode": "full",
+	"mode": "master",
 	"env" : "testnet",
 	"externalIPAddress": "localhost",
 	"nodeName": "msc",

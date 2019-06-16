@@ -16,12 +16,12 @@ if(readparams.modeFlag == "full") {
 	numberOfNodes = parseInt(num) + readparams.faultynode;
 	console.log("Total number of nodes ", numberOfNodes);
 }
-else if(readparams.modeFlag == "addon") {
+else if(readparams.modeFlag == "master") {
 	if(num < 1 || num > 10) {
-		console.log("Number of nodes should be atleast 1 and not more than 10 for addon mode");
+		console.log("Number of nodes should be atleast 1 and not more than 10 for master mode");
 		process.exit(1);
 	}
-	numberOfNodes = 1 + readparams.faultynode; //There can be only one addon node
+	numberOfNodes = 1 + readparams.faultynode; //There can be only one master node
 	ipAddress.push(readparams.externalIPAddress) //To name services in yml file
 }
 
