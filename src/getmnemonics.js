@@ -16,12 +16,12 @@ if(readparams.modeFlag == "full") {
 	numberOfNodes = parseInt(num) + readparams.faultynode;
 	console.log("Total number of nodes ", numberOfNodes);
 }
-else if(readparams.modeFlag == "master") {
+else if(readparams.modeFlag == "masternode") {
 	if(num < 1 || num > 10) {
-		console.log("Number of nodes should be atleast 1 and not more than 10 for master mode");
+		console.log("Number of nodes should be 1 for masternode");
 		process.exit(1);
 	}
-	numberOfNodes = 1 + readparams.faultynode; //There can be only one master node
+	numberOfNodes = 1 + readparams.faultynode; //There can be only one masternode
 	ipAddress.push(readparams.externalIPAddress) //To name services in yml file
 }
 

@@ -125,7 +125,7 @@ if(readparams.modeFlag == "full") {
 		}
 	});
 }
-else if(readparams.modeFlag == "master") {
+else if(readparams.modeFlag == "masternode") {
 	for (var i = 0; i < numberOfNodes - readparams.faultynode ; i++) {
 		dockerCompose.services["validator-" + readparams.nodeName] = dockerTemplate.services.validator(i);
 		if(!type){
