@@ -658,10 +658,15 @@ const services = {
 			}
 			const serverPortP2p 		= tesseraNineTemplate.serverConfigs[0].serverAddress;
 			const serverPortThirdParty  = tesseraNineTemplate.serverConfigs[2].serverAddress;
+<<<<<<< HEAD
 			// tesseraNineTemplate.serverConfigs[0].serverAddress = "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]))+":"+serverPortP2p;
 			// tesseraNineTemplate.serverConfigs[2].serverAddress = "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]))+":"+serverPortThirdParty;
 			tesseraNineTemplate.serverConfigs[0].serverAddress = "http://"+ ipAddress[i] +":"+serverPortP2p;
 			tesseraNineTemplate.serverConfigs[2].serverAddress = "http://"+ ipAddress[i] +":"+serverPortThirdParty;
+=======
+			tesseraNineTemplate.serverConfigs[0].serverAddress = "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]))+":"+serverPortP2p;
+			tesseraNineTemplate.serverConfigs[2].serverAddress = "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]))+":"+serverPortThirdParty;
+>>>>>>> tessera-0.9
 		}
 		else if(readparams.modeFlag == "masternode") {
 			for (var j = 0; j < basicConfig.publicKeys.length; j++) {
