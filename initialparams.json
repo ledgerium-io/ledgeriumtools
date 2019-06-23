@@ -1,7 +1,8 @@
 {
-	"mode": "full",
-	"env" : "testnet",
-	"externalIPAddress": "localhost",
-	"nodeName": "msc",
-	"domainName": "localhost"
+    "mode": "masternode",
+    "env": "testnet",
+    "externalIPAddress": "125.254.27.14",
+    "nodeName": "msc",
+    "domainName": "msc",
+    "networkId": 2018
 }

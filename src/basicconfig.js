@@ -37,16 +37,15 @@ for (var i = 0; i < privateKeys.length; i++) {
 	static_nodes += (
 		"\"enode://"+temp+
 		"@"+
-		baseIp+
-		(startIp+i)+
+		ipAddress[i]+
 		":"+
-		dockerTemplate.serviceConfig.validator.gossipPort+
+		(dockerTemplate.serviceConfig.validator.gossipPort+i) +
 		"?discport=0\""
 	);
 	staticNodesExternal += (
 		"\"enode://"+temp+
 		"@"+
-		readparams.externalIPAddress+
+		ipAddress[i]+
 		":"+
 		(dockerTemplate.serviceConfig.validator.gossipPort+i)+
 		"?discport=0\""
@@ -127,7 +126,7 @@ if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir);
 }
 
-//Create env file for both full/addon mode
+//Create env file for both full/masternode mode
 fs.writeFileSync(envFile, envParams); //Write private keys and passwords to .env file
 
 if(readparams.modeFlag == "full") {

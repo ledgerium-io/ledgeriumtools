@@ -7,10 +7,10 @@ Generates a docker-compose yaml for deploying N nodes with IBFT consensus
 
 ### Update initialparams.json
 Edit this file before running the application
-1. mode: Change mode type (full/addon)
+1. mode: Change mode type (full/masternode)
     
     * If mode type is full, this application will create a ledgeriumnetwork folder outside ledgeriumtools which has static-nodes and externalised genesis files.
-    * If mode type is addon, get latest ledgeriumnetwork files from github and paste those files under ledgeriumtools/output/tmp 
+    * If mode type is masternode, get latest ledgeriumnetwork files from github and paste those files under ledgeriumtools/output/tmp 
      
 2. externalIPAddress : To host a node for a network that can be connected to by anyone outside your LAN
 3. nodeName : Hostname of the machine where nodes will be hosted.
