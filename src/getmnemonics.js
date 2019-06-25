@@ -4,7 +4,6 @@ const readparams = require('./readparams');
 
 var mnemonics = [];
 var passwords = [];
-var ipAddress = [];
 var numberOfNodes;
 
 if(readparams.modeFlag == "full") {
@@ -22,7 +21,6 @@ else if(readparams.modeFlag == "masternode") {
 		process.exit(1);
 	}
 	numberOfNodes = 1 + readparams.faultynode; //There can be only one masternode
-	ipAddress.push(readparams.externalIPAddress) //To name services in yml file
 }
 
 if(readparams.faultynode > 0) {
@@ -30,17 +28,6 @@ if(readparams.faultynode > 0) {
 }
 
 for (var i = 0; i < numberOfNodes; i++) {
-	
-	if(readparams.modeFlag == "full") {
-		var ip = readlineSync.question('Enter IP Address '+i+" : ", {
-			hideEchoBack: false
-		});
-
-		if(!validateIPaddress(ip)) {
-			console.log("Invalid IP address");
-			process.exit(1);
-		}
-	}
 
 	var menmonic = readlineSync.question('Enter Mnemonic '+i+" : ", {
 		hideEchoBack: true
@@ -54,7 +41,6 @@ for (var i = 0; i < numberOfNodes; i++) {
 		continue;
 	}
 
-	ipAddress.push(ip);
 	mnemonics.push(menmonic);
 	passwords.push(password);
 }
@@ -64,13 +50,6 @@ for (var i = 0; i < mnemonics.length; i++) {
 			throw "two mnemonics cannot be the same";
 	}
 }
-
-function validateIPaddress(ip) {  
-	if (/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ip)) {
-	  return true;  
-	}  
-	return false;
-}  
   
 var template = {
 	"mode": 0,
@@ -86,4 +65,3 @@ template.mnemonic = mnemonics;
 exports.template  = template;
 exports.passwords = passwords;
 global.numberOfNodes = numberOfNodes;
-global.ipAddress = ipAddress;

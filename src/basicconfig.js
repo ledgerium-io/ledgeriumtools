@@ -37,7 +37,8 @@ for (var i = 0; i < privateKeys.length; i++) {
 	static_nodes += (
 		"\"enode://"+temp+
 		"@"+
-		ipAddress[i]+
+		baseIp+
+		(startIp+i)+
 		":"+
 		(dockerTemplate.serviceConfig.validator.gossipPort+i) +
 		"?discport=0\""
@@ -45,7 +46,8 @@ for (var i = 0; i < privateKeys.length; i++) {
 	staticNodesExternal += (
 		"\"enode://"+temp+
 		"@"+
-		ipAddress[i]+
+		baseIp+
+		(startIp+i)+
 		":"+
 		(dockerTemplate.serviceConfig.validator.gossipPort+i)+
 		"?discport=0\""
@@ -79,7 +81,6 @@ for (var i = 0; i < privateKeys.length; i++) {
 		nodename:validatorName,
 		hostname: validatorName,
 		role: readparams.modeFlag + " node",
-		ipaddress:readparams.externalIPAddress,
 		port:(rpcPort + i),
 		publickey: "0x" + pubk,
 		enodeUrl: temp

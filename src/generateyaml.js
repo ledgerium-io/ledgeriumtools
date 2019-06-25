@@ -58,26 +58,26 @@ if(readparams.modeFlag == "full") {
 			dockerComposeSplit.volumes["quorum-maker"] = null;
 		}
 
-		dockerCompose.services["validator-"+ipAddress[i]] = dockerTemplate.services.validator(i);
-		dockerComposeSplit.services["validator-"+ipAddress[i]] = dockerTemplate.services.validator(i);
+		dockerCompose.services["validator-"+readparams.nodeName + i] = dockerTemplate.services.validator(i);
+		dockerComposeSplit.services["validator-"+readparams.nodeName + i] = dockerTemplate.services.validator(i);
 		if(!type) {
-			dockerCompose.services["constellation-"+ipAddress[i]] = dockerTemplate.services.constellation(i);
-			dockerComposeSplit.services["constellation-"+ipAddress[i]] = dockerTemplate.services.constellation(i);
+			dockerCompose.services["constellation-"+readparams.nodeName + i] = dockerTemplate.services.constellation(i);
+			dockerComposeSplit.services["constellation-"+readparams.nodeName + i] = dockerTemplate.services.constellation(i);
 		} else {
-			dockerCompose.services["tessera-"+ipAddress[i]] = dockerTemplate.services.tessera(i);		
-			dockerComposeSplit.services["tessera-"+ipAddress[i]] = dockerTemplate.services.tessera(i);		
+			dockerCompose.services["tessera-"+readparams.nodeName + i] = dockerTemplate.services.tessera(i);		
+			dockerComposeSplit.services["tessera-"+readparams.nodeName + i] = dockerTemplate.services.tessera(i);		
 		}
-		dockerCompose.services["governance-ui-"+ipAddress[i]] = dockerTemplate.services.governanceapp(i);
-		dockerComposeSplit.services["governance-ui-"+ipAddress[i]] = dockerTemplate.services.governanceapp(i);
+		dockerCompose.services["governance-ui-"+readparams.nodeName + i] = dockerTemplate.services.governanceapp(i);
+		dockerComposeSplit.services["governance-ui-"+readparams.nodeName + i] = dockerTemplate.services.governanceapp(i);
 
-		let volumes = dockerCompose.services["validator-"+ipAddress[i]].volumes;
+		let volumes = dockerCompose.services["validator-"+readparams.nodeName + i].volumes;
 		for (var j = volumes.length - 1; j >= 0; j--) {
 			if(volumes[j].slice(0,1) != ".")
 				dockerCompose.volumes[volumes[j].split(":")[0]] = null;
 				// dockerComposeSplit.volumes[volumes[j].split(":")[0]] = null;
 		}
 		
-		let YMLFileSplit = "./output/fullnode/docker-compose_" + i + "_" + ipAddress[i] +".yml";
+		let YMLFileSplit = "./output/fullnode/docker-compose_" + i + "_" + readparams.nodeName +".yml";
 		//Final output to the fullnode yml
 		fs.writeFileSync(YMLFileSplit, yaml.dump(dockerComposeSplit, {
 			styles: {
@@ -87,14 +87,14 @@ if(readparams.modeFlag == "full") {
 	}
 	if( readparams.faultynode > 0 ) {
 		for (var i = numberOfNodes - readparams.faultynode; i < numberOfNodes; i++) {
-			dockerCompose.services["validator-test-"+ipAddress[i]] = dockerTemplate.services.validator(i,true);
+			dockerCompose.services["validator-test-"+readparams.nodeName + i] = dockerTemplate.services.validator(i,true);
 			if(!type) {
-				dockerCompose.services["constellation-test-"+ipAddress[i]] = dockerTemplate.services.constellation(i,true);
+				dockerCompose.services["constellation-test-"+readparams.nodeName + i] = dockerTemplate.services.constellation(i,true);
 			} else {
-				dockerCompose.services["tessera-test-"+ipAddress[i]] = dockerTemplate.services.tessera(i,true);		
+				dockerCompose.services["tessera-test-"+readparams.nodeName + i] = dockerTemplate.services.tessera(i,true);		
 			}
-			dockerCompose.services["governance-ui-test-"+ipAddress[i]] = dockerTemplate.services.governanceapp(i,true);
-			let volumes = dockerCompose.services["validator-test-"+ipAddress[i]].volumes;
+			dockerCompose.services["governance-ui-test-"+readparams.nodeName + i] = dockerTemplate.services.governanceapp(i,true);
+			let volumes = dockerCompose.services["validator-test-"+readparams.nodeName + i].volumes;
 			for (var j = volumes.length - 1; j >= 0; j--) {
 				if(volumes[j].slice(0,1) != ".")
 					dockerCompose.volumes[volumes[j].split(":")[0]] = null;
@@ -142,14 +142,14 @@ else if(readparams.modeFlag == "masternode") {
 	}
 	if( readparams.faultynode > 0 ) {
 		for (var i = numberOfNodes - readparams.faultynode; i < numberOfNodes; i++) {
-			dockerCompose.services["validator-test-"+ ipAddress[i]] = dockerTemplate.services.validator(i,true);
+			dockerCompose.services["validator-test-"+ readparams.nodeName + i] = dockerTemplate.services.validator(i,true);
 			if(!type) {
-				dockerCompose.services["constellation-test-"+ ipAddress[i]] = dockerTemplate.services.constellation(i,true);
+				dockerCompose.services["constellation-test-"+ readparams.nodeName + i] = dockerTemplate.services.constellation(i,true);
 			} else {
-				dockerCompose.services["tessera-test-"+ ipAddress[i]] = dockerTemplate.services.tessera(i,true);		
+				dockerCompose.services["tessera-test-"+ readparams.nodeName + i] = dockerTemplate.services.tessera(i,true);		
 			}
-			dockerCompose.services["governance-ui-test-"+ ipAddress[i]] = dockerTemplate.services.governanceapp(i,true);
-			let volumes = dockerCompose.services["validator-test-"+ ipAddress[i]].volumes;
+			dockerCompose.services["governance-ui-test-"+ readparams.nodeName + i] = dockerTemplate.services.governanceapp(i,true);
+			let volumes = dockerCompose.services["validator-test-"+ readparams.nodeName + i].volumes;
 			for (var j = volumes.length - 1; j >= 0; j--) {
 				if(volumes[j].slice(0,1) != ".")
 					dockerCompose.volumes[volumes[j].split(":")[0]] = null;
