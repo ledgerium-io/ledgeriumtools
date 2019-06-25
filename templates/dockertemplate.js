@@ -217,7 +217,8 @@ const serviceConfig = {
 				"serverConfigs" : [
 					{
 					    "app":"P2P",
-					    "enabled": true,
+						"enabled": true,
+						"ledgerId" : readparams.networkId.toString(),
 					    "serverAddress"  : (port+i),
 					    "bindingAddress" : "http://0.0.0.0:"+(port+i),
 					    "sslConfig": {
@@ -428,7 +429,7 @@ const services = {
 		const startIp = serviceConfig.validator.startIp.split(".");
 		var validator = {
 			"hostname"   : validatorName, 
-			"image"		 :	"ledgeriumengineering/ledgeriumcore:v1.1",
+			"image"		 :	"ledgeriumengineering/ledgeriumcore:blockrewards",
 			"ports"	     : [
 				(serviceConfig.validator.gossipPort+i)+":"+serviceConfig.validator.gossipPort,
 				(serviceConfig.validator.rpcPort+i)+":"+serviceConfig.validator.rpcPort,
@@ -629,7 +630,7 @@ const services = {
 		var tesseraNineTemplate = serviceConfig["tessera-nine"].tesseraTemplate( i, port );
 		var tessera          = {
 			"hostname"   : tesseraName,
-			"image"		 : "quorumengineering/tessera:0.9",
+			"image"		 : "ledgeriumengineering/tessera:v1.1",
 			"ports"	     : [(port+i)+":"+(port+i),(port+100+i)+":"+(port+100+i)],
 			"volumes"    : [],
 			"entrypoint" : ["/bin/sh","-c"],
@@ -648,7 +649,7 @@ const services = {
 			}
 			const serverPortP2p 		= tesseraNineTemplate.serverConfigs[0].serverAddress;
 			const serverPortThirdParty  = tesseraNineTemplate.serverConfigs[2].serverAddress;
-			tesseraNineTemplate.serverConfigs[0].serverAddress = "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]))+":"+serverPortP2p;
+			tesseraNineTemplate.serverConfigs[0].serverAddress = "http://"+readparams.externalIPAddress+":"+serverPortP2p;
 			tesseraNineTemplate.serverConfigs[2].serverAddress = "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]))+":"+serverPortThirdParty;
 		}
 		else if(readparams.modeFlag == "masternode") {
