@@ -632,14 +632,20 @@ const services = {
 			tesseraName += "test-";
 		}
 
-		// if(readparams.modeFlag == "full") {
-			validatorName += readparams.nodeName + i;
-			tesseraName += readparams.nodeName + i;
-		// }
-		// else if(readparams.modeFlag == "masternode") {
-		// 	validatorName += readparams.nodeName;
-		// 	tesseraName += readparams.nodeName;
-		// }
+		if(readparams.distributed) {
+			validatorName += ipAddress[i];
+			tesseraName += ipAddress[i];
+		} else {
+			// if(readparams.modeFlag == "full") {
+				validatorName += readparams.nodeName + i;
+				tesseraName += readparams.nodeName + i;
+			// }
+			// else if(readparams.modeFlag == "masternode") {
+			// 	validatorName += readparams.nodeName;
+			// 	tesseraName += readparams.nodeName;
+			// }
+		}
+
 
 		var startTess = "java -Xms1024M -Xmx1024M -jar /tessera/tessera-app.jar -configfile /priv/tessera-config.json";
 		startTess+=" >/logs/tesseralogs/"+ tesseraName + "_log_$${DATE}.txt";
@@ -732,10 +738,17 @@ const services = {
 			governanceUIName += "test-";
 		}
 
-		validatorName += readparams.nodeName + i;
-		constellationName += readparams.nodeName + i;
-		tesseraName += readparams.nodeName + i;
-		governanceUIName += readparams.nodeName + i;
+		if(readparams.distributed) {
+			validatorName += ipAddress[i];
+			constellationName += ipAddress[i];
+			tesseraName += ipAddress[i];
+			governanceUIName += ipAddress[i];
+		} else {
+			validatorName += readparams.nodeName + i;
+			constellationName += readparams.nodeName + i;
+			tesseraName += readparams.nodeName + i;
+			governanceUIName += readparams.nodeName + i;
+		}
 
 		var gov = {
 			"hostname" 		: governanceUIName,
