@@ -40,7 +40,7 @@ for (var i = 0; i < privateKeys.length; i++) {
 		baseIp+
 		(startIp+i)+
 		":"+
-		(dockerTemplate.serviceConfig.validator.gossipPort+i) +
+		(dockerTemplate.serviceConfig.validator.gossipPort) +
 		"?discport=0\""
 	);
 	staticNodesExternal += (
@@ -49,7 +49,7 @@ for (var i = 0; i < privateKeys.length; i++) {
 		baseIp+
 		(startIp+i)+
 		":"+
-		(dockerTemplate.serviceConfig.validator.gossipPort+i)+
+		(dockerTemplate.serviceConfig.validator.gossipPort)+
 		"?discport=0\""
 	);
 	let pubk = ethUtil.privateToAddress(privateKeys[i]).toString('hex');
