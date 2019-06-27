@@ -1,7 +1,8 @@
 {
     "mode": "full",
+    "distributed":true,
     "env": "testnet",
-    "externalIPAddress": "125.254.27.14",
+    "externalIPAddress": "138.197.193.201",
     "nodeName": "msc",
     "domainName": "msc",
     "networkId": 2018

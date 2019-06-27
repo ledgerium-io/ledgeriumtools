@@ -34,24 +34,45 @@ baseIp = baseIp[0]+"."+baseIp[1]+"."+baseIp[2]+".";
 for (var i = 0; i < privateKeys.length; i++) {
 	var temp = ethUtil.privateToPublic(privateKeys[i]).toString('hex');
 	enodes.push(temp);
-	static_nodes += (
-		"\"enode://"+temp+
-		"@"+
-		baseIp+
-		(startIp+i)+
-		":"+
-		(dockerTemplate.serviceConfig.validator.gossipPort) +
-		"?discport=0\""
-	);
-	staticNodesExternal += (
-		"\"enode://"+temp+
-		"@"+
-		baseIp+
-		(startIp+i)+
-		":"+
-		(dockerTemplate.serviceConfig.validator.gossipPort)+
-		"?discport=0\""
-	);
+
+	if(readparams.distributed) {
+		static_nodes += (
+			"\"enode://"+temp+
+			"@"+
+			ipAddress[i]+
+			":"+
+			(dockerTemplate.serviceConfig.validator.gossipPort+i) +
+			"?discport=0\""
+		);
+		staticNodesExternal += (
+			"\"enode://"+temp+
+			"@"+
+			ipAddress[i]+
+			":"+
+			(dockerTemplate.serviceConfig.validator.gossipPort+i)+
+			"?discport=0\""
+		);
+	} else {
+		static_nodes += (
+			"\"enode://"+temp+
+			"@"+
+			baseIp+
+			(startIp+i)+
+			":"+
+			(dockerTemplate.serviceConfig.validator.gossipPort) +
+			"?discport=0\""
+		);
+		staticNodesExternal += (
+			"\"enode://"+temp+
+			"@"+
+			baseIp+
+			(startIp+i)+
+			":"+
+			(dockerTemplate.serviceConfig.validator.gossipPort)+
+			"?discport=0\""
+		);
+	}
+
 	let pubk = ethUtil.privateToAddress(privateKeys[i]).toString('hex');
 	privateKeyJSON["0x" + pubk] = privateKeys[i].split("0x")[1];
 	
