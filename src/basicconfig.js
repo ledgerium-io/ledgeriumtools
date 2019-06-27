@@ -102,6 +102,7 @@ for (var i = 0; i < privateKeys.length; i++) {
 		nodename:validatorName,
 		hostname: validatorName,
 		role: readparams.modeFlag + " node",
+		ipaddress:readparams.externalIPAddress,
 		port:(rpcPort + i),
 		publickey: "0x" + pubk,
 		enodeUrl: temp
