@@ -425,16 +425,16 @@ const services = {
 			constellationName += ipAddress[i];
 			tesseraName += ipAddress[i];
 		} else {
-			// if(readparams.modeFlag == "full") {
+			if(readparams.modeFlag == "full") {
 				validatorName += readparams.nodeName + i;
 				constellationName += readparams.nodeName + i;
 				tesseraName += readparams.nodeName + i;
-			// }
-			// else if(readparams.modeFlag == "masternode") {
-			// 	validatorName += readparams.nodeName;
-			// 	constellationName += readparams.nodeName;
-			// 	tesseraName += readparams.nodeName;
-			// }
+			}
+			else if(readparams.modeFlag == "masternode") {
+				validatorName += readparams.nodeName;
+				constellationName += readparams.nodeName;
+				tesseraName += readparams.nodeName;
+			}
 		}
 		
 		var ipaddressText;
@@ -636,14 +636,14 @@ const services = {
 			validatorName += ipAddress[i];
 			tesseraName += ipAddress[i];
 		} else {
-			// if(readparams.modeFlag == "full") {
+			if(readparams.modeFlag == "full") {
 				validatorName += readparams.nodeName + i;
 				tesseraName += readparams.nodeName + i;
-			// }
-			// else if(readparams.modeFlag == "masternode") {
-			// 	validatorName += readparams.nodeName;
-			// 	tesseraName += readparams.nodeName;
-			// }
+			}
+			else if(readparams.modeFlag == "masternode") {
+				validatorName += readparams.nodeName;
+				tesseraName += readparams.nodeName;
+			}
 		}
 
 
@@ -744,10 +744,19 @@ const services = {
 			tesseraName += ipAddress[i];
 			governanceUIName += ipAddress[i];
 		} else {
-			validatorName += readparams.nodeName + i;
-			constellationName += readparams.nodeName + i;
-			tesseraName += readparams.nodeName + i;
-			governanceUIName += readparams.nodeName + i;
+
+			if(readparams.modeFlag == "full"){
+				validatorName += readparams.nodeName + i;
+				constellationName += readparams.nodeName + i;
+				tesseraName += readparams.nodeName + i;
+				governanceUIName += readparams.nodeName + i;
+			}else {
+				validatorName += readparams.nodeName;
+				constellationName += readparams.nodeName;
+				tesseraName += readparams.nodeName;
+				governanceUIName += readparams.nodeName;
+			}
+
 		}
 
 		var gov = {
