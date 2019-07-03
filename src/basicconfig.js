@@ -112,6 +112,7 @@ nodeJSON["nodes"] = nodeDetails;
 
 temp = [];
 var data = [];
+genesisTemplate['config'].chainId = readparams.networkId;
 genesisTemplate['coinbase'] = "0x0000000000000000000000000000000000000000";
 for (var i = 0; i < publicKeys.length; i++) {
 	genesisTemplate['alloc'][publicKeys[i]] = { "balance" : amount };
