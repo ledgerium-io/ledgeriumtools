@@ -4,6 +4,7 @@ const readparams = require('./readparams');
 
 var mnemonics = [];
 var passwords = [];
+var ipAddress = [];
 var numberOfNodes;
 
 if(readparams.modeFlag == "full") {
@@ -16,11 +17,12 @@ if(readparams.modeFlag == "full") {
 	console.log("Total number of nodes ", numberOfNodes);
 }
 else if(readparams.modeFlag == "masternode") {
-	if(num < 1 || num > 10) {
-		console.log("Number of nodes should be 1 for masternode");
-		process.exit(1);
-	}
-	numberOfNodes = 1 + readparams.faultynode; //There can be only one masternode
+	console.log("There will only be one masternode per setup.");
+	// if(num < 1 || num > 10) {
+	// 	console.log("Number of nodes should be 1 for masternode");
+	// 	process.exit(1);
+	// }
+	numberOfNodes = 1;// + readparams.faultynode; //There can be only one masternode
 }
 
 if(readparams.faultynode > 0) {
@@ -28,6 +30,18 @@ if(readparams.faultynode > 0) {
 }
 
 for (var i = 0; i < numberOfNodes; i++) {
+
+	/** IP Addresses for distributed setup */
+	if(readparams.distributed) {
+		var ip = readlineSync.question('Enter IP Address '+i+" : ", {
+			hideEchoBack: false
+		});
+
+		if(!validateIPaddress(ip)) {
+			console.log("Invalid IP address");
+			process.exit(1);
+		}
+	}
 
 	var menmonic = readlineSync.question('Enter Mnemonic '+i+" : ", {
 		hideEchoBack: true
@@ -41,6 +55,7 @@ for (var i = 0; i < numberOfNodes; i++) {
 		continue;
 	}
 
+	ipAddress.push(ip);
 	mnemonics.push(menmonic);
 	passwords.push(password);
 }
@@ -49,6 +64,13 @@ for (var i = 0; i < mnemonics.length; i++) {
 		if(mnemonics[i] == mnemonics[j])
 			throw "two mnemonics cannot be the same";
 	}
+}
+
+function validateIPaddress(ip) {  
+	if (/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ip)) {
+	  return true;  
+	}  
+	return false;
 }
   
 var template = {
@@ -64,4 +86,5 @@ var template = {
 template.mnemonic = mnemonics;
 exports.template  = template;
 exports.passwords = passwords;
+global.ipAddress = ipAddress;
 global.numberOfNodes = numberOfNodes;

@@ -322,25 +322,37 @@ const services = {
 			"image"   : "ledgeriumengineering/quorum-maker:v0.1",
 			"ports"	  : [serviceConfig["quorum-maker"].port+":"+serviceConfig["quorum-maker"].port],
 			"volumes" : ["./logs:/logs","./tmp:/tmp","quorum-maker:/quorum-maker"],
-			"depends_on": ["validator-" + readparams.nodeName + '0'],
+			"depends_on": (readparams.distributed)? ["validator-" + ipAddress[0]] : ["validator-" + readparams.nodeName + '0'],
 			"entrypoint":[ "/bin/sh", "-c"],
 			"networks": {
 			},
 			"restart": "always"
 		};
-		// quorum.volumes.push("./validator-" + readparams.nodeName + "0" + ":/eth");
-		quorum.volumes.push("./validator-" + readparams.nodeName + "0" + ":/eth");
+		
 		quorum.deploy = serviceConfig['quorum-maker'].deploy;
 		quorum.networks[network_name] = { "ipv4_address": serviceConfig["quorum-maker"].ip }
-		var publicKeyPath = (i) => { return "/tmp/tm"+i+".pub"; };
-		if(tesseraFlag) {
-			// quorum.volumes.push("./tessera-" + readparams.nodeName + "0" + ":/priv");
-			quorum.volumes.push("./tessera-" + readparams.nodeName + "0" + ":/priv");
+
+		if(readparams.distributed) {
+			quorum.volumes.push("./validator-" + ipAddress[0] + ":/eth");
+		
+			var publicKeyPath = (i) => { return "/tmp/tm"+i+".pub"; };
+			if(tesseraFlag) {
+				quorum.volumes.push("./tessera-" + ipAddress[0] + ":/priv");
+			}
+			else{
+				quorum.volumes.push("constellation-" + ipAddress[0] + ":/constellation:z");
+			}
+		} else {
+			quorum.volumes.push("./validator-" + readparams.nodeName + "0" + ":/eth");
+			var publicKeyPath = (i) => { return "/tmp/tm"+i+".pub"; };
+			if(tesseraFlag) {
+				quorum.volumes.push("./tessera-" + readparams.nodeName + "0" + ":/priv");
+			}
+			else{
+				quorum.volumes.push("constellation-" + readparams.nodeName + "0" + ":/constellation:z");
+			}
 		}
-		else{
-			// quorum.volumes.push("constellation-" + readparams.nodeName + "0" + ":/constellation:z");
-			quorum.volumes.push("constellation-" + readparams.nodeName + "0" + ":/constellation:z");
-		}
+
 		var commands = [
 			"set -u",
 			"set -e",
@@ -360,7 +372,8 @@ const services = {
 		for (var i = 0; i < basicConfig.publicKeys.length; i++) {
 			var prefix = "";
 			const startIp = serviceConfig.validator.startIp.split(".");
-			const ip   = startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+i);
+			const ip = startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+i);
+			// const ip = (readparams.distributed)? ipAddress[i] : startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+i);
 			if(i != 0){
 				prefix = i+"_";
 				commands.push("echo \""+prefix+"ENODE="+basicConfig.enodes[i]+"\" >> ./setup.conf")
@@ -406,20 +419,33 @@ const services = {
 			constellationName += "test-";
 			tesseraName += "test-";
 		}
-		// if(readparams.modeFlag == "full") {
-			validatorName += readparams.nodeName + i;
-			constellationName += readparams.nodeName + i;
-			tesseraName += readparams.nodeName + i;
-		// }
-		// else if(readparams.modeFlag == "masternode") {
-		// 	validatorName += readparams.nodeName;
-		// 	constellationName += readparams.nodeName;
-		// 	tesseraName += readparams.nodeName;
-		// }
+
+		if(readparams.distributed) {
+			validatorName += ipAddress[i];
+			constellationName += ipAddress[i];
+			tesseraName += ipAddress[i];
+		} else {
+			if(readparams.modeFlag == "full") {
+				validatorName += readparams.nodeName + i;
+				constellationName += readparams.nodeName + i;
+				tesseraName += readparams.nodeName + i;
+			}
+			else if(readparams.modeFlag == "masternode") {
+				validatorName += readparams.nodeName;
+				constellationName += readparams.nodeName;
+				tesseraName += readparams.nodeName;
+			}
+		}
+		
 		var ipaddressText;
 		var startGeth;
-		if(readparams.modeFlag == "full")
-			ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+serviceConfig["ledgeriumstats"].ip;
+		if(readparams.modeFlag == "full") {
+			if(readparams.distributed) {
+				ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+ipAddress[0];
+			} else {
+				ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+serviceConfig["ledgeriumstats"].ip;
+			}
+		}
 		else if(readparams.modeFlag == "masternode")
 			ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+readparams.externalIPAddress;
 		startGeth = gethCom + " --rpcvhosts=" + readparams.domainName + " --nodekeyhex \""+"${PRIVATEKEY"+[i]+"}"+"\" "
@@ -606,14 +632,20 @@ const services = {
 			tesseraName += "test-";
 		}
 
-		// if(readparams.modeFlag == "full") {
-			validatorName += readparams.nodeName + i;
-			tesseraName += readparams.nodeName + i;
-		// }
-		// else if(readparams.modeFlag == "masternode") {
-		// 	validatorName += readparams.nodeName;
-		// 	tesseraName += readparams.nodeName;
-		// }
+		if(readparams.distributed) {
+			validatorName += ipAddress[i];
+			tesseraName += ipAddress[i];
+		} else {
+			if(readparams.modeFlag == "full") {
+				validatorName += readparams.nodeName + i;
+				tesseraName += readparams.nodeName + i;
+			}
+			else if(readparams.modeFlag == "masternode") {
+				validatorName += readparams.nodeName;
+				tesseraName += readparams.nodeName;
+			}
+		}
+
 
 		var startTess = "java -Xms1024M -Xmx1024M -jar /tessera/tessera-app.jar -configfile /priv/tessera-config.json";
 		startTess+=" >/logs/tesseralogs/"+ tesseraName + "_log_$${DATE}.txt";
@@ -706,10 +738,26 @@ const services = {
 			governanceUIName += "test-";
 		}
 
-		validatorName += readparams.nodeName + i;
-		constellationName += readparams.nodeName + i;
-		tesseraName += readparams.nodeName + i;
-		governanceUIName += readparams.nodeName + i;
+		if(readparams.distributed) {
+			validatorName += ipAddress[i];
+			constellationName += ipAddress[i];
+			tesseraName += ipAddress[i];
+			governanceUIName += ipAddress[i];
+		} else {
+
+			if(readparams.modeFlag == "full"){
+				validatorName += readparams.nodeName + i;
+				constellationName += readparams.nodeName + i;
+				tesseraName += readparams.nodeName + i;
+				governanceUIName += readparams.nodeName + i;
+			}else {
+				validatorName += readparams.nodeName;
+				constellationName += readparams.nodeName;
+				tesseraName += readparams.nodeName;
+				governanceUIName += readparams.nodeName;
+			}
+
+		}
 
 		var gov = {
 			"hostname" 		: governanceUIName,

@@ -36,7 +36,6 @@ if(readparams.modeFlag == "full") {
 if(!dockerTemplate.networks.Externalflag) {
 	dockerCompose['networks'] = dockerTemplate.networks['internal']();
 	dockerComposefull['networks'] = dockerTemplate.networks['internal']();
-	dockerComposeSplit['networks'] = dockerTemplate.networks['internal']();
 } else {
 	dockerCompose['networks'] = dockerTemplate.networks['external']();
 	dockerComposefull['networks'] = dockerTemplate.networks['external']();
@@ -46,44 +45,74 @@ if(!dockerTemplate.networks.Externalflag) {
 const type = dockerTemplate.tesseraFlag;
 if(readparams.modeFlag == "full") {
 	dockerCompose.volumes["quorum-maker"] = null;
-	for (var i = 0; i < numberOfNodes - readparams.faultynode; i++) {	
-		//Clear services for every yml file
-		dockerComposeSplit.services = {};
-		dockerComposeSplit.volumes = {};
-		//Add ledgeriumstats to first yml file
-		if(i == 0) {
-
-			dockerComposeSplit.services["ledgeriumstats"] = dockerTemplate.services['ledgeriumstats']();
-			dockerComposeSplit["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
-			dockerComposeSplit.volumes["quorum-maker"] = null;
-		}
-
-		dockerCompose.services["validator-"+readparams.nodeName + i] = dockerTemplate.services.validator(i);
-		dockerComposeSplit.services["validator-"+readparams.nodeName + i] = dockerTemplate.services.validator(i);
-		if(!type) {
-			dockerCompose.services["constellation-"+readparams.nodeName + i] = dockerTemplate.services.constellation(i);
-			dockerComposeSplit.services["constellation-"+readparams.nodeName + i] = dockerTemplate.services.constellation(i);
-		} else {
-			dockerCompose.services["tessera-"+readparams.nodeName + i] = dockerTemplate.services.tessera(i);		
-			dockerComposeSplit.services["tessera-"+readparams.nodeName + i] = dockerTemplate.services.tessera(i);		
-		}
-		dockerCompose.services["governance-ui-"+readparams.nodeName + i] = dockerTemplate.services.governanceapp(i);
-		dockerComposeSplit.services["governance-ui-"+readparams.nodeName + i] = dockerTemplate.services.governanceapp(i);
-
-		let volumes = dockerCompose.services["validator-"+readparams.nodeName + i].volumes;
-		for (var j = volumes.length - 1; j >= 0; j--) {
-			if(volumes[j].slice(0,1) != ".")
-				dockerCompose.volumes[volumes[j].split(":")[0]] = null;
-				// dockerComposeSplit.volumes[volumes[j].split(":")[0]] = null;
-		}
-		
-		let YMLFileSplit = "./output/fullnode/docker-compose_" + i + "_" + readparams.nodeName +".yml";
-		//Final output to the fullnode yml
-		fs.writeFileSync(YMLFileSplit, yaml.dump(dockerComposeSplit, {
-			styles: {
-				'!!null' : 'canonical'
+	let YMLFileSplit;
+	let volumes;
+	for (var i = 0; i < numberOfNodes - readparams.faultynode; i++) {
+		if(readparams.distributed) {
+			//Clear services for every yml file
+			dockerComposeSplit.services = {};
+			dockerComposeSplit.volumes = {};
+			//Add ledgeriumstats to first yml file
+			if(i == 0) {
+				dockerComposeSplit.services["ledgeriumstats"] = dockerTemplate.services['ledgeriumstats']();
+				dockerComposeSplit["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
+				dockerComposeSplit.volumes["quorum-maker"] = null;
 			}
-		}));
+			dockerCompose.services["validator-"+ipAddress[i]] = dockerTemplate.services.validator(i);
+			dockerComposeSplit.services["validator-"+ipAddress[i]] = dockerTemplate.services.validator(i);
+			
+			if(!type) {
+				dockerCompose.services["constellation-"+ipAddress[i]] = dockerTemplate.services.constellation(i);
+				dockerComposeSplit.services["constellation-"+ipAddress[i]] = dockerTemplate.services.constellation(i);
+			} else {
+				dockerCompose.services["tessera-"+ipAddress[i]] = dockerTemplate.services.tessera(i);		
+				dockerComposeSplit.services["tessera-"+ipAddress[i]] = dockerTemplate.services.tessera(i);		
+			}
+			dockerCompose.services["governance-ui-"+ipAddress[i]] = dockerTemplate.services.governanceapp(i);
+			dockerComposeSplit.services["governance-ui-"+ipAddress[i]] = dockerTemplate.services.governanceapp(i);
+
+			volumes = dockerCompose.services["validator-"+ipAddress[i]].volumes;
+			YMLFileSplit = "./output/fullnode/docker-compose_" + i + "_" + ipAddress[i] +".yml";
+
+			for (var j = volumes.length - 1; j >= 0; j--) {
+				if(volumes[j].slice(0,1) != ".")
+					dockerCompose.volumes[volumes[j].split(":")[0]] = null;
+					// dockerComposeSplit.volumes[volumes[j].split(":")[0]] = null;
+			}
+			
+			//Final output to the fullnode yml
+			fs.writeFileSync(YMLFileSplit, yaml.dump(dockerComposeSplit, {
+				styles: {
+					'!!null' : 'canonical'
+				}
+			}));
+		
+		} else {
+			dockerCompose.services["ledgeriumstats"] = dockerTemplate.services['ledgeriumstats']();
+			dockerCompose["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
+
+			dockerCompose.services["validator-"+readparams.nodeName + i] = dockerTemplate.services.validator(i);
+			//dockerComposeSplit.services["validator-"+readparams.nodeName + i] = dockerTemplate.services.validator(i);
+			
+			if(!type) {
+				dockerCompose.services["constellation-"+readparams.nodeName + i] = dockerTemplate.services.constellation(i);
+				//dockerComposeSplit.services["constellation-"+readparams.nodeName + i] = dockerTemplate.services.constellation(i);
+			} else {
+				dockerCompose.services["tessera-"+readparams.nodeName + i] = dockerTemplate.services.tessera(i);		
+				//dockerComposeSplit.services["tessera-"+readparams.nodeName + i] = dockerTemplate.services.tessera(i);		
+			}
+			dockerCompose.services["governance-ui-"+readparams.nodeName + i] = dockerTemplate.services.governanceapp(i);
+			//dockerComposeSplit.services["governance-ui-"+readparams.nodeName + i] = dockerTemplate.services.governanceapp(i);
+	
+			volumes = dockerCompose.services["validator-"+readparams.nodeName + i].volumes;
+			//YMLFileSplit = "./output/fullnode/docker-compose_" + i + "_" + readparams.nodeName +".yml";
+
+			for (var j = volumes.length - 1; j >= 0; j--) {
+				if(volumes[j].slice(0,1) != ".")
+					dockerCompose.volumes[volumes[j].split(":")[0]] = null;
+					// dockerComposeSplit.volumes[volumes[j].split(":")[0]] = null;
+			}
+		}
 	}
 	if( readparams.faultynode > 0 ) {
 		for (var i = numberOfNodes - readparams.faultynode; i < numberOfNodes; i++) {

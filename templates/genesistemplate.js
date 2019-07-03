@@ -1,6 +1,6 @@
 module.exports = {
 	"config":{
-		"chainId":2018,
+		"chainId":2019,
 		"byzantiumBlock":1,
 		"eip150Block":2,
 		"eip150Hash":"0x0000000000000000000000000000000000000000000000000000000000000000",
