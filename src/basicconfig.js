@@ -65,10 +65,9 @@ for (var i = 0; i < privateKeys.length; i++) {
 		staticNodesExternal += (
 			"\"enode://"+temp+
 			"@"+
-			baseIp+
-			(startIp+i)+
+			readparams.externalIPAddress+
 			":"+
-			(dockerTemplate.serviceConfig.validator.gossipPort)+
+			(dockerTemplate.serviceConfig.validator.gossipPort+i)+
 			"?discport=0\""
 		);
 	}

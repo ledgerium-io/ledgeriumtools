@@ -17,11 +17,12 @@ if(readparams.modeFlag == "full") {
 	console.log("Total number of nodes ", numberOfNodes);
 }
 else if(readparams.modeFlag == "masternode") {
-	if(num < 1 || num > 10) {
-		console.log("Number of nodes should be 1 for masternode");
-		process.exit(1);
-	}
-	numberOfNodes = 1 + readparams.faultynode; //There can be only one masternode
+	console.log("There will only be one masternode per setup.");
+	// if(num < 1 || num > 10) {
+	// 	console.log("Number of nodes should be 1 for masternode");
+	// 	process.exit(1);
+	// }
+	numberOfNodes = 1;// + readparams.faultynode; //There can be only one masternode
 }
 
 if(readparams.faultynode > 0) {
