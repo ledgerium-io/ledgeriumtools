@@ -10,6 +10,8 @@ var nodeName = "nodeName";
 var faultynode = 0;
 var domainName = "domainName";
 var networkId = "2019";
+var distributed = "false";
+
 readInitialParams();
 
 function readInitialParams(){
@@ -20,7 +22,10 @@ function readInitialParams(){
 		
 		if(initialData["mode"] != undefined)
 			modeFlag = initialData["mode"];
-			
+		
+		if(initialData["distributed"] != undefined)
+			distributed = initialData["distributed"];
+
 		if(initialData["env"] != undefined)
 			env = initialData["env"];
 		
@@ -52,6 +57,7 @@ function readInitialParams(){
     }    
 }
 exports.modeFlag = modeFlag;
+exports.distributed = distributed;
 exports.env = env;
 exports.externalIPAddress = externalIPAddress;
 exports.nodeName = nodeName;

@@ -17,12 +17,12 @@ if(readparams.modeFlag == "full") {
 	console.log("Total number of nodes ", numberOfNodes);
 }
 else if(readparams.modeFlag == "masternode") {
-	if(num < 1 || num > 10) {
-		console.log("Number of nodes should be 1 for masternode");
-		process.exit(1);
-	}
-	numberOfNodes = 1 + readparams.faultynode; //There can be only one masternode
-	ipAddress.push(readparams.externalIPAddress) //To name services in yml file
+	console.log("There will only be one masternode per setup.");
+	// if(num < 1 || num > 10) {
+	// 	console.log("Number of nodes should be 1 for masternode");
+	// 	process.exit(1);
+	// }
+	numberOfNodes = 1;// + readparams.faultynode; //There can be only one masternode
 }
 
 if(readparams.faultynode > 0) {
@@ -30,8 +30,9 @@ if(readparams.faultynode > 0) {
 }
 
 for (var i = 0; i < numberOfNodes; i++) {
-	
-	if(readparams.modeFlag == "full") {
+
+	/** IP Addresses for distributed setup */
+	if(readparams.distributed) {
 		var ip = readlineSync.question('Enter IP Address '+i+" : ", {
 			hideEchoBack: false
 		});
@@ -70,7 +71,7 @@ function validateIPaddress(ip) {
 	  return true;  
 	}  
 	return false;
-}  
+}
   
 var template = {
 	"mode": 0,
@@ -85,5 +86,5 @@ var template = {
 template.mnemonic = mnemonics;
 exports.template  = template;
 exports.passwords = passwords;
-global.numberOfNodes = numberOfNodes;
 global.ipAddress = ipAddress;
+global.numberOfNodes = numberOfNodes;
