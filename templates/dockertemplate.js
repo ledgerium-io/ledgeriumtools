@@ -676,7 +676,8 @@ const services = {
 		if(readparams.modeFlag == "full") {
 			for (var j = 0; j < basicConfig.publicKeys.length; j++) {
 				if(i != j){
-					peers.push({ "url" : "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+j)+":"+(port+j)+"/"})
+					// peers.push({ "url" : "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+j)+":"+(port+j)+"/"})
+					peers.push({ "url" : "http://"+readparams.externalIPAddress+":"+(port+j)+"/"})
 				}	
 			}
 			const serverPortP2p 		= tesseraNineTemplate.serverConfigs[0].serverAddress;
