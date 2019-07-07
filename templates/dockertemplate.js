@@ -705,6 +705,8 @@ const services = {
 			if(readparams.distributed) {
 				tesseraNineTemplate.serverConfigs[0].serverAddress = "https://"+ipAddress[i]+":"+(serverPortP2p - i);
 				tesseraNineTemplate.serverConfigs[2].serverAddress = "https://"+ipAddress[i]+":"+(serverPortThirdParty - i);
+				tesseraNineTemplate.serverConfigs[0].bindingAddress = "https://0.0.0.0:"+(port);
+				tesseraNineTemplate.serverConfigs[2].bindingAddress = "https://0.0.0.0:"+(port+100);
 			} else {
 				tesseraNineTemplate.serverConfigs[0].serverAddress = "http://"+readparams.externalIPAddress+":"+serverPortP2p;
 				tesseraNineTemplate.serverConfigs[2].serverAddress = "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]))+":"+serverPortThirdParty;
