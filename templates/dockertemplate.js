@@ -220,7 +220,7 @@ const serviceConfig = {
 						"enabled": true,
 						"ledgerId" : readparams.networkId.toString(),
 					    "serverAddress"  : (port+i),
-					    "bindingAddress" : "https://0.0.0.0:"+(port+i),
+					    "bindingAddress" : "http://0.0.0.0:"+(port+i),
 					    "sslConfig": {
 					        "tls": "STRICT",
 					        "generateKeyStoreIfNotExisted": true,
@@ -249,7 +249,7 @@ const serviceConfig = {
 						"app":"ThirdParty",
 						"enabled": true,
 						"serverAddress" : (port+100+i),
-						"bindingAddress": "https://0.0.0.0:"+(port+100+i),
+						"bindingAddress": "http://0.0.0.0:"+(port+100+i),
 						"communicationType" : "REST"
 					}
 				],
@@ -703,13 +703,15 @@ const services = {
 			const serverPortP2p 		= tesseraNineTemplate.serverConfigs[0].serverAddress;
 			const serverPortThirdParty  = tesseraNineTemplate.serverConfigs[2].serverAddress;
 			if(readparams.distributed) {
-				tesseraNineTemplate.serverConfigs[0].serverAddress = "https://"+ipAddress[i]+":"+(serverPortP2p - i);
-				tesseraNineTemplate.serverConfigs[2].serverAddress = "https://"+ipAddress[i]+":"+(serverPortThirdParty - i);
+				tesseraNineTemplate.serverConfigs[0].serverAddress = "https://"+ipAddress[i]+":"+port;
+				tesseraNineTemplate.serverConfigs[2].serverAddress = "https://"+ipAddress[i]+":"+(port+100);
 				tesseraNineTemplate.serverConfigs[0].bindingAddress = "https://0.0.0.0:"+(port);
 				tesseraNineTemplate.serverConfigs[2].bindingAddress = "https://0.0.0.0:"+(port+100);
 			} else {
 				tesseraNineTemplate.serverConfigs[0].serverAddress = "https://"+readparams.externalIPAddress+":"+serverPortP2p;
 				tesseraNineTemplate.serverConfigs[2].serverAddress = "https://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]))+":"+serverPortThirdParty;
+				tesseraNineTemplate.serverConfigs[0].bindingAddress = "https://0.0.0.0:"+serverPortP2p;
+				tesseraNineTemplate.serverConfigs[2].bindingAddress = "https://0.0.0.0:"+serverPortThirdParty;
 			}
 		}
 		else if(readparams.modeFlag == "masternode") {
