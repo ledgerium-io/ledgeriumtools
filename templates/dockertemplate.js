@@ -222,7 +222,7 @@ const serviceConfig = {
 					    "serverAddress"  : (port+i),
 					    "bindingAddress" : "http://0.0.0.0:"+(port+i),
 					    "sslConfig": {
-					        "tls": "OFF",
+					        "tls": "STRICT",
 					        "generateKeyStoreIfNotExisted": true,
 					        "serverKeyStore": "/priv/server"+i+"-keystore",
 					        "serverKeyStorePassword": "quorum",
