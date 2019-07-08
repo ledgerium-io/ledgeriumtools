@@ -222,7 +222,7 @@ const serviceConfig = {
 					    "serverAddress"  : (port+i),
 					    "bindingAddress" : "http://0.0.0.0:"+(port+i),
 					    "sslConfig": {
-					        "tls": "OFF",
+					        "tls": "STRICT",
 					        "generateKeyStoreIfNotExisted": true,
 					        "serverKeyStore": "/priv/server"+i+"-keystore",
 					        "serverKeyStorePassword": "quorum",
@@ -456,11 +456,6 @@ const services = {
 		var validator = {
 			"hostname"   : validatorName, 
 			"image"		 :	"ledgeriumengineering/ledgeriumcore:blockrewards",
-			"ports"	     : [
-				(serviceConfig.validator.gossipPort+i)+":"+serviceConfig.validator.gossipPort,
-				(serviceConfig.validator.rpcPort+i)+":"+serviceConfig.validator.rpcPort,
-				(serviceConfig.validator.wsPort+i)+":"+serviceConfig.validator.wsPort
-			],
 			"volumes"    : [],
 			"depends_on" : [constellationName],
 			"environment":	["PRIVATE_CONFIG=/constellation/tm.conf"],
@@ -469,6 +464,21 @@ const services = {
 			},
 			"restart"	: "always"
 		};
+
+		if(readparams.distributed) {
+			validator.ports = [
+				serviceConfig.validator.gossipPort+":"+serviceConfig.validator.gossipPort,
+				serviceConfig.validator.rpcPort+":"+serviceConfig.validator.rpcPort,
+				serviceConfig.validator.wsPort+":"+serviceConfig.validator.wsPort
+			]
+		} else {
+			validator.ports = [
+				(serviceConfig.validator.gossipPort+i)+":"+serviceConfig.validator.gossipPort,
+				(serviceConfig.validator.rpcPort+i)+":"+serviceConfig.validator.rpcPort,
+				(serviceConfig.validator.wsPort+i)+":"+serviceConfig.validator.wsPort
+			]
+		}
+
 		var startWait = "";
 		var cpPubKeys = "";
 		startWait+="set -u\n";
@@ -663,26 +673,46 @@ const services = {
 		var tessera          = {
 			"hostname"   : tesseraName,
 			"image"		 : "ledgeriumengineering/tessera:v1.1",
-			"ports"	     : [(port+i)+":"+(port+i),(port+100+i)+":"+(port+100+i)],
 			"volumes"    : [],
 			"entrypoint" : ["/bin/sh","-c"],
 			"networks"	 : {
 			},
 			"restart"	 : "always"
 		};
+
+		if(readparams.distributed) {
+			tessera.ports	= [(port)+":"+(port),(port+100)+":"+(port+100)]
+		} else {
+			tessera.ports	= [(port+i)+":"+(port+i),(port+100+i)+":"+(port+100+i)]
+		}
+
 		const startIp = serviceConfig.tessera.startIp.split(".");
 		var peers = [];
 		var limit = 3;
 		if(readparams.modeFlag == "full") {
 			for (var j = 0; j < basicConfig.publicKeys.length; j++) {
 				if(i != j){
-					peers.push({ "url" : "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+j)+":"+(port+j)+"/"})
+					// peers.push({ "url" : "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+j)+":"+(port+j)+"/"})
+					if(readparams.distributed){
+						peers.push({ "url" : "https://"+ipAddress[j]+":"+(port)+"/"})
+					} else {
+						peers.push({ "url" : "https://"+readparams.externalIPAddress+":"+(port+j)+"/"})
+					}
 				}	
 			}
 			const serverPortP2p 		= tesseraNineTemplate.serverConfigs[0].serverAddress;
 			const serverPortThirdParty  = tesseraNineTemplate.serverConfigs[2].serverAddress;
-			tesseraNineTemplate.serverConfigs[0].serverAddress = "http://"+readparams.externalIPAddress+":"+serverPortP2p;
-			tesseraNineTemplate.serverConfigs[2].serverAddress = "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]))+":"+serverPortThirdParty;
+			if(readparams.distributed) {
+				tesseraNineTemplate.serverConfigs[0].serverAddress = "https://"+ipAddress[i]+":"+port;
+				tesseraNineTemplate.serverConfigs[2].serverAddress = "https://"+ipAddress[i]+":"+(port+100);
+				tesseraNineTemplate.serverConfigs[0].bindingAddress = "https://0.0.0.0:"+(port);
+				tesseraNineTemplate.serverConfigs[2].bindingAddress = "https://0.0.0.0:"+(port+100);
+			} else {
+				tesseraNineTemplate.serverConfigs[0].serverAddress = "https://"+readparams.externalIPAddress+":"+serverPortP2p;
+				tesseraNineTemplate.serverConfigs[2].serverAddress = "https://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]))+":"+serverPortThirdParty;
+				tesseraNineTemplate.serverConfigs[0].bindingAddress = "https://0.0.0.0:"+serverPortP2p;
+				tesseraNineTemplate.serverConfigs[2].bindingAddress = "https://0.0.0.0:"+serverPortThirdParty;
+			}
 		}
 		else if(readparams.modeFlag == "masternode") {
 			for (var j = 0; j < basicConfig.publicKeys.length; j++) {
@@ -703,12 +733,19 @@ const services = {
 		*/
 		tesseraNineTemplate.peer              			   = peers;
 		tessera.volumes								       = ["./"+tesseraName+":/priv"];
+		var keytoolStr;
+		if(readparams.distributed){
+			keytoolStr = `keytool -alias tessera -dname CN=${tesseraName} -genkeypair -keystore /priv/server${i}-keystore -storepass quorum -ext SAN=dns:localhost,dns:${tesseraName},ip:127.0.0.1,ip:0.0.0.0,ip:${startIp[0]}.${startIp[1]}.${startIp[2]}.${(i+parseInt(startIp[3]))},ip:${ipAddress[i]}`
+		} else {
+			keytoolStr = `keytool -alias tessera -dname CN=${tesseraName} -genkeypair -keystore /priv/server${i}-keystore -storepass quorum -ext SAN=dns:localhost,dns:${tesseraName},ip:127.0.0.1,ip:0.0.0.0,ip:${startIp[0]}.${startIp[1]}.${startIp[2]}.${(i+parseInt(startIp[3]))},ip:${readparams.externalIPAddress}`
+		}
 		const commands = [
 			"DATE=`date '+%Y-%m-%d_%H-%M-%S'`",
 			"rm -f /priv/tm.ipc",
 			"if [ ! -e \"/priv/tm.key\" ];then",
 			"mkdir -p /priv",
 			"mkdir -p /logs/tesseralogs",
+			keytoolStr,
 			"echo -e \"\\n\" | java -jar /tessera/tessera-app.jar -keygen -filename /priv/tm",
 			/* old tessera versions
 			"echo '"+JSON.stringify(tesseraTemplate)+"' > /priv/tessera-config.json",
@@ -762,7 +799,6 @@ const services = {
 		var gov = {
 			"hostname" 		: governanceUIName,
 			"image"    		: "ledgeriumengineering/governance_app_ui_img:v1.0",
-			"ports"    		: [(serviceConfig["governance-app"]["port-exp"]+i)+":"+serviceConfig["governance-app"]["port-int"]],
 			"volumes"  		: ["./logs:/logs","./" + validatorName +':/eth',"./tmp:/tmp"],
 			"depends_on" 	: [validatorName],
 			"entrypoint"    : [ "/bin/sh","-c"],
@@ -771,6 +807,13 @@ const services = {
 			},
 			"restart"	 : "always"
 		}
+
+		if(readparams.distributed) {
+			gov.ports = [serviceConfig["governance-app"]["port-exp"]+":"+serviceConfig["governance-app"]["port-int"]]
+		} else {
+			gov.ports = [(serviceConfig["governance-app"]["port-exp"]+i)+":"+serviceConfig["governance-app"]["port-int"]]
+		}
+
 		const startIp = serviceConfig["governance-app"].startIp.split(".");
 		const ip = startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3]) + i);
 		const vip = serviceConfig.validator.startIp.split(".");
@@ -811,11 +854,20 @@ const services = {
 		string+="cd /ledgerium/governanceapp/governanceapp/app\n";
 		
 		//string+="node governanceUI.js "+vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i)+" "+(serviceConfig.validator.rpcPort+i)+"\n";
-		if((i == 0) && (readparams.modeFlag == "full")) {
-			string+="node governanceUI.js "+ gateway +" "+(serviceConfig.validator.rpcPort+i)+ " " + "0x${PRIVATEKEY0}";
-		}
-		else {
-			string+="node governanceUI.js "+ gateway +" "+(serviceConfig.validator.rpcPort+i);
+		if(readparams.distributed) {
+			if((i == 0) && (readparams.modeFlag == "full")) {
+				string+="node governanceUI.js "+ ipAddress[i] +" "+(serviceConfig.validator.rpcPort)+ " " + "0x${PRIVATEKEY0}";
+			}
+			else {
+				string+="node governanceUI.js "+ ipAddress[i] +" "+(serviceConfig.validator.rpcPort);
+			}
+		} else {
+			if((i == 0) && (readparams.modeFlag == "full")) {
+				string+="node governanceUI.js "+ gateway +" "+(serviceConfig.validator.rpcPort+i)+ " " + "0x${PRIVATEKEY0}";
+			}
+			else {
+				string+="node governanceUI.js "+ gateway +" "+(serviceConfig.validator.rpcPort+i);
+			}
 		}	
 		string+= " >/logs/governanceapplogs/"+ governanceUIName + "_log_$${DATE}.txt";
 		gov.entrypoint.push(string);
