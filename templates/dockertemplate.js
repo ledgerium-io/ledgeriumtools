@@ -220,7 +220,7 @@ const serviceConfig = {
 						"enabled": true,
 						"ledgerId" : readparams.networkId.toString(),
 					    "serverAddress"  : (port+i),
-					    "bindingAddress" : "http://0.0.0.0:"+(port+i),
+					    "bindingAddress" : "https://0.0.0.0:"+(port+i),
 					    "sslConfig": {
 					        "tls": "STRICT",
 					        "generateKeyStoreIfNotExisted": true,
@@ -249,7 +249,7 @@ const serviceConfig = {
 						"app":"ThirdParty",
 						"enabled": true,
 						"serverAddress" : (port+100+i),
-						"bindingAddress": "http://0.0.0.0:"+(port+100+i),
+						"bindingAddress": "https://0.0.0.0:"+(port+100+i),
 						"communicationType" : "REST"
 					}
 				],
@@ -696,7 +696,7 @@ const services = {
 					if(readparams.distributed){
 						peers.push({ "url" : "https://"+ipAddress[j]+":"+(port)+"/"})
 					} else {
-						peers.push({ "url" : "http://"+readparams.externalIPAddress+":"+(port+j)+"/"})
+						peers.push({ "url" : "https://"+readparams.externalIPAddress+":"+(port+j)+"/"})
 					}
 				}	
 			}
@@ -708,8 +708,8 @@ const services = {
 				tesseraNineTemplate.serverConfigs[0].bindingAddress = "https://0.0.0.0:"+(port);
 				tesseraNineTemplate.serverConfigs[2].bindingAddress = "https://0.0.0.0:"+(port+100);
 			} else {
-				tesseraNineTemplate.serverConfigs[0].serverAddress = "http://"+readparams.externalIPAddress+":"+serverPortP2p;
-				tesseraNineTemplate.serverConfigs[2].serverAddress = "http://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]))+":"+serverPortThirdParty;
+				tesseraNineTemplate.serverConfigs[0].serverAddress = "https://"+readparams.externalIPAddress+":"+serverPortP2p;
+				tesseraNineTemplate.serverConfigs[2].serverAddress = "https://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]))+":"+serverPortThirdParty;
 			}
 		}
 		else if(readparams.modeFlag == "masternode") {
@@ -734,6 +734,8 @@ const services = {
 		var keytoolStr;
 		if(readparams.distributed){
 			keytoolStr = `keytool -alias tessera -dname CN=${tesseraName} -genkeypair -keystore /priv/server${i}-keystore -storepass quorum -ext SAN=dns:localhost,dns:${tesseraName},ip:127.0.0.1,ip:0.0.0.0,ip:${startIp[0]}.${startIp[1]}.${startIp[2]}.${(i+parseInt(startIp[3]))},ip:${ipAddress[i]}`
+		} else {
+			keytoolStr = `keytool -alias tessera -dname CN=${tesseraName} -genkeypair -keystore /priv/server${i}-keystore -storepass quorum -ext SAN=dns:localhost,dns:${tesseraName},ip:127.0.0.1,ip:0.0.0.0,ip:${startIp[0]}.${startIp[1]}.${startIp[2]}.${(i+parseInt(startIp[3]))},ip:${readparams.externalIPAddress}`
 		}
 		const commands = [
 			"DATE=`date '+%Y-%m-%d_%H-%M-%S'`",
