@@ -226,7 +226,7 @@ const serviceConfig = {
 					{
 					    "app":"P2P",
 						"enabled": true,
-						"ledgerId" : readparams.networkId.toString(),
+						"chainId" : readparams.networkId.toString(),
 					    "serverAddress"  : (port+i),
 					    "bindingAddress" : "http://0.0.0.0:"+(port+i),
 					    "sslConfig": {
