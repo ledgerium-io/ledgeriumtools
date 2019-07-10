@@ -8,7 +8,7 @@ const gethCom   = `geth --rpc --rpcaddr '0.0.0.0' --rpccorsdomain '*' \
 --debug --metrics --syncmode 'full' --mine --verbosity 6 \
 --minerthreads 1`;
 
-const tesseraFlag = true;
+const tesseraFlag = false;
 const network_name = "test_net";
 var base_ip = "172.19.240.0",entrypoint, qmvolumes =[];
 var gateway = "172.19.240.1"
@@ -61,8 +61,16 @@ const networks = {
 };
 
 const serviceConfig = {
-	"ledgeriumstats":{
+	"blockexplorerclient":{
+		"ip" : base_ip.slice(0, base_ip.length-1)+"7",
+		"deploy": deployConfig(500,128)
+	},
+	"blockexplorerserver":{
 		"ip" : base_ip.slice(0, base_ip.length-1)+"8",
+		"deploy": deployConfig(500,128)
+	},
+	"ledgeriumstats":{
+		"ip" : base_ip.slice(0, base_ip.length-1)+"9",
 		"deploy": deployConfig(500,128)
 	},
 	"validator": {
@@ -303,8 +311,64 @@ const serviceConfig = {
 };
 
 const services = {
+	"blockexplorerclient": ()=> {
+		var blockclient = {
+			"hostname"		: "blockexplorerclient",
+			"image"     	: "ledgeriumengineering/blockexplorerclient:v1.0",
+			"ports"     	: ["2000:80"],
+			"volumes" 		: ["./logs:/logs"],
+			"depends_on"	: ["blockexplorerserver"],
+			"restart"		: "always",
+			"networks"		: {
+			}
+		};
+		// var startEntryPoint = "";
+		// startEntryPoint+="set -u\n";
+		// startEntryPoint+="set -e\n";
+		// startEntryPoint+="mkdir -p /logs/blockexplorerclientlogs";
+
+		// const commands = [
+		// 	startEntryPoint,
+		// 	"DATE=`date '+%Y-%m-%d_%H-%M-%S'`",
+		// 	"npm start >/logs/blockexplorerclientlogs/blockexplorerclient_$${DATE}_log.txt"
+		// ];
+		// blockclient.entrypoint.push(genCommand(commands));
+		blockclient.deploy                 = serviceConfig['blockexplorerclient'].deploy;
+		blockclient.networks[network_name] = { "ipv4_address":serviceConfig["blockexplorerclient"].ip };
+		return blockclient;
+	},
+	"blockexplorerserver": ()=> {
+		var blockserver = {
+			"hostname"	: "blockexplorerserver",
+			"image"     : "ledgeriumengineering/blockexplorerserver:v1.0",
+			"ports"     : ["2002:2002"],
+			"environment": ["SERVER_PORT=2002", "MONGO_HOST=cluster0-cu7v2.mongodb.net", "MONGO_DB=test", "MONGO_USERNAME=root", "MONGO_PASSWORD=toor", "SYNC_REQUESTS=100", "API_LIMIT_BLOCKS=100", "API_LIMIT_TRANSACTIONS=100"],
+			"volumes" 	: ["./logs:/logs"],
+			"entrypoint": ["/bin/sh", "-c"],
+			"depends_on": (readparams.distributed)? ["validator-" + ipAddress[0]] : ["validator-" + readparams.nodeName + '0'],
+			"restart"	: "always",
+			"networks"	: {
+			}
+		};
+		blockserver.environment.push("WEB3_HTTP=http://"+gateway+":"+serviceConfig.validator.rpcPort);
+		blockserver.environment.push("WEB3_WS=ws://"+gateway+":"+serviceConfig.validator.wsPort);
+		var startEntryPoint = "";
+		startEntryPoint+="set -u\n";
+		startEntryPoint+="set -e\n";
+		startEntryPoint+="mkdir -p /logs/blockexplorerserverlogs";
+		const commands = [
+			startEntryPoint,
+			"DATE=`date '+%Y-%m-%d_%H-%M-%S'`",
+			"npm start >/logs/blockexplorerserverlogs/blockexplorerserver_$${DATE}_log.txt"
+		];
+		blockserver.entrypoint.push(genCommand(commands));
+		blockserver.deploy                 = serviceConfig['blockexplorerserver'].deploy;
+		blockserver.networks[network_name] = { "ipv4_address":serviceConfig["blockexplorerserver"].ip };
+		return blockserver;
+	},
 	"ledgeriumstats": ()=> {
 		var eth = {
+			"hostname"	   : "ledgeriumstats",
 			"image"        : "ledgeriumengineering/ledgeriumstats:v1.0",
 			"ports"        : ["3000:3000"],
 			"environment"  : ["WS_SECRET=bb98a0b6442334d0cdf8a31b267892c1"],
@@ -328,13 +392,11 @@ const services = {
 			},
 			"restart": "always"
 		};
-		
 		quorum.deploy = serviceConfig['quorum-maker'].deploy;
 		quorum.networks[network_name] = { "ipv4_address": serviceConfig["quorum-maker"].ip }
 
 		if(readparams.distributed) {
 			quorum.volumes.push("./validator-" + ipAddress[0] + ":/eth");
-		
 			var publicKeyPath = (i) => { return "/tmp/tm"+i+".pub"; };
 			if(tesseraFlag) {
 				quorum.volumes.push("./tessera-" + ipAddress[0] + ":/priv");
@@ -793,7 +855,6 @@ const services = {
 				tesseraName += readparams.nodeName;
 				governanceUIName += readparams.nodeName;
 			}
-
 		}
 
 		var gov = {
@@ -948,7 +1009,7 @@ const services = {
 			"DATE=`date '+%Y-%m-%d_%H-%M-%S'`",
 			"node index.js ${PRIVATEKEY0} >/logs/ledgeriumfaucetlogs/ledgeriumfaucet_$${DATE}_log.txt"
 		];
-		ledgeriumfaucet.entrypoint.push(genCommand(commands))
+		ledgeriumfaucet.entrypoint.push(genCommand(commands));
 		ledgeriumfaucet.networks[network_name] = {"ipv4_address": serviceConfig["ledgeriumfaucet"].ip};
 		//ledgeriumfaucet.environment.push("NODE_URL=http://"+serviceConfig.validator.startIp+":"+serviceConfig.validator.rpcPort);
 		ledgeriumfaucet.environment.push("NODE_URL=http://"+ gateway +":"+serviceConfig.validator.rpcPort);
