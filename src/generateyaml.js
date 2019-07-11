@@ -11,6 +11,8 @@ var dockerComposefull  = dockerTemplate.templatefull;
 
 if(readparams.modeFlag == "full") {
 
+	dockerCompose.services["blockexplorerclient"] = dockerTemplate.services['blockexplorerclient']();
+	dockerCompose.services["blockexplorerserver"] = dockerTemplate.services['blockexplorerserver']();
 	dockerCompose.services["ledgeriumstats"] = dockerTemplate.services['ledgeriumstats']();
 	dockerCompose["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
 	switch (readparams.env) {
@@ -52,8 +54,10 @@ if(readparams.modeFlag == "full") {
 			//Clear services for every yml file
 			dockerComposeSplit.services = {};
 			dockerComposeSplit.volumes = {};
-			//Add ledgeriumstats to first yml file
+			//Add ledgeriumstats,blockexplorerclient,blockexplorerserver to first yml file
 			if(i == 0) {
+				dockerComposeSplit.services["blockexplorerclient"] = dockerTemplate.services['blockexplorerclient']();
+				dockerComposeSplit.services["blockexplorerserver"] = dockerTemplate.services['blockexplorerserver']();
 				dockerComposeSplit.services["ledgeriumstats"] = dockerTemplate.services['ledgeriumstats']();
 				dockerComposeSplit["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
 				dockerComposeSplit.volumes["quorum-maker"] = null;
@@ -88,6 +92,8 @@ if(readparams.modeFlag == "full") {
 			}));
 		
 		} else {
+			dockerComposeSplit.services["blockexplorerclient"] = dockerTemplate.services['blockexplorerclient']();
+			dockerComposeSplit.services["blockexplorerserver"] = dockerTemplate.services['blockexplorerserver']();
 			dockerCompose.services["ledgeriumstats"] = dockerTemplate.services['ledgeriumstats']();
 			dockerCompose["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
 
