@@ -10,20 +10,17 @@ var dockerCompose  = dockerTemplate.template;
 var dockerComposefull  = dockerTemplate.templatefull;
 
 if(readparams.modeFlag == "full") {
-
 	dockerCompose.services["blockexplorerclient"] = dockerTemplate.services['blockexplorerclient']();
 	dockerCompose.services["blockexplorerserver"] = dockerTemplate.services['blockexplorerserver']();
 	dockerCompose.services["ledgeriumstats"] = dockerTemplate.services['ledgeriumstats']();
 	dockerCompose["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
 	switch (readparams.env) {
 		case "testnet":
-		dockerComposefull.services["ledgeriumdocs"] = dockerTemplate.services["ledgeriumdocs"]();
-		dockerComposefull.services["ledgeriumfaucet"] = dockerTemplate.services['ledgeriumfaucet']();
+		case "devnet":
 		dockerComposefull.services["redis"] = dockerTemplate.services['redis']();
+		dockerComposefull.services["ledgeriumfaucet"] = dockerTemplate.services['ledgeriumfaucet']();
 		dockerComposefull.services["docusaurus"] = dockerTemplate.services['docusaurus']();
-		dockerComposefull.services["blockexplorer"] = dockerTemplate.services['blockexplorer']();
-		dockerComposefull.services["mongodb"] = dockerTemplate.services['mongodb']();
-		dockerComposefull.services["web"] = dockerTemplate.services['web']();
+		dockerComposefull.services["ledgeriumdocs"] = dockerTemplate.services["ledgeriumdocs"]();
 		break;
 		case "mainnet":
 			// dockerComposefull.services["blockexplorer"] = dockerTemplate.services['blockexplorer']();
