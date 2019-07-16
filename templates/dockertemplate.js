@@ -61,17 +61,29 @@ const networks = {
 };
 
 const serviceConfig = {
+	"redis" : {
+		"ip" : base_ip.slice(0, base_ip.length-1)+"3"
+	},
+	"ledgeriumfaucet" : {
+		"ip" : base_ip.slice(0, base_ip.length-1)+"4"
+	},
+	"docusaurus" : {
+		"ip" : base_ip.slice(0, base_ip.length-1)+"5"
+	},
 	"blockexplorerclient":{
-		"ip" : base_ip.slice(0, base_ip.length-1)+"7",
+		"ip" : base_ip.slice(0, base_ip.length-1)+"6",
 		"deploy": deployConfig(500,128)
 	},
 	"blockexplorerserver":{
-		"ip" : base_ip.slice(0, base_ip.length-1)+"8",
+		"ip" : base_ip.slice(0, base_ip.length-1)+"7",
 		"deploy": deployConfig(500,128)
 	},
 	"ledgeriumstats":{
-		"ip" : base_ip.slice(0, base_ip.length-1)+"9",
+		"ip" : base_ip.slice(0, base_ip.length-1)+"8",
 		"deploy": deployConfig(500,128)
+	},
+	"ledgeriumdocs" : {
+		"ip" : base_ip.slice(0, base_ip.length-1)+"9"
 	},
 	"validator": {
 		"startIp": base_ip.slice(0, base_ip.length-1)+"10",
@@ -286,27 +298,6 @@ const serviceConfig = {
 		"port-int": 3003,
 		"startIp" : base_ip.slice(0, base_ip.length-1)+"150",
 		'deploy': deployConfig(500,128)
-	},
-	"mongodb" : {
-		"ip" : base_ip.slice(0, base_ip.length-1)+"2"
-	},
-	"redis" : {
-		"ip" : base_ip.slice(0, base_ip.length-1)+"3"
-	},
-	"docusaurus" : {
-		"ip" : base_ip.slice(0, base_ip.length-1)+"4"
-	},
-	"blockexplorer" : {
-		"ip" : base_ip.slice(0, base_ip.length-1)+"5"
-	},
-	"ledgeriumfaucet" : {
-		"ip" : base_ip.slice(0, base_ip.length-1)+"6"
-	},
-	"web" : {
-		"ip" : base_ip.slice(0, base_ip.length-1)+"7"
-	},
-	"ledgeriumdocs" : {
-		"ip" : base_ip.slice(0, base_ip.length-1)+"9"
 	}
 };
 
@@ -338,11 +329,25 @@ const services = {
 		return blockclient;
 	},
 	"blockexplorerserver": ()=> {
+		var mongoHostURL, mongoDBName;
+		switch (readparams.env) {
+			case "testnet":
+				mongoHostURL = "cluster0-gq8ep.mongodb.net";
+				mongoDBName = "testnet";
+				break;
+			case "devnet":
+				mongoHostURL = "cluster0-cu7v2.mongodb.net";
+				mongoDBName = "devnet"
+				break;
+			default:
+				break;
+		}
+
 		var blockserver = {
 			"hostname"	: "blockexplorerserver",
 			"image"     : "ledgeriumengineering/blockexplorerserver:v1.0",
 			"ports"     : ["2002:2002"],
-			"environment": ["SERVER_PORT=2002", "MONGO_HOST=cluster0-cu7v2.mongodb.net", "MONGO_DB=test", "MONGO_USERNAME=root", "MONGO_PASSWORD=toor", "SYNC_REQUESTS=100", "API_LIMIT_BLOCKS=100", "API_LIMIT_TRANSACTIONS=100"],
+			"environment": ["SERVER_PORT=2002", "SYNC_REQUESTS=100", "API_LIMIT_BLOCKS=100", "API_LIMIT_TRANSACTIONS=100"],
 			"volumes" 	: ["./logs:/logs"],
 			"entrypoint": ["/bin/sh", "-c"],
 			"depends_on": (readparams.distributed)? ["validator-" + ipAddress[0]] : ["validator-" + readparams.nodeName + '0'],
@@ -350,6 +355,10 @@ const services = {
 			"networks"	: {
 			}
 		};
+		blockserver.environment.push("MONGO_HOST="+mongoHostURL);
+		blockserver.environment.push("MONGO_DB="+mongoDBName);
+		blockserver.environment.push("MONGO_USERNAME="+"root");
+		blockserver.environment.push("MONGO_PASSWORD="+"toor");
 		blockserver.environment.push("WEB3_HTTP=http://"+gateway+":"+serviceConfig.validator.rpcPort);
 		blockserver.environment.push("WEB3_WS=ws://"+gateway+":"+serviceConfig.validator.wsPort);
 		var startEntryPoint = "";
@@ -940,44 +949,6 @@ const services = {
 		gov.networks[network_name] = { "ipv4_address":ip };
 		gov.deploy = serviceConfig['governance-app'].deploy;
 		return gov;
-	},
-	"blockexplorer" : () => {
-		var blockexplorer = {
-			"image" : "blkio10/explorer-free:2.1.2",
-			"container_name" : "blk-free-explorer",
-			"ports" : ["8081:8081"],
-			"environment": ["ENABLE_PRIVATE_QUORUM=enabled", "JAVA_OPTS=", "EXPLORER_PORT=8081", "MONGO_DB_NAME=test", "USE_COSMOS=false"],
-			"depends_on" : ["mongodb"],
-			"networks" : {}
-		}
-		blockexplorer.networks[network_name] = { "ipv4_address":serviceConfig["blockexplorer"].ip };
-		//blockexplorer.environment.push("NODE_ENDPOINT=http://"+serviceConfig.validator.startIp+":"+serviceConfig.validator.rpcPort);
-		blockexplorer.environment.push("NODE_ENDPOINT=http://"+gateway+":"+serviceConfig.validator.rpcPort);
-		blockexplorer.environment.push("MONGO_CLIENT_URI=mongodb://"+serviceConfig.mongodb.ip+":27017");
-		blockexplorer.environment.push("UI_IP=http://"+serviceConfig.web.ip+":5000");
-		return blockexplorer;
-	},
-	"mongodb": () => {
-		var mongodb = {
-			"image": "mongo:3.4.10",
-			"container_name": "blk-free-mongodb",
-			"ports": ["27017:27017"],
-			"entrypoint": "mongod --smallfiles --logpath=/dev/null --bind_ip '0.0.0.0'",
-			"networks" : {}
-		}
-		mongodb.networks[network_name] = { "ipv4_address":serviceConfig["mongodb"].ip };
-		return mongodb;
-	},
-	"web" : () => {
-		var web = {
-			"image": "blkio10/explorer-ui-free:2.1.2",
-			"container_name": "blk-free-explorer-ui",
-			"ports": ["5000:5000"],
-			"environment": ["REACT_APP_EXPLORER=http://localhost:8081"],
-			"networks" : {}
-		}
-		web.networks[network_name] = { "ipv4_address":serviceConfig["web"].ip };
-		return web;
 	},
 	"docusaurus" : () => {
 		var doc = {
