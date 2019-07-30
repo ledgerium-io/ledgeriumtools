@@ -3,6 +3,8 @@ const readparams = require('../src/readparams');
 
 const gethCom   = `geth --rpc --rpcaddr '0.0.0.0' --rpccorsdomain '*' \
 --datadir '/eth' --rpcapi 'db,eth,net,web3,istanbul,personal,admin,debug,txpool' \
+--txpool.nolocals --txpool.accountslots 128 --txpool.globalslots 32768 \
+--txpool.accountqueue 512 --txpool.globalqueue 8192 \
 --ws --wsorigins '*' --wsapi 'db,eth,net,web3,personal,admin,debug,txpool' \
 --wsaddr '0.0.0.0' --networkid ${readparams.networkId} --targetgaslimit 9007199254740000 \
 --debug --metrics --syncmode 'full' --mine --verbosity 6 \
