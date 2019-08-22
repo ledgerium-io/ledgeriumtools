@@ -1,11 +1,7 @@
 # ledgeriumtools
-ledgeriumtools
+This tool is used to generate docker-compose yml for deploying block producer node to join Ledgerium Blockchain's testnet i.e. 'toorak', 'flinders' or mainnet (whenever it gets launched).
 
-## LedgeriumTools
-
-Generates a docker-compose yaml for deploying N nodes with IBFT consensus
-
-### Update initialparams.json
+## Update initialparams.json
 Edit this file before running the application
 1. mode: Change mode type (full/masternode)
     
@@ -16,7 +12,7 @@ Edit this file before running the application
 3. nodeName : Hostname of the machine where nodes will be hosted.
 4. domainName : Domain name of the external IP Address. domainName is needed for every node to which any client wants to `send transactions` or do `“geth attach”`
 
-### Run ledgeriumtools application
+## Run ledgeriumtools application
 
 To start the application, run
 ```
