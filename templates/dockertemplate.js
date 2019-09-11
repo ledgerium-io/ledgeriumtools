@@ -246,13 +246,13 @@ const serviceConfig = {
 					    "sslConfig": {
 					        "tls": "STRICT",
 					        "generateKeyStoreIfNotExisted": true,
-					        "serverKeyStore": "/priv/server"+i+"-keystore",
+					        "serverKeyStore": "/keystores/server"+i+"-keystore",
 					        "serverKeyStorePassword": "quorum",
 					        "serverTrustStore": "/priv/server-truststore",
 					        "serverTrustStorePassword": "quorum",
 					        "serverTrustMode": "TOFU",
 					        "knownClientsFile": "/priv/knownClients",
-					        "clientKeyStore": "/priv/client"+i+"-keystore",
+					        "clientKeyStore": "/keystores/client"+i+"-keystore",
 					        "clientKeyStorePassword": "quorum",
 					        "clientTrustStore": "/priv/client-truststore",
 					        "clientTrustStorePassword": "quorum",
@@ -268,11 +268,27 @@ const serviceConfig = {
 						"communicationType" : "REST"
 					},
 					{
-						"app":"ThirdParty",
+						"app": "ThirdParty",
 						"enabled": true,
-						"serverAddress" : (port+100+i),
-						"bindingAddress": "http://0.0.0.0:"+(port+100+i),
-						"communicationType" : "REST"
+						"serverAddress": (port + 100 + i),
+						"bindingAddress": "http://0.0.0.0:" + (port + 100 + i),
+						"communicationType": "REST",
+						"sslConfig": {
+							"tls": "STRICT",
+							"generateKeyStoreIfNotExisted": true,
+							"serverKeyStore": "/keystores/server0TP-keystore",
+							"serverKeyStorePassword": "quorum",
+							"serverTrustStore": "/priv/serverTP-truststore",
+							"serverTrustStorePassword": "quorum",
+							"serverTrustMode": "TOFU",
+							"knownClientsFile": "/priv/knownTPClients",
+							"clientKeyStore": "/keystores/client0TP-keystore",
+							"clientKeyStorePassword": "quorum",
+							"clientTrustStore": "/priv/clientTP-truststore",
+							"clientTrustStorePassword": "quorum",
+							"clientTrustMode": "TOFU",
+							"knownServersFile": "/priv/knownTPServers"
+						}
 					}
 				],
 				"peer" : [],
@@ -746,7 +762,7 @@ const services = {
 		var tessera          = {
 			"hostname"   : tesseraName,
 			"image"		 : "ledgeriumengineering/tessera:v1.1",
-			"volumes"    : [],
+			"volumes"    : ["./"+tesseraName+":/priv", "./keystores:/keystores"],
 			"entrypoint" : ["/bin/sh","-c"],
 			"networks"	 : {
 			},
@@ -805,12 +821,11 @@ const services = {
 		eTesseraTemplate.peer 						   = peers;
 		*/
 		tesseraNineTemplate.peer              			   = peers;
-		tessera.volumes								       = ["./"+tesseraName+":/priv"];
 		var keytoolStr;
 		if(readparams.distributed){
-			keytoolStr = `keytool -alias tessera -dname CN=${tesseraName} -genkeypair -keystore /priv/server${i}-keystore -storepass quorum -ext SAN=dns:localhost,dns:${tesseraName},ip:127.0.0.1,ip:0.0.0.0,ip:${startIp[0]}.${startIp[1]}.${startIp[2]}.${(i+parseInt(startIp[3]))},ip:${ipAddress[i]}`
+			keytoolStr = `keytool -alias tessera -dname CN=${tesseraName} -genKeypair -keyalg RSA -keysize 2048 -keystore /keystores/server${i}-keystore -storepass quorum -ext SAN=dns:localhost,dns:${tesseraName},ip:127.0.0.1,ip:0.0.0.0,ip:${startIp[0]}.${startIp[1]}.${startIp[2]}.${(i+parseInt(startIp[3]))},ip:${ipAddress[i]}`
 		} else {
-			keytoolStr = `keytool -alias tessera -dname CN=${tesseraName} -genkeypair -keystore /priv/server${i}-keystore -storepass quorum -ext SAN=dns:localhost,dns:${tesseraName},ip:127.0.0.1,ip:0.0.0.0,ip:${startIp[0]}.${startIp[1]}.${startIp[2]}.${(i+parseInt(startIp[3]))},ip:${readparams.externalIPAddress}`
+			keytoolStr = `keytool -alias tessera -dname CN=${tesseraName} -genKeypair -keyalg RSA -keysize 2048 -keystore /keystores/server${i}-keystore -storepass quorum -ext SAN=dns:localhost,dns:${tesseraName},ip:127.0.0.1,ip:0.0.0.0,ip:${startIp[0]}.${startIp[1]}.${startIp[2]}.${(i+parseInt(startIp[3]))},ip:${readparams.externalIPAddress}`
 		}
 		const commands = [
 			"DATE=`date '+%Y-%m-%d_%H-%M-%S'`",
