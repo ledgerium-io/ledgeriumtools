@@ -833,7 +833,9 @@ const services = {
 			"if [ ! -e \"/priv/tm.key\" ];then",
 			"mkdir -p /priv",
 			"mkdir -p /logs/tesseralogs",
+			"if [ ! -e \"/keystores\" ];then",
 			keytoolStr,
+			"fi",
 			"echo -e \"\\n\" | java -jar /tessera/tessera-app.jar -keygen -filename /priv/tm",
 			/* old tessera versions
 			"echo '"+JSON.stringify(tesseraTemplate)+"' > /priv/tessera-config.json",
