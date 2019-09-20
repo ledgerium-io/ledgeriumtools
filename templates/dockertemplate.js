@@ -319,6 +319,10 @@ const serviceConfig = {
 	}
 };
 
+// let hostValidatorName;
+// if(readparams.distributed) {
+// 	hostValidatorName = validatorNames[0]+'-'+basicConfig.publicKeys[0].slice(0,5);
+// }
 const services = {
 	"blockexplorerclient": ()=> {
 		var blockclient = {
@@ -368,7 +372,7 @@ const services = {
 			"environment": ["SERVER_PORT=2002", "SYNC_REQUESTS=100", "API_LIMIT_BLOCKS=100", "API_LIMIT_TRANSACTIONS=100"],
 			"volumes" 	: ["./logs:/logs"],
 			"entrypoint": ["/bin/sh", "-c"],
-			"depends_on": (readparams.distributed)? ["validator-" + ipAddress[0]] : ["validator-" + readparams.nodeName + '0'],
+			"depends_on": (readparams.distributed)? [validatorNames[0]+'-'+basicConfig.publicKeys[0].slice(0,5)] : ["validator-" + readparams.nodeName + '0'],
 			"restart"	: "always",
 			"networks"	: {
 			}
@@ -413,7 +417,7 @@ const services = {
 			"image"   : "ledgeriumengineering/quorum-maker:v0.1",
 			"ports"	  : [serviceConfig["quorum-maker"].port+":"+serviceConfig["quorum-maker"].port],
 			"volumes" : ["./logs:/logs","./tmp:/tmp","quorum-maker:/quorum-maker"],
-			"depends_on": (readparams.distributed)? ["validator-" + ipAddress[0]] : ["validator-" + readparams.nodeName + '0'],
+			"depends_on": (readparams.distributed)? [validatorNames[0]+'-'+basicConfig.publicKeys[0].slice(0,5)] : ["validator-" + readparams.nodeName + '0'],
 			"entrypoint":[ "/bin/sh", "-c"],
 			"networks": {
 			},
