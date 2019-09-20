@@ -510,7 +510,8 @@ const services = {
 		}
 
 		if(readparams.distributed) {
-			validatorName += ipAddress[i];
+			// validatorName += ipAddress[i];
+			validatorName = validatorNames[i] + '-' + basicConfig.publicKeys[i].slice(0,5)
 			constellationName += ipAddress[i];
 			tesseraName += ipAddress[i];
 		} else {
@@ -537,7 +538,7 @@ const services = {
 		}
 		else if(readparams.modeFlag == "masternode")
 			ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+readparams.externalIPAddress;
-		startGeth = gethCom + " --rpcvhosts=" + readparams.domainName + " --nodekeyhex \""+"${PRIVATEKEY"+[i]+"}"+"\" "
+		startGeth = gethCom + " --rpcvhosts=" + validatorName + " --nodekeyhex \""+"${PRIVATEKEY"+[i]+"}"+"\" "
 		+"--etherbase \""+basicConfig.publicKeys[i]+"\" --port \""+serviceConfig.validator.gossipPort+"\""
 		+ipaddressText+":3000\" --rpcport "+serviceConfig.validator.rpcPort
 		+" --wsport "+serviceConfig.validator.wsPort; // quorum maker service uses this identity
@@ -866,7 +867,7 @@ const services = {
 		}
 
 		if(readparams.distributed) {
-			validatorName += ipAddress[i];
+			validatorName = validatorNames[i] + '-' + basicConfig.publicKeys[i].slice(0,5);
 			constellationName += ipAddress[i];
 			tesseraName += ipAddress[i];
 			governanceUIName += ipAddress[i];

@@ -51,6 +51,7 @@ if(readparams.modeFlag == "full") {
 			//Clear services for every yml file
 			dockerComposeSplit.services = {};
 			dockerComposeSplit.volumes = {};
+			let validatorName = validatorNames[i] + '-' + basicConfig.publicKeys[i].slice(0,5);
 			//Add ledgeriumstats,blockexplorerclient,blockexplorerserver to first yml file
 			if(i == 0) {
 				dockerComposeSplit.services["blockexplorerclient"] = dockerTemplate.services['blockexplorerclient']();
@@ -59,8 +60,8 @@ if(readparams.modeFlag == "full") {
 				dockerComposeSplit["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
 				dockerComposeSplit.volumes["quorum-maker"] = null;
 			}
-			dockerCompose.services["validator-"+ipAddress[i]] = dockerTemplate.services.validator(i);
-			dockerComposeSplit.services["validator-"+ipAddress[i]] = dockerTemplate.services.validator(i);
+			dockerCompose.services[validatorName] = dockerTemplate.services.validator(i);
+			dockerComposeSplit.services[validatorName] = dockerTemplate.services.validator(i);
 			
 			if(!type) {
 				dockerCompose.services["constellation-"+ipAddress[i]] = dockerTemplate.services.constellation(i);
@@ -72,7 +73,7 @@ if(readparams.modeFlag == "full") {
 			dockerCompose.services["governance-ui-"+ipAddress[i]] = dockerTemplate.services.governanceapp(i);
 			dockerComposeSplit.services["governance-ui-"+ipAddress[i]] = dockerTemplate.services.governanceapp(i);
 
-			volumes = dockerCompose.services["validator-"+ipAddress[i]].volumes;
+			volumes = dockerCompose.services[validatorName].volumes;
 			YMLFileSplit = "./output/fullnode/docker-compose_" + i + "_" + ipAddress[i] +".yml";
 
 			for (var j = volumes.length - 1; j >= 0; j--) {

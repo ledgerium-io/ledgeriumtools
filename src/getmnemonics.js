@@ -5,6 +5,7 @@ const readparams = require('./readparams');
 var mnemonics = [];
 var passwords = [];
 var ipAddress = [];
+var validatorNames = [];
 var numberOfNodes;
 
 if(readparams.modeFlag == "full") {
@@ -41,7 +42,12 @@ for (var i = 0; i < numberOfNodes; i++) {
 			console.log("Invalid IP address");
 			process.exit(1);
 		}
+		
+		var validatorName = readlineSync.question('Enter validator name '+i+ ' : ', {
+			hideEchoBack : false
+		});
 	}
+
 
 	var menmonic = readlineSync.question('Enter Mnemonic '+i+" : ", {
 		hideEchoBack: true
@@ -56,6 +62,7 @@ for (var i = 0; i < numberOfNodes; i++) {
 	}
 
 	ipAddress.push(ip);
+	validatorNames.push(validatorName);
 	mnemonics.push(menmonic);
 	passwords.push(password);
 }
@@ -87,4 +94,5 @@ template.mnemonic = mnemonics;
 exports.template  = template;
 exports.passwords = passwords;
 global.ipAddress = ipAddress;
+global.validatorNames = validatorNames;
 global.numberOfNodes = numberOfNodes;
