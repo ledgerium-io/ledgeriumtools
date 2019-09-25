@@ -544,7 +544,7 @@ const services = {
 			ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+domainNames[0]+"/stats";
 		startGeth = gethCom + " --rpcvhosts=" + domainNames[i] + " --nodekeyhex \""+"${PRIVATEKEY"+[i]+"}"+"\" "
 		+"--etherbase \""+basicConfig.publicKeys[i]+"\" --port \""+serviceConfig.validator.gossipPort+"\""
-		+ipaddressText+ " --rpcport "+serviceConfig.validator.rpcPort
+		+ipaddressText+ "\" --rpcport "+serviceConfig.validator.rpcPort
 		+" --wsport "+serviceConfig.validator.wsPort; // quorum maker service uses this identity
 		const startIp = serviceConfig.validator.startIp.split(".");
 		var validator = {
