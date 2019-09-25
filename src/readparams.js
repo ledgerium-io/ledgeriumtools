@@ -8,7 +8,6 @@ var env = "dev";
 var externalIPAddress = "127.0.0.1";
 var nodeName = "nodeName";
 var faultynode = 0;
-var domainName = "domainName";
 var networkId = "2019";
 var distributed = "false";
 
@@ -43,9 +42,6 @@ function readInitialParams(){
 		if(initialData["networkId"] != undefined)
 			networkId = initialData["networkId"];
 
-		if(initialData['domainName'] != undefined)
-			domainName = initialData['domainName'];
-
 		if (modeFlag == "full" || modeFlag == "masternode") {
 			console.log("YML file with", modeFlag, "mode for", env, "setup");
 		} else {
@@ -62,5 +58,4 @@ exports.env = env;
 exports.externalIPAddress = externalIPAddress;
 exports.nodeName = nodeName;
 exports.faultynode = faultynode;
-exports.domainName = domainName;
 exports.networkId = networkId;

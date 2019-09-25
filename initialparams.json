@@ -1,9 +1,8 @@
 {
     "mode": "full",
-    "distributed":false,
+    "distributed":true,
     "env": "devnet",
     "externalIPAddress": "125.254.27.14",
     "nodeName": "msc",
-    "domainName": "msc",
     "networkId": 2019
 }
