@@ -4,8 +4,9 @@ const readparams = require('./readparams');
 
 var mnemonics = [];
 var passwords = [];
-var ipAddress = [];
-var validatorNames = [];
+let ipAddress = [];
+let validatorNames = [];
+let domainNames = [];
 var numberOfNodes;
 
 if(readparams.modeFlag == "full") {
@@ -34,7 +35,7 @@ for (var i = 0; i < numberOfNodes; i++) {
 
 	/** IP Addresses for distributed setup */
 	if(readparams.distributed) {
-		var ip = readlineSync.question('Enter IP Address '+i+" : ", {
+		let ip = readlineSync.question('Enter IP Address '+i+" : ", {
 			hideEchoBack: false
 		});
 
@@ -43,9 +44,17 @@ for (var i = 0; i < numberOfNodes; i++) {
 			process.exit(1);
 		}
 		
-		var validatorName = readlineSync.question('Enter validator name '+i+ ' : ', {
+		let validatorName = readlineSync.question('Enter validator name '+i+ ' : ', {
 			hideEchoBack : false
 		});
+
+		let domainName = readlineSync.question('Enter DNS '+i+ ' : ', {
+			hideEchoBack : false
+		}); 
+
+		ipAddress.push(ip);
+		validatorNames.push(validatorName);
+		domainNames.push(domainName);
 	}
 
 
@@ -61,8 +70,6 @@ for (var i = 0; i < numberOfNodes; i++) {
 		continue;
 	}
 
-	ipAddress.push(ip);
-	validatorNames.push(validatorName);
 	mnemonics.push(menmonic);
 	passwords.push(password);
 }
@@ -95,4 +102,5 @@ exports.template  = template;
 exports.passwords = passwords;
 global.ipAddress = ipAddress;
 global.validatorNames = validatorNames;
+global.domainNames = domainNames;
 global.numberOfNodes = numberOfNodes;
