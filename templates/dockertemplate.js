@@ -69,9 +69,9 @@ const serviceConfig = {
 	"ledgeriumfaucet" : {
 		"ip" : base_ip.slice(0, base_ip.length-1)+"4"
 	},
-	"docusaurus" : {
-		"ip" : base_ip.slice(0, base_ip.length-1)+"5"
-	},
+	// "docusaurus" : {
+	// 	"ip" : base_ip.slice(0, base_ip.length-1)+"5"
+	// },
 	"blockexplorerclient":{
 		"ip" : base_ip.slice(0, base_ip.length-1)+"6",
 		"deploy": deployConfig(500,128)
@@ -84,9 +84,9 @@ const serviceConfig = {
 		"ip" : base_ip.slice(0, base_ip.length-1)+"8",
 		"deploy": deployConfig(500,128)
 	},
-	"ledgeriumdocs" : {
-		"ip" : base_ip.slice(0, base_ip.length-1)+"9"
-	},
+	// "ledgeriumdocs" : {
+	// 	"ip" : base_ip.slice(0, base_ip.length-1)+"9"
+	// },
 	"validator": {
 		"startIp": base_ip.slice(0, base_ip.length-1)+"10",
 		"gossipPort":30303,
@@ -306,11 +306,11 @@ const serviceConfig = {
 			}
 		}
 	},
-	"quorum-maker": {
-		"ip"   : base_ip.slice(0, base_ip.length-1)+"196",
-		"port" : 9999,
-		'deploy': deployConfig(500,128)
-	},
+	// "quorum-maker": {
+	// 	"ip"   : base_ip.slice(0, base_ip.length-1)+"196",
+	// 	"port" : 9999,
+	// 	'deploy': deployConfig(500,128)
+	// },
 	"governance-app": {
 		"port-exp": 3545,
 		"port-int": 3003,
@@ -327,7 +327,7 @@ const services = {
 	"blockexplorerclient": ()=> {
 		var blockclient = {
 			"hostname"		: "blockexplorerclient",
-			"image"     	: "ledgeriumengineering/blockexplorerclient:v1.0",
+			"image"     	: "blengineering.azurecr.io/blengineering/blockexplorerclient:v1.0",
 			"ports"     	: ["2000:80"],
 			"volumes" 		: ["./logs:/logs"],
 			"depends_on"	: ["blockexplorerserver"],
@@ -367,7 +367,7 @@ const services = {
 
 		var blockserver = {
 			"hostname"	: "blockexplorerserver",
-			"image"     : "ledgeriumengineering/blockexplorerserver:v1.0",
+			"image"     : "blengineering.azurecr.io/blengineering/blockexplorerserver:v1.0",
 			"ports"     : ["2002:2002"],
 			"environment": ["SERVER_PORT=2002", "SYNC_REQUESTS=100", "API_LIMIT_BLOCKS=100", "API_LIMIT_TRANSACTIONS=100"],
 			"volumes" 	: ["./logs:/logs"],
@@ -381,8 +381,8 @@ const services = {
 		blockserver.environment.push("MONGO_DB="+mongoDBName);
 		blockserver.environment.push("MONGO_USERNAME="+"root");
 		blockserver.environment.push("MONGO_PASSWORD="+"toor");
-		blockserver.environment.push("WEB3_HTTP=http://"+gateway+":"+serviceConfig.validator.rpcPort);
-		blockserver.environment.push("WEB3_WS=ws://"+gateway+":"+serviceConfig.validator.wsPort);
+		blockserver.environment.push("WEB3_HTTP=http://"+domainNames[0]+":"+serviceConfig.validator.rpcPort);
+		blockserver.environment.push("WEB3_WS=ws://"+domainNames[0]+":"+serviceConfig.validator.wsPort);
 		var startEntryPoint = "";
 		startEntryPoint+="set -u\n";
 		startEntryPoint+="set -e\n";
@@ -411,100 +411,100 @@ const services = {
 		eth.networks[network_name] = { "ipv4_address":serviceConfig["ledgeriumstats"].ip };
 		return eth;
 	},
-	"quorum-maker": ()=> {
-		var quorum = {
-			"hostname": "quorum-maker",
-			"image"   : "ledgeriumengineering/quorum-maker:v0.1",
-			"ports"	  : [serviceConfig["quorum-maker"].port+":"+serviceConfig["quorum-maker"].port],
-			"volumes" : ["./logs:/logs","./tmp:/tmp","quorum-maker:/quorum-maker"],
-			"depends_on": (readparams.distributed)? [validatorNames[0]+'-'+basicConfig.publicKeys[0].slice(0,5)] : ["validator-" + readparams.nodeName + '0'],
-			"entrypoint":[ "/bin/sh", "-c"],
-			"networks": {
-			},
-			"restart": "always"
-		};
-		quorum.deploy = serviceConfig['quorum-maker'].deploy;
-		quorum.networks[network_name] = { "ipv4_address": serviceConfig["quorum-maker"].ip }
+	// "quorum-maker": ()=> {
+	// 	var quorum = {
+	// 		"hostname": "quorum-maker",
+	// 		"image"   : "ledgeriumengineering/quorum-maker:v0.1",
+	// 		"ports"	  : [serviceConfig["quorum-maker"].port+":"+serviceConfig["quorum-maker"].port],
+	// 		"volumes" : ["./logs:/logs","./tmp:/tmp","quorum-maker:/quorum-maker"],
+	// 		"depends_on": (readparams.distributed)? [validatorNames[0]+'-'+basicConfig.publicKeys[0].slice(0,5)] : ["validator-" + readparams.nodeName + '0'],
+	// 		"entrypoint":[ "/bin/sh", "-c"],
+	// 		"networks": {
+	// 		},
+	// 		"restart": "always"
+	// 	};
+	// 	quorum.deploy = serviceConfig['quorum-maker'].deploy;
+	// 	quorum.networks[network_name] = { "ipv4_address": serviceConfig["quorum-maker"].ip }
 
-		if(readparams.distributed) {
-			quorum.volumes.push("./validator-" + ipAddress[0] + ":/eth");
-			var publicKeyPath = (i) => { return "/tmp/tm"+i+".pub"; };
-			if(tesseraFlag) {
-				quorum.volumes.push("./tessera-" + ipAddress[0] + ":/priv");
-			}
-			else{
-				quorum.volumes.push("constellation-" + ipAddress[0] + ":/constellation:z");
-			}
-		} else {
-			quorum.volumes.push("./validator-" + readparams.nodeName + "0" + ":/eth");
-			var publicKeyPath = (i) => { return "/tmp/tm"+i+".pub"; };
-			if(tesseraFlag) {
-				quorum.volumes.push("./tessera-" + readparams.nodeName + "0" + ":/priv");
-			}
-			else{
-				quorum.volumes.push("constellation-" + readparams.nodeName + "0" + ":/constellation:z");
-			}
-		}
+	// 	if(readparams.distributed) {
+	// 		quorum.volumes.push("./validator-" + ipAddress[0] + ":/eth");
+	// 		var publicKeyPath = (i) => { return "/tmp/tm"+i+".pub"; };
+	// 		if(tesseraFlag) {
+	// 			quorum.volumes.push("./tessera-" + ipAddress[0] + ":/priv");
+	// 		}
+	// 		else{
+	// 			quorum.volumes.push("constellation-" + ipAddress[0] + ":/constellation:z");
+	// 		}
+	// 	} else {
+	// 		quorum.volumes.push("./validator-" + readparams.nodeName + "0" + ":/eth");
+	// 		var publicKeyPath = (i) => { return "/tmp/tm"+i+".pub"; };
+	// 		if(tesseraFlag) {
+	// 			quorum.volumes.push("./tessera-" + readparams.nodeName + "0" + ":/priv");
+	// 		}
+	// 		else{
+	// 			quorum.volumes.push("constellation-" + readparams.nodeName + "0" + ":/constellation:z");
+	// 		}
+	// 	}
 
-		var commands = [
-			"set -u",
-			"set -e",
-			"mkdir -p /logs/quorummakerlogs",
-			"DATE=`date '+%Y-%m-%d_%H-%M-%S'`",
-			"while : ;do",
-			"sleep 1",
-			"if [ -e /eth/geth.ipc ];then",
-			"break;",
-			"fi",
-			"done",
-			"cd /quorum-maker",
-			"if [ ! -e /quorum-maker/setup.conf ];then",
-			"RESPONSE=\`curl https://ipinfo.io/ip\` || \"--\"",
-			"echo \"EXTERNAL_IP=$${RESPONSE}\" > ./setup.conf"
-		];
-		for (var i = 0; i < basicConfig.publicKeys.length; i++) {
-			var prefix = "";
-			const startIp = serviceConfig.validator.startIp.split(".");
-			const ip = startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+i);
-			// const ip = (readparams.distributed)? ipAddress[i] : startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+i);
-			if(i != 0){
-				prefix = i+"_";
-				commands.push("echo \""+prefix+"ENODE="+basicConfig.enodes[i]+"\" >> ./setup.conf")
-			}else{
-				commands.push("echo \"CONTRACT_ADD=\" >> setup.conf");
-				commands.push("echo \"RPC_PORT="+serviceConfig.validator.rpcPort+"\" >> ./setup.conf");
-				commands.push("echo \"WS_PORT="+serviceConfig.validator.wsPort+"\" >> ./setup.conf");
-				commands.push("echo \"WHISPER_PORT="+serviceConfig.validator.gossipPort+"\" >> ./setup.conf");
-				commands.push("echo \"CONSTELLATION_PORT="+serviceConfig.constellation.port+"\" >> ./setup.conf");
-				commands.push("echo \"TOTAL_NODES="+basicConfig.publicKeys.length+"\" >> ./setup.conf")
-				commands.push("echo \"MODE=ACTIVE\" >> ./setup.conf")
-				commands.push("echo \"STATE=I\" >> ./setup.conf")
-				commands.push("echo \"PRIVATE_KEY="+"${PRIVATEKEY"+i+"}"+"\" >> ./setup.conf");
-			}
-			commands.push("if [ -e "+publicKeyPath(i)+" ];then")
-			commands.push("PUB=$$(cat "+publicKeyPath(i)+")");
-			commands.push("fi");
-			commands.push("echo \""+prefix+"PUBKEY=\"$${PUB} >> ./setup.conf")
-			commands.push("echo \""+prefix+"ROLE=Unassigned\" >> ./setup.conf")
-			commands.push("echo \""+prefix+"CURRENT_IP="+ip+"\" >> ./setup.conf");
-			commands.push("echo \""+prefix+"REGISTERED=\" >> ./setup.conf")
-			commands.push("echo \""+prefix+"NODENAME=validator-\""+i+" >> ./setup.conf")     // check validator name for below value
-		}
-		commands.push("fi");
-		commands.push("cd /root/quorum-maker/");
-		var tranStr;
-		if(!tesseraFlag) {
-			tranStr = "/logs/constellationlogs";
-		} else {
-			tranStr = "/logs/tesseralogs";
-		}
-		var commandString = " /logs/validatorlogs/ " +  tranStr + " /quorum-maker/setup.conf" + " >/logs/quorummakerlogs/" + "$${DATE}_log.txt";
-		//commands.push("./NodeManager http://"+serviceConfig.validator.startIp+":"+serviceConfig.validator.rpcPort+" "
-		commands.push("./NodeManager http://"+gateway+":"+serviceConfig.validator.rpcPort+" "
-			+serviceConfig["quorum-maker"]["port"]+ commandString);
-		quorum.entrypoint.push(genCommand(commands));
-		return quorum;
-	},
+	// 	var commands = [
+	// 		"set -u",
+	// 		"set -e",
+	// 		"mkdir -p /logs/quorummakerlogs",
+	// 		"DATE=`date '+%Y-%m-%d_%H-%M-%S'`",
+	// 		"while : ;do",
+	// 		"sleep 1",
+	// 		"if [ -e /eth/geth.ipc ];then",
+	// 		"break;",
+	// 		"fi",
+	// 		"done",
+	// 		"cd /quorum-maker",
+	// 		"if [ ! -e /quorum-maker/setup.conf ];then",
+	// 		"RESPONSE=\`curl https://ipinfo.io/ip\` || \"--\"",
+	// 		"echo \"EXTERNAL_IP=$${RESPONSE}\" > ./setup.conf"
+	// 	];
+	// 	for (var i = 0; i < basicConfig.publicKeys.length; i++) {
+	// 		var prefix = "";
+	// 		const startIp = serviceConfig.validator.startIp.split(".");
+	// 		const ip = startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+i);
+	// 		// const ip = (readparams.distributed)? ipAddress[i] : startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+i);
+	// 		if(i != 0){
+	// 			prefix = i+"_";
+	// 			commands.push("echo \""+prefix+"ENODE="+basicConfig.enodes[i]+"\" >> ./setup.conf")
+	// 		}else{
+	// 			commands.push("echo \"CONTRACT_ADD=\" >> setup.conf");
+	// 			commands.push("echo \"RPC_PORT="+serviceConfig.validator.rpcPort+"\" >> ./setup.conf");
+	// 			commands.push("echo \"WS_PORT="+serviceConfig.validator.wsPort+"\" >> ./setup.conf");
+	// 			commands.push("echo \"WHISPER_PORT="+serviceConfig.validator.gossipPort+"\" >> ./setup.conf");
+	// 			commands.push("echo \"CONSTELLATION_PORT="+serviceConfig.constellation.port+"\" >> ./setup.conf");
+	// 			commands.push("echo \"TOTAL_NODES="+basicConfig.publicKeys.length+"\" >> ./setup.conf")
+	// 			commands.push("echo \"MODE=ACTIVE\" >> ./setup.conf")
+	// 			commands.push("echo \"STATE=I\" >> ./setup.conf")
+	// 			commands.push("echo \"PRIVATE_KEY="+"${PRIVATEKEY"+i+"}"+"\" >> ./setup.conf");
+	// 		}
+	// 		commands.push("if [ -e "+publicKeyPath(i)+" ];then")
+	// 		commands.push("PUB=$$(cat "+publicKeyPath(i)+")");
+	// 		commands.push("fi");
+	// 		commands.push("echo \""+prefix+"PUBKEY=\"$${PUB} >> ./setup.conf")
+	// 		commands.push("echo \""+prefix+"ROLE=Unassigned\" >> ./setup.conf")
+	// 		commands.push("echo \""+prefix+"CURRENT_IP="+ip+"\" >> ./setup.conf");
+	// 		commands.push("echo \""+prefix+"REGISTERED=\" >> ./setup.conf")
+	// 		commands.push("echo \""+prefix+"NODENAME=validator-\""+i+" >> ./setup.conf")     // check validator name for below value
+	// 	}
+	// 	commands.push("fi");
+	// 	commands.push("cd /root/quorum-maker/");
+	// 	var tranStr;
+	// 	if(!tesseraFlag) {
+	// 		tranStr = "/logs/constellationlogs";
+	// 	} else {
+	// 		tranStr = "/logs/tesseralogs";
+	// 	}
+	// 	var commandString = " /logs/validatorlogs/ " +  tranStr + " /quorum-maker/setup.conf" + " >/logs/quorummakerlogs/" + "$${DATE}_log.txt";
+	// 	//commands.push("./NodeManager http://"+serviceConfig.validator.startIp+":"+serviceConfig.validator.rpcPort+" "
+	// 	commands.push("./NodeManager http://"+gateway+":"+serviceConfig.validator.rpcPort+" "
+	// 		+serviceConfig["quorum-maker"]["port"]+ commandString);
+	// 	quorum.entrypoint.push(genCommand(commands));
+	// 	return quorum;
+	// },
 	"validator": (i,test)=> {
 		var validatorName = "validator-", constellationName = "constellation-", tesseraName = "tessera-";
 		if(test){
@@ -535,14 +535,14 @@ const services = {
 		var startGeth;
 		if(readparams.modeFlag == "full") {
 			if(readparams.distributed) {
-				ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+ipAddress[0];
+				ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+domainNames[0]+"/stats";
 			} else {
 				ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+serviceConfig["ledgeriumstats"].ip;
 			}
 		}
 		else if(readparams.modeFlag == "masternode")
-			ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+readparams.externalIPAddress;
-		startGeth = gethCom + " --rpcvhosts=" + validatorName + " --nodekeyhex \""+"${PRIVATEKEY"+[i]+"}"+"\" "
+			ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+domainNames[0]+"/stats";
+		startGeth = gethCom + " --rpcvhosts=" + domainNames[i] + " --nodekeyhex \""+"${PRIVATEKEY"+[i]+"}"+"\" "
 		+"--etherbase \""+basicConfig.publicKeys[i]+"\" --port \""+serviceConfig.validator.gossipPort+"\""
 		+ipaddressText+":3000\" --rpcport "+serviceConfig.validator.rpcPort
 		+" --wsport "+serviceConfig.validator.wsPort; // quorum maker service uses this identity
