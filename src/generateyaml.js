@@ -13,14 +13,14 @@ if(readparams.modeFlag == "full") {
 	dockerCompose.services["blockexplorerclient"] = dockerTemplate.services['blockexplorerclient']();
 	dockerCompose.services["blockexplorerserver"] = dockerTemplate.services['blockexplorerserver']();
 	dockerCompose.services["ledgeriumstats"] = dockerTemplate.services['ledgeriumstats']();
-	dockerCompose["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
+	// dockerCompose["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
 	switch (readparams.env) {
 		case "testnet":
 		case "devnet":
 		dockerComposefull.services["redis"] = dockerTemplate.services['redis']();
 		dockerComposefull.services["ledgeriumfaucet"] = dockerTemplate.services['ledgeriumfaucet']();
-		dockerComposefull.services["docusaurus"] = dockerTemplate.services['docusaurus']();
-		dockerComposefull.services["ledgeriumdocs"] = dockerTemplate.services["ledgeriumdocs"]();
+		// dockerComposefull.services["docusaurus"] = dockerTemplate.services['docusaurus']();
+		// dockerComposefull.services["ledgeriumdocs"] = dockerTemplate.services["ledgeriumdocs"]();
 		break;
 		case "mainnet":
 			// dockerComposefull.services["blockexplorer"] = dockerTemplate.services['blockexplorer']();
@@ -57,8 +57,8 @@ if(readparams.modeFlag == "full") {
 				dockerComposeSplit.services["blockexplorerclient"] = dockerTemplate.services['blockexplorerclient']();
 				dockerComposeSplit.services["blockexplorerserver"] = dockerTemplate.services['blockexplorerserver']();
 				dockerComposeSplit.services["ledgeriumstats"] = dockerTemplate.services['ledgeriumstats']();
-				dockerComposeSplit["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
-				dockerComposeSplit.volumes["quorum-maker"] = null;
+				// dockerComposeSplit["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
+				// dockerComposeSplit.volumes["quorum-maker"] = null;
 			}
 			dockerCompose.services[validatorName] = dockerTemplate.services.validator(i);
 			dockerComposeSplit.services[validatorName] = dockerTemplate.services.validator(i);
@@ -93,7 +93,7 @@ if(readparams.modeFlag == "full") {
 			dockerComposeSplit.services["blockexplorerclient"] = dockerTemplate.services['blockexplorerclient']();
 			dockerComposeSplit.services["blockexplorerserver"] = dockerTemplate.services['blockexplorerserver']();
 			dockerCompose.services["ledgeriumstats"] = dockerTemplate.services['ledgeriumstats']();
-			dockerCompose["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
+			// dockerCompose["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
 
 			dockerCompose.services["validator-"+readparams.nodeName + i] = dockerTemplate.services.validator(i);
 			//dockerComposeSplit.services["validator-"+readparams.nodeName + i] = dockerTemplate.services.validator(i);
