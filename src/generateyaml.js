@@ -74,7 +74,7 @@ if(readparams.modeFlag == "full") {
 			dockerComposeSplit.services["governance-ui-"+ipAddress[i]] = dockerTemplate.services.governanceapp(i);
 
 			volumes = dockerCompose.services[validatorName].volumes;
-			YMLFileSplit = "./output/fullnode/docker-compose_" + i + "_" + ipAddress[i] +".yml";
+			YMLFileSplit = "./output/fullnode/docker-compose_" + i + "_" + domainNames[i] +".yml";
 
 			for (var j = volumes.length - 1; j >= 0; j--) {
 				if(volumes[j].slice(0,1) != ".")
