@@ -13,7 +13,13 @@ const gethCom   = `geth --rpc --rpcaddr '0.0.0.0' --rpccorsdomain '*' \
 const tesseraFlag = true;
 const network_name = "test_net";
 var base_ip = "172.19.240.0",entrypoint, qmvolumes =[];
-var gateway = "172.19.240.1"
+var gateway = "172.19.240.1";
+var statsURL;
+if(readparams.distributed){
+	statsURL = "flinders.ledgerium.io/stats";
+} else {
+	statsURL = "toorak.ledgerium.io/stats";
+}
 
 const genCommand = (commands)=>{
 	var commandString = "";
@@ -534,11 +540,7 @@ const services = {
 		var ipaddressText;
 		var startGeth;
 		if(readparams.modeFlag == "full") {
-			if(readparams.distributed) {
-				ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+domainNames[0]+"/stats";
-			} else {
-				ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+serviceConfig["ledgeriumstats"].ip + ":3000";
-			}
+			ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+statsURL;
 		}
 		else if(readparams.modeFlag == "masternode")
 			ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+domainNames[0]+"/stats";
