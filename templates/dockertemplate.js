@@ -544,7 +544,7 @@ const services = {
 		}
 		else if(readparams.modeFlag == "masternode")
 			ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+domainNames[0]+"/stats";
-		startGeth = gethCom + " --rpcvhosts=" + domainNames[i] + " --nodekeyhex \""+"${PRIVATEKEY"+[i]+"}"+"\" "
+		startGeth = gethCom + " --rpcvhosts=" + domainNames[i] + " --nodekeyhex \""+"${PRIVATEKEY}"+"\" "
 		+"--etherbase \""+basicConfig.publicKeys[i]+"\" --port \""+serviceConfig.validator.gossipPort+"\""
 		+ipaddressText+ "\" --rpcport "+serviceConfig.validator.rpcPort
 		+" --wsport "+serviceConfig.validator.wsPort; // quorum maker service uses this identity
@@ -927,7 +927,7 @@ const services = {
 			string+="node index.js protocol=http hostname=" + gateway + " port=" + serviceConfig.validator.rpcPort + " initiateApp="
 			var privateKeyString="";
 			for(var nodeIndex = 0; nodeIndex < numberOfNodes;) {
-				privateKeyString+= "${PRIVATEKEY" + (nodeIndex++) + "}"
+				privateKeyString+= "${PRIVATEKEY}"
 				if(nodeIndex < numberOfNodes){ //if not the last node
 					privateKeyString+= ",";
 				}	
