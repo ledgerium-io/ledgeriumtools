@@ -623,8 +623,8 @@ const services = {
 			"cp /tmp/static-nodes.json /eth/static-nodes.json",
 			cpPubKeys,
 			"geth init /eth/genesis.json --datadir /eth",		
-			"echo '"+"${PASSWORD"+[i]+"}"+"' > ./password",
-			"echo '"+"${PRIVATEKEY"+[i]+"}"+"' > ./file",
+			"echo '"+"${PASSWORD}"+"' > ./password",
+			"echo '"+"${PRIVATEKEY}"+"' > ./file",
 			"geth account import file --datadir /eth --password password",
 			"rm -f ./file && rm -f ./password",
 			"fi"
