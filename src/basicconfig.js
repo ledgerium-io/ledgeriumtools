@@ -9,15 +9,27 @@ var input = require('./getmnemonics');
 
 var mnemonic = input.template;
 
-var envParams = "";
 var rpcPort = 8545;
 var nodeJSON = {};
 var nodeDetails = [];
 var faultyNodeFlag = readparams.faultynode;
-var privateKeyJSON = {}; var writeprivatekeys = true;
+var writeprivatekeys = true;
 var validatorIDs = [], hostNames = [], privateKeys = [], publicKeys = [], static_nodes = "[", staticNodesExternal = "[", extraData, enodes = [];
 const vanity = mnemonic.istanbul.vanity || "0x0000000000000000000000000000000000000000000000000000000000000000";
 const seal   = mnemonic.istanbul.seal || "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+
+const outputDir = __dirname + "/../output/";
+const tempDir = __dirname + "/../output/tmp/";
+const fullnodeDir = __dirname + "/../output/fullnode/"
+const fullnodeTempDir = __dirname + "/../output/fullnode/tmp/"
+
+if (!fs.existsSync(fullnodeDir)) {
+    fs.mkdirSync(fullnodeDir);
+}
+
+if (!fs.existsSync(fullnodeTempDir)) {
+    fs.mkdirSync(fullnodeTempDir);
+}
 
 if(mnemonic.mode == 0){
 	var temp = mnemonic.mnemonic;
@@ -32,6 +44,8 @@ var baseIp = dockerTemplate.serviceConfig.validator.startIp.split(".");
 const startIp = (parseInt(baseIp[3]));
 baseIp = baseIp[0]+"."+baseIp[1]+"."+baseIp[2]+".";
 for (var i = 0; i < privateKeys.length; i++) {
+	let envParams = "";
+	let privateKeyJSON = {};
 	var temp = ethUtil.privateToPublic(privateKeys[i]).toString('hex');
 	enodes.push(temp);
 
@@ -76,8 +90,17 @@ for (var i = 0; i < privateKeys.length; i++) {
 	privateKeyJSON["0x" + pubk] = privateKeys[i].split("0x")[1];
 	
 	//Append private keys and passwords to a variable
-	envParams += "PRIVATEKEY" + i + "=" + privateKeys[i].split("0x")[1] + "\n";
-	envParams += "PASSWORD" + i + "=" + input.passwords[i] + "\n";
+	// envParams += "PRIVATEKEY" + i + "=" + privateKeys[i].split("0x")[1] + "\n";
+	// envParams += "PASSWORD" + i + "=" + input.passwords[i] + "\n";
+	envParams += "PRIVATEKEY" + "=" + privateKeys[i].split("0x")[1] + "\n";
+	envParams += "PASSWORD" + "=" + input.passwords[i];
+	if(i === 0) {
+		fs.writeFileSync(outputDir + ".env", envParams);
+		fs.writeFileSync(tempDir+ "privatekeys.json", JSON.stringify(privateKeyJSON,null, 2))
+	} else {
+		fs.writeFileSync(fullnodeDir + ".env" +i, envParams);
+		fs.writeFileSync(fullnodeTempDir+ "privatekeys" + i + ".json", JSON.stringify(privateKeyJSON,null, 2))
+	}
 	
 	publicKeys.push(pubk);
 	if(i != privateKeys.length-1){
@@ -132,29 +155,27 @@ const genesisFile = "genesis.json";
 const privatekeysFile = "privatekeys.json";
 const staticFile = "static-nodes.json";
 const permissionedFile = "permissioned-nodes.json";
-const envFile = __dirname + "/../output/.env"; //.env file path
+// const envFile = __dirname + "/../output/.env"; //.env file path
 
-const tempDir = __dirname + "/../output/tmp/";
 if(fs.existsSync(tempDir + genesisFile))
 	fs.unlinkSync(tempDir + genesisFile);
-if(fs.existsSync(tempDir + privatekeysFile))
-	fs.unlinkSync(tempDir + privatekeysFile);
+// if(fs.existsSync(tempDir + privatekeysFile))
+// 	fs.unlinkSync(tempDir + privatekeysFile);
 if(fs.existsSync(tempDir + staticFile))
 	fs.unlinkSync(tempDir + staticFile);
 if(fs.existsSync(tempDir + permissionedFile))
 	fs.unlinkSync(tempDir + permissionedFile);
-if(fs.existsSync(envFile))
-	fs.unlinkSync(envFile);
+// if(fs.existsSync(envFile))
+// 	fs.unlinkSync(envFile);
 if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir);
 }
 
 //Create env file for both full/masternode mode
-fs.writeFileSync(envFile, envParams); //Write private keys and passwords to .env file
+// fs.writeFileSync(envFile, envParams); //Write private keys and passwords to .env file
 
 if(readparams.modeFlag == "full") {
 	const nodeDetailsFile = "nodesdetails.json";
-	const fullnodeDir = __dirname + "/../output/fullnode"
 	if (!fs.existsSync(fullnodeDir)) {
 		fs.mkdirSync(fullnodeDir);
 	}
@@ -162,34 +183,34 @@ if(readparams.modeFlag == "full") {
 	if(fs.existsSync(envFilefullnode))
 		fs.unlinkSync(envFilefullnode);
 	//Create env file for full node, will be used by faucet
-	fs.writeFileSync(envFilefullnode, envParams); //Write private keys and passwords to .env file
+	// fs.writeFileSync(envFilefullnode, envParams); //Write private keys and passwords to .env file
 	
 	fs.writeFileSync(tempDir + genesisFile, JSON.stringify(genesisTemplate));
 	fs.writeFileSync(tempDir + staticFile, static_nodes);
 	//fs.writeFileSync(tempDir + permissionedFile, static_nodes);
 	fs.writeFileSync(tempDir + nodeDetailsFile, JSON.stringify(nodeJSON, null, 2));
 
-	const outputDir = __dirname + "/../../ledgeriumnetwork/";
-	if (!fs.existsSync(outputDir)) {
-		fs.mkdirSync(outputDir);
+	const networkDir = __dirname + "/../../ledgeriumnetwork/";
+	if (!fs.existsSync(networkDir)) {
+		fs.mkdirSync(networkDir);
 	}
-	if(fs.existsSync(outputDir + genesisFile))
-		fs.unlinkSync(outputDir + genesisFile);
-	if(fs.existsSync(outputDir + staticFile))
-		fs.unlinkSync(outputDir + staticFile);
-	if(fs.existsSync(outputDir + permissionedFile))
-		fs.unlinkSync(outputDir + permissionedFile);
+	if(fs.existsSync(networkDir + genesisFile))
+		fs.unlinkSync(networkDir + genesisFile);
+	if(fs.existsSync(networkDir + staticFile))
+		fs.unlinkSync(networkDir + staticFile);
+	if(fs.existsSync(networkDir + permissionedFile))
+		fs.unlinkSync(networkDir + permissionedFile);
 		
-	fs.writeFileSync(outputDir + genesisFile, JSON.stringify(genesisTemplate));
-	fs.writeFileSync(outputDir + staticFile, staticNodesExternal);
-	//fs.writeFileSync(outputDir + permissionedFile, staticNodesExternal);
-	//fs.writeFileSync(outputDir + nodeDetailsFile, JSON.stringify(nodeJSON, null, 2));
+	fs.writeFileSync(networkDir + genesisFile, JSON.stringify(genesisTemplate));
+	fs.writeFileSync(networkDir + staticFile, staticNodesExternal);
+	//fs.writeFileSync(networkDir + permissionedFile, staticNodesExternal);
+	//fs.writeFileSync(networkDir + nodeDetailsFile, JSON.stringify(nodeJSON, null, 2));
 }
 
-if(writeprivatekeys) {
-	var data = JSON.stringify(privateKeyJSON,null, 2);
-	fs.writeFileSync(tempDir + privatekeysFile, data);
-}
+// if(writeprivatekeys) {
+// 	var data = JSON.stringify(privateKeyJSON,null, 2);
+// 	fs.writeFileSync(tempDir + privatekeysFile, data);
+// }
 
 exports.validatorIDs = hostNames;
 exports.hostNames = hostNames;
