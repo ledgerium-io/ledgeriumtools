@@ -1006,7 +1006,7 @@ const services = {
 		const commands = [
 			startEntryPoint,
 			"DATE=`date '+%Y-%m-%d_%H-%M-%S'`",
-			"node index.js ${PRIVATEKEY0} >/logs/ledgeriumfaucetlogs/ledgeriumfaucet_$${DATE}_log.txt"
+			"node index.js ${PRIVATEKEY} >/logs/ledgeriumfaucetlogs/ledgeriumfaucet_$${DATE}_log.txt"
 		];
 		ledgeriumfaucet.entrypoint.push(genCommand(commands));
 		ledgeriumfaucet.networks[network_name] = {"ipv4_address": serviceConfig["ledgeriumfaucet"].ip};
