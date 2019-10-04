@@ -544,7 +544,7 @@ const services = {
 		}
 		else if(readparams.modeFlag == "masternode")
 			ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+domainNames[0]+"/stats";
-		startGeth = gethCom + " --rpcvhosts=" + domainNames[i] + " --nodekeyhex \""+"${PRIVATEKEY}"+"\" "
+		startGeth = gethCom + " --rpcvhosts=" + domainNames[i] + " --nodekeyhex \""+"${PRIVATEKEY"+[i]+"}"+"\" "
 		+"--etherbase \""+basicConfig.publicKeys[i]+"\" --port \""+serviceConfig.validator.gossipPort+"\""
 		+ipaddressText+ "\" --rpcport "+serviceConfig.validator.rpcPort
 		+" --wsport "+serviceConfig.validator.wsPort; // quorum maker service uses this identity
@@ -927,7 +927,7 @@ const services = {
 			string+="node index.js protocol=http hostname=" + gateway + " port=" + serviceConfig.validator.rpcPort + " initiateApp="
 			var privateKeyString="";
 			for(var nodeIndex = 0; nodeIndex < numberOfNodes;) {
-				privateKeyString+= "${PRIVATEKEY}"
+				privateKeyString+= "${PRIVATEKEY" + (nodeIndex++) + "}"
 				if(nodeIndex < numberOfNodes){ //if not the last node
 					privateKeyString+= ",";
 				}	
@@ -952,14 +952,14 @@ const services = {
 		//string+="node governanceUI.js "+vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i)+" "+(serviceConfig.validator.rpcPort+i)+"\n";
 		if(readparams.distributed) {
 			if((i == 0) && (readparams.modeFlag == "full")) {
-				string+="node governanceUI.js "+ ipAddress[i] +" "+(serviceConfig.validator.rpcPort)+ " " + "0x${PRIVATEKEY0}";
+				string+="node governanceUI.js "+ vip[0]+"."+vip[1]+"."+vip[2]+"."+ vip[3] +" "+(serviceConfig.validator.rpcPort)+ " " + "0x${PRIVATEKEY}";
 			}
 			else {
-				string+="node governanceUI.js "+ ipAddress[i] +" "+(serviceConfig.validator.rpcPort);
+				string+="node governanceUI.js "+ vip[0]+"."+vip[1]+"."+vip[2]+"."+ vip[3] +" "+(serviceConfig.validator.rpcPort);
 			}
 		} else {
 			if((i == 0) && (readparams.modeFlag == "full")) {
-				string+="node governanceUI.js "+ gateway +" "+(serviceConfig.validator.rpcPort+i)+ " " + "0x${PRIVATEKEY0}";
+				string+="node governanceUI.js "+ gateway +" "+(serviceConfig.validator.rpcPort+i)+ " " + "0x${PRIVATEKEY}";
 			}
 			else {
 				string+="node governanceUI.js "+ gateway +" "+(serviceConfig.validator.rpcPort+i);
