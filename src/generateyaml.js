@@ -57,7 +57,7 @@ if(readparams.modeFlag == "full") {
 				dockerComposeSplit.services["blockexplorerclient"] = dockerTemplate.services['blockexplorerclient']();
 				dockerComposeSplit.services["blockexplorerserver"] = dockerTemplate.services['blockexplorerserver']();
 				dockerComposeSplit.services["ledgeriumstats"] = dockerTemplate.services['ledgeriumstats']();
-				// dockerComposeSplit.services["mongodb"] = dockerTemplate.services['mongodb']();
+				dockerComposeSplit.services["mongodb"] = dockerTemplate.services['mongodb']();
 				dockerComposeSplit.services["redis"] = dockerTemplate.services['redis']();
 				dockerComposeSplit.services["ledgeriumfaucet"] = dockerTemplate.services['ledgeriumfaucet']();
 				// dockerComposeSplit["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();

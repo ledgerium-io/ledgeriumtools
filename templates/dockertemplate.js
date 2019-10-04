@@ -75,6 +75,9 @@ const serviceConfig = {
 	"ledgeriumfaucet" : {
 		"ip" : base_ip.slice(0, base_ip.length-1)+"4"
 	},
+	"mongodb" : {
+		"ip" : base_ip.slice(0, base_ip.length-1)+"2"
+	},
 	// "docusaurus" : {
 	// 	"ip" : base_ip.slice(0, base_ip.length-1)+"5"
 	// },
@@ -1032,6 +1035,17 @@ const services = {
 		};
 		doc.networks[network_name] = {"ipv4_address": serviceConfig["ledgeriumdocs"].ip};
 		return doc;
+	},
+	"mongodb": () => {
+		var mongodb = {
+			"image": "mongo:3.4.10",
+			"container_name": "blk-free-mongodb",
+			"ports": ["27017:27017"],
+			"entrypoint": "mongod --smallfiles --logpath=/dev/null --bind_ip '0.0.0.0'",
+			"networks" : {}
+		}
+		mongodb.networks[network_name] = { "ipv4_address":serviceConfig["mongodb"].ip };
+		return mongodb;
 	}
 };
 const template = {
