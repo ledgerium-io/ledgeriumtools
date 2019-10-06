@@ -925,39 +925,39 @@ const services = {
 		string+="sleep 1\n";
 		string+="echo \"Waiting for validator to be ready...\"\n";
 		string+="done\n";
-		if((i == 0) && (readparams.modeFlag == "full")) { //Initialisation is to be done only for one node. We are doing for the first node -> i == 0
-			string+="cp /tmp/nodesdetails.json /eth/nodesdetails.json\n";
-			string+="cd /ledgerium/governanceapp/governanceapp\n",
-			//string+="node index.js protocol=http hostname=" + vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i) +" port=" + serviceConfig.validator.rpcPort + " initiateApp="
-			string+="node index.js protocol=http hostname=" + gateway + " port=" + serviceConfig.validator.rpcPort + " initiateApp="
-			var privateKeyString="";
-			for(var nodeIndex = 0; nodeIndex < numberOfNodes;) {
-				privateKeyString+= "${PRIVATEKEY" + (nodeIndex++) + "}"
-				if(nodeIndex < numberOfNodes){ //if not the last node
-					privateKeyString+= ",";
-				}	
-			}
-			string+=privateKeyString;
-			string+=",/eth/nodesdetails.json";
+		// if((i == 0) && (readparams.modeFlag == "full")) { //Initialisation is to be done only for one node. We are doing for the first node -> i == 0
+		// 	string+="cp /tmp/nodesdetails.json /eth/nodesdetails.json\n";
+		// 	string+="cd /ledgerium/governanceapp/governanceapp\n",
+		// 	//string+="node index.js protocol=http hostname=" + vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i) +" port=" + serviceConfig.validator.rpcPort + " initiateApp="
+		// 	string+="node index.js protocol=http hostname=" + gateway + " port=" + serviceConfig.validator.rpcPort + " initiateApp="
+		// 	var privateKeyString="";
+		// 	for(var nodeIndex = 0; nodeIndex < numberOfNodes;) {
+		// 		privateKeyString+= "${PRIVATEKEY" + (nodeIndex++) + "}"
+		// 		if(nodeIndex < numberOfNodes){ //if not the last node
+		// 			privateKeyString+= ",";
+		// 		}	
+		// 	}
+		// 	string+=privateKeyString;
+		// 	string+=",/eth/nodesdetails.json";
 
-			var accountString="";
-			for(nodeIndex = 3; nodeIndex < numberOfNodes;) {
-				//first 3 accounts are init from initiateApp, rest of them should be added as adminValidatorSet and simpleValidatorSet
-				accountString+= "0x" + basicConfig.publicKeys[nodeIndex++];
-				if(nodeIndex < numberOfNodes){ //if not the last node
-					accountString+=",";
-				}	
-			}
-			string+=" runadminvalidator=addOneAdmin,"+accountString;
-			string+=" runsimplevalidator=addSimpleSetContractValidatorForAdmin,"+accountString;
-			string+= "\n"
-		}	
+		// 	var accountString="";
+		// 	for(nodeIndex = 3; nodeIndex < numberOfNodes;) {
+		// 		//first 3 accounts are init from initiateApp, rest of them should be added as adminValidatorSet and simpleValidatorSet
+		// 		accountString+= "0x" + basicConfig.publicKeys[nodeIndex++];
+		// 		if(nodeIndex < numberOfNodes){ //if not the last node
+		// 			accountString+=",";
+		// 		}	
+		// 	}
+		// 	string+=" runadminvalidator=addOneAdmin,"+accountString;
+		// 	string+=" runsimplevalidator=addSimpleSetContractValidatorForAdmin,"+accountString;
+		// 	string+= "\n"
+		// }	
 		string+="cd /ledgerium/governanceapp/governanceapp/app\n";
 		
 		//string+="node governanceUI.js "+vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i)+" "+(serviceConfig.validator.rpcPort+i)+"\n";
 		if(readparams.distributed) {
 			if((i == 0) && (readparams.modeFlag == "full")) {
-				string+="node governanceUI.js "+ ipAddress[i] +" "+(serviceConfig.validator.rpcPort)+ " " + "0x${PRIVATEKEY0}";
+				string+="node governanceUI.js "+ ipAddress[i] +" "+(serviceConfig.validator.rpcPort)+ " " + "0x${PRIVATEKEY}";
 			}
 			else {
 				string+="node governanceUI.js "+ ipAddress[i] +" "+(serviceConfig.validator.rpcPort);
