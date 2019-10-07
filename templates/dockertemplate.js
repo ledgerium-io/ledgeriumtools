@@ -360,6 +360,7 @@ const services = {
 		return blockclient;
 	},
 	"blockexplorerserver": ()=> {
+		let validatorName = validatorNames[0] +'-' + basicConfig.publicKeys[0].slice(0,5);
 		var mongoHostURL, mongoDBName;
 		switch (readparams.env) {
 			case "testnet":
@@ -378,10 +379,10 @@ const services = {
 			"hostname"	: "blockexplorerserver",
 			"image"     : "blengineering.azurecr.io/blengineering/blockexplorerserver:v1.1",
 			"ports"     : ["2002:2002"],
+			"volumes" 	: ["./logs:/logs", "./" + validatorName +':/eth'],
 			"environment": ["SERVER_PORT=2002", "SYNC_REQUESTS=100", "API_LIMIT_BLOCKS=100", "API_LIMIT_TRANSACTIONS=100"],
-			"volumes" 	: ["./logs:/logs"],
 			"entrypoint": ["/bin/sh", "-c"],
-			"depends_on": (readparams.distributed)? [validatorNames[0]+'-'+basicConfig.publicKeys[0].slice(0,5)] : ["validator-" + readparams.nodeName + '0'],
+			"depends_on": (readparams.distributed)? [validatorName] : ["validator-" + readparams.nodeName + '0'],
 			"restart"	: "always",
 			"networks"	: {
 			}
@@ -998,11 +999,13 @@ const services = {
 		return doc;
 	},
 	"ledgeriumfaucet" : () => {
+		let validatorName = validatorNames[0] +'-' + basicConfig.publicKeys[0].slice(0,5);
 		var ledgeriumfaucet = {
 			"image" : "ledgeriumengineering/ledgeriumfaucet:v1.0",
+			"volumes"  	: ["./logs:/logs", "./" + validatorName +':/eth'],
 			"ports" : ["5577:5577"],
 			"entrypoint" : ["/bin/sh", "-c"],
-			"volumes"  	: ["./logs:/logs"],
+			"depends_on" : [validatorName],
 			"environment": ["GOOGLE_CAPTCHA_SECRET=6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe","REQUEST_LIMIT=3","REDIS_EXPIRE_SECONDS=86400"],
 			"networks" : {}
 		};
