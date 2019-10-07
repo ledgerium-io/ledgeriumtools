@@ -401,7 +401,7 @@ const services = {
 			"DATE=`date '+%Y-%m-%d_%H-%M-%S'`",
 			"while [ ! -e /eth/geth.ipc ];do",
 			"sleep 1",
-			"echo \"Waiting for validator to be ready...",
+			"echo \"Waiting for validator to be ready...\"",
 			"done",
 			"npm start >/logs/blockexplorerserverlogs/blockexplorerserver_$${DATE}_log.txt"
 		];
@@ -1015,7 +1015,7 @@ const services = {
 			"DATE=`date '+%Y-%m-%d_%H-%M-%S'`",
 			"while [ ! -e /eth/geth.ipc ];do",
 			"sleep 1",
-			"echo \"Waiting for validator to be ready...",
+			"echo \"Waiting for validator to be ready...\"",
 			"done",
 			"node index.js ${PRIVATEKEY} >/logs/ledgeriumfaucetlogs/ledgeriumfaucet_$${DATE}_log.txt"
 		];
