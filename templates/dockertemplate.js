@@ -367,8 +367,8 @@ const services = {
 				mongoDBName = "testnet";
 				break;
 			case "devnet":
-				mongoHostURL = "cluster0-cu7v2.mongodb.net";
-				mongoDBName = "devnet"
+				mongoHostURL = serviceConfig["mongodb"].ip;
+				mongoDBName = "flinders"
 				break;
 			default:
 				break;
@@ -388,10 +388,10 @@ const services = {
 		};
 		blockserver.environment.push("MONGO_HOST="+mongoHostURL);
 		blockserver.environment.push("MONGO_DB="+mongoDBName);
-		blockserver.environment.push("MONGO_USERNAME="+"root");
-		blockserver.environment.push("MONGO_PASSWORD="+"toor");
-		blockserver.environment.push("WEB3_HTTP=http://"+domainNames[0]+":"+serviceConfig.validator.rpcPort);
-		blockserver.environment.push("WEB3_WS=ws://"+domainNames[0]+":"+serviceConfig.validator.wsPort);
+		blockserver.environment.push("MONGO_USERNAME="+"");
+		blockserver.environment.push("MONGO_PASSWORD="+"");
+		blockserver.environment.push("WEB3_HTTP=http://"+gateway+":"+serviceConfig.validator.rpcPort);
+		blockserver.environment.push("WEB3_WS=ws://"+gateway+":"+serviceConfig.validator.wsPort);
 		var startEntryPoint = "";
 		startEntryPoint+="set -u\n";
 		startEntryPoint+="set -e\n";
@@ -957,10 +957,10 @@ const services = {
 		//string+="node governanceUI.js "+vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i)+" "+(serviceConfig.validator.rpcPort+i)+"\n";
 		if(readparams.distributed) {
 			if((i == 0) && (readparams.modeFlag == "full")) {
-				string+="node governanceUI.js "+ ipAddress[i] +" "+(serviceConfig.validator.rpcPort)+ " " + "0x${PRIVATEKEY}";
+				string+="node governanceUI.js "+ gateway +" "+(serviceConfig.validator.rpcPort)+ " " + "0x${PRIVATEKEY}";
 			}
 			else {
-				string+="node governanceUI.js "+ ipAddress[i] +" "+(serviceConfig.validator.rpcPort);
+				string+="node governanceUI.js "+ gateway +" "+(serviceConfig.validator.rpcPort);
 			}
 		} else {
 			if((i == 0) && (readparams.modeFlag == "full")) {
