@@ -336,7 +336,7 @@ const services = {
 	"blockexplorerclient": ()=> {
 		var blockclient = {
 			"hostname"		: "blockexplorerclient",
-			"image"     	: "blengineering.azurecr.io/blengineering/blockexplorerclient:v1.0",
+			"image"     	: "blengineering.azurecr.io/blengineering/blockexplorerclient:v1.1",
 			"ports"     	: ["2000:80"],
 			"volumes" 		: ["./logs:/logs"],
 			"depends_on"	: ["blockexplorerserver"],
@@ -376,7 +376,7 @@ const services = {
 
 		var blockserver = {
 			"hostname"	: "blockexplorerserver",
-			"image"     : "blengineering.azurecr.io/blengineering/blockexplorerserver:v1.0",
+			"image"     : "blengineering.azurecr.io/blengineering/blockexplorerserver:v1.1",
 			"ports"     : ["2002:2002"],
 			"environment": ["SERVER_PORT=2002", "SYNC_REQUESTS=100", "API_LIMIT_BLOCKS=100", "API_LIMIT_TRANSACTIONS=100"],
 			"volumes" 	: ["./logs:/logs"],
@@ -399,6 +399,10 @@ const services = {
 		const commands = [
 			startEntryPoint,
 			"DATE=`date '+%Y-%m-%d_%H-%M-%S'`",
+			"while [ ! -e /eth/geth.ipc ];do",
+			"sleep 1",
+			"echo \"Waiting for validator to be ready...",
+			"done",
 			"npm start >/logs/blockexplorerserverlogs/blockexplorerserver_$${DATE}_log.txt"
 		];
 		blockserver.entrypoint.push(genCommand(commands));
@@ -1009,6 +1013,10 @@ const services = {
 		const commands = [
 			startEntryPoint,
 			"DATE=`date '+%Y-%m-%d_%H-%M-%S'`",
+			"while [ ! -e /eth/geth.ipc ];do",
+			"sleep 1",
+			"echo \"Waiting for validator to be ready...",
+			"done",
 			"node index.js ${PRIVATEKEY} >/logs/ledgeriumfaucetlogs/ledgeriumfaucet_$${DATE}_log.txt"
 		];
 		ledgeriumfaucet.entrypoint.push(genCommand(commands));
