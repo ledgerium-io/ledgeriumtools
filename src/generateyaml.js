@@ -52,17 +52,7 @@ if(readparams.modeFlag == "full") {
 			dockerComposeSplit.services = {};
 			dockerComposeSplit.volumes = {};
 			let validatorName = validatorNames[i] + '-' + basicConfig.publicKeys[i].slice(0,5);
-			//Add ledgeriumstats,blockexplorerclient,blockexplorerserver to first yml file
-			if(i == 0) {
-				dockerComposeSplit.services["blockexplorerclient"] = dockerTemplate.services['blockexplorerclient']();
-				dockerComposeSplit.services["blockexplorerserver"] = dockerTemplate.services['blockexplorerserver']();
-				dockerComposeSplit.services["ledgeriumstats"] = dockerTemplate.services['ledgeriumstats']();
-				dockerComposeSplit.services["mongodb"] = dockerTemplate.services['mongodb']();
-				dockerComposeSplit.services["redis"] = dockerTemplate.services['redis']();
-				dockerComposeSplit.services["ledgeriumfaucet"] = dockerTemplate.services['ledgeriumfaucet']();
-				// dockerComposeSplit["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
-				// dockerComposeSplit.volumes["quorum-maker"] = null;
-			}
+			
 			dockerCompose.services[validatorName] = dockerTemplate.services.validator(i);
 			dockerComposeSplit.services[validatorName] = dockerTemplate.services.validator(i);
 			
@@ -75,6 +65,18 @@ if(readparams.modeFlag == "full") {
 			}
 			dockerCompose.services["governance-ui-"+ipAddress[i]] = dockerTemplate.services.governanceapp(i);
 			dockerComposeSplit.services["governance-ui-"+ipAddress[i]] = dockerTemplate.services.governanceapp(i);
+
+			//Add ledgeriumstats,blockexplorerclient,blockexplorerserver to first yml file
+			if(i == 0) {
+				dockerComposeSplit.services["ledgeriumstats"] = dockerTemplate.services['ledgeriumstats']();
+				dockerComposeSplit.services["redis"] = dockerTemplate.services['redis']();
+				dockerComposeSplit.services["ledgeriumfaucet"] = dockerTemplate.services['ledgeriumfaucet']();
+				dockerComposeSplit.services["mongodb"] = dockerTemplate.services['mongodb']();
+				dockerComposeSplit.services["blockexplorerclient"] = dockerTemplate.services['blockexplorerclient']();
+				dockerComposeSplit.services["blockexplorerserver"] = dockerTemplate.services['blockexplorerserver']();
+				// dockerComposeSplit["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
+				// dockerComposeSplit.volumes["quorum-maker"] = null;
+			}
 
 			volumes = dockerCompose.services[validatorName].volumes;
 			YMLFileSplit = "./output/fullnode/docker-compose_" + i +".yml";
