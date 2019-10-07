@@ -1003,9 +1003,9 @@ const services = {
 		var ledgeriumfaucet = {
 			"image" : "ledgeriumengineering/ledgeriumfaucet:v1.0",
 			"volumes"  	: ["./logs:/logs", "./" + validatorName +':/eth'],
+			"depends_on" : [validatorName],
 			"ports" : ["5577:5577"],
 			"entrypoint" : ["/bin/sh", "-c"],
-			"depends_on" : [validatorName],
 			"environment": ["GOOGLE_CAPTCHA_SECRET=6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe","REQUEST_LIMIT=3","REDIS_EXPIRE_SECONDS=86400"],
 			"networks" : {}
 		};
