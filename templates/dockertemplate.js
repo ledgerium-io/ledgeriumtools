@@ -531,7 +531,7 @@ const services = {
 			// validatorName += ipAddress[i];
 			validatorName = validatorNames[i] + '-' + basicConfig.publicKeys[i].slice(0,5)
 			constellationName += ipAddress[i];
-			tesseraName += ipAddress[i];
+			tesseraName += basicConfig.publicKeys[i].slice(0,5);
 		} else {
 			if(readparams.modeFlag == "full") {
 				validatorName += readparams.nodeName + i;
@@ -601,7 +601,12 @@ const services = {
 				validator["depends_on"] = [tesseraName];
 				validator["environment"]= ["PRIVATE_CONFIG=/priv/tm.ipc"];
 				startWait               = "while [ ! -e /priv/tm.ipc ];do";
-				cpPubKeys = "cp /priv/tm.pub /tmp/tm"+i+".pub";
+
+				if(readparams.distributed){
+					cpPubKeys = "cp /priv/tm.pub /tmp/tm.pub";
+				} else {
+					cpPubKeys = "cp /priv/tm.pub /tmp/tm"+i+".pub";
+				}
 			}
 		}
 		else if(readparams.modeFlag == "masternode"){
@@ -750,7 +755,8 @@ const services = {
 
 		if(readparams.distributed) {
 			validatorName += ipAddress[i];
-			tesseraName += ipAddress[i];
+			// tesseraName += ipAddress[i];
+			tesseraName += basicConfig.publicKeys[i].slice(0,5);
 		} else {
 			if(readparams.modeFlag == "full") {
 				validatorName += readparams.nodeName + i;
@@ -859,7 +865,7 @@ const services = {
 			"echo '"+JSON.stringify(eTesseraTemplate)+"' > /priv/tessera-config.json",
 			*/
 			"echo '"+JSON.stringify(tesseraNineTemplate)+"' > /priv/tessera-config.json",
-			"cp /priv/tm.pub /tmp/tm"+i+".pub",
+			"cp /priv/tm.pub /tmp/tm.pub",
 			"fi",
 			startTess
 		];
@@ -881,12 +887,12 @@ const services = {
 			tesseraName += "test-";
 			governanceUIName += "test-";
 		}
-
+		let trimmedPubKey = basicConfig.publicKeys[i].slice(0,5);
 		if(readparams.distributed) {
-			validatorName = validatorNames[i] + '-' + basicConfig.publicKeys[i].slice(0,5);
+			validatorName = validatorNames[i] + '-' + trimmedPubKey;
 			constellationName += ipAddress[i];
-			tesseraName += ipAddress[i];
-			governanceUIName += ipAddress[i];
+			tesseraName += trimmedPubKey;
+			governanceUIName += trimmedPubKey;
 		} else {
 
 			if(readparams.modeFlag == "full"){

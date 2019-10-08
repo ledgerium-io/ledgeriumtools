@@ -51,7 +51,8 @@ if(readparams.modeFlag == "full") {
 			//Clear services for every yml file
 			dockerComposeSplit.services = {};
 			dockerComposeSplit.volumes = {};
-			let validatorName = validatorNames[i] + '-' + basicConfig.publicKeys[i].slice(0,5);
+			let trimmedPubKey = basicConfig.publicKeys[i].slice(0,5);
+			let validatorName = validatorNames[i] + '-' + trimmedPubKey;
 			
 			dockerCompose.services[validatorName] = dockerTemplate.services.validator(i);
 			dockerComposeSplit.services[validatorName] = dockerTemplate.services.validator(i);
@@ -60,11 +61,11 @@ if(readparams.modeFlag == "full") {
 				dockerCompose.services["constellation-"+ipAddress[i]] = dockerTemplate.services.constellation(i);
 				dockerComposeSplit.services["constellation-"+ipAddress[i]] = dockerTemplate.services.constellation(i);
 			} else {
-				dockerCompose.services["tessera-"+ipAddress[i]] = dockerTemplate.services.tessera(i);		
-				dockerComposeSplit.services["tessera-"+ipAddress[i]] = dockerTemplate.services.tessera(i);		
+				dockerCompose.services["tessera-"+trimmedPubKey] = dockerTemplate.services.tessera(i);		
+				dockerComposeSplit.services["tessera-"+trimmedPubKey] = dockerTemplate.services.tessera(i);		
 			}
-			dockerCompose.services["governance-ui-"+ipAddress[i]] = dockerTemplate.services.governanceapp(i);
-			dockerComposeSplit.services["governance-ui-"+ipAddress[i]] = dockerTemplate.services.governanceapp(i);
+			dockerCompose.services["governance-ui-"+trimmedPubKey] = dockerTemplate.services.governanceapp(i);
+			dockerComposeSplit.services["governance-ui-"+trimmedPubKey] = dockerTemplate.services.governanceapp(i);
 
 			//Add ledgeriumstats,blockexplorerclient,blockexplorerserver to first yml file
 			if(i == 0) {
