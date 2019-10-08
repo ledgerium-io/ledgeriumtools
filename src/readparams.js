@@ -43,7 +43,7 @@ function readInitialParams(){
 			networkId = initialData["networkId"];
 
 		if (modeFlag == "full" || modeFlag == "masternode") {
-			console.log("YML file with", modeFlag, "mode for", env, "setup");
+			console.log("YML file with", modeFlag, "mode");
 		} else {
 			console.log ('Invalid mode ::', modeFlag )
 		}	
