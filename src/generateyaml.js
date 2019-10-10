@@ -43,7 +43,7 @@ if(!dockerTemplate.networks.Externalflag) {
 
 const type = dockerTemplate.tesseraFlag;
 if(readparams.modeFlag == "full") {
-	dockerCompose.volumes["quorum-maker"] = null;
+	// dockerCompose.volumes["quorum-maker"] = null;
 	let YMLFileSplit;
 	let volumes;
 	for (var i = 0; i < numberOfNodes - readparams.faultynode; i++) {
@@ -114,6 +114,14 @@ if(readparams.modeFlag == "full") {
 			dockerCompose.services["governance-ui-"+readparams.nodeName + i] = dockerTemplate.services.governanceapp(i);
 			//dockerComposeSplit.services["governance-ui-"+readparams.nodeName + i] = dockerTemplate.services.governanceapp(i);
 	
+			if(i == numberOfNodes -1) {
+				dockerCompose.services["redis"] = dockerTemplate.services['redis']();
+				dockerCompose.services["ledgeriumfaucet"] = dockerTemplate.services['ledgeriumfaucet']();
+				dockerCompose.services["mongodb"] = dockerTemplate.services['mongodb']();
+				dockerCompose.services["blockexplorerclient"] = dockerTemplate.services['blockexplorerclient']();
+				dockerCompose.services["blockexplorerserver"] = dockerTemplate.services['blockexplorerserver']();
+			}
+
 			volumes = dockerCompose.services["validator-"+readparams.nodeName + i].volumes;
 			//YMLFileSplit = "./output/fullnode/docker-compose_" + i + "_" + readparams.nodeName +".yml";
 

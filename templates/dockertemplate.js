@@ -363,7 +363,12 @@ const services = {
 		return blockclient;
 	},
 	"blockexplorerserver": ()=> {
-		let validatorName = validatorNames[0] +'-' + basicConfig.publicKeys[0].slice(0,5);
+		let validatorName;
+		if(readparams.distributed) {
+			validatorName = validatorNames[0] +'-' + basicConfig.publicKeys[0].slice(0,5);
+		} else {
+			validatorName = "validator-" + readparams.nodeName + "0";
+		}
 		var mongoHostURL, mongoDBName;
 		switch (readparams.env) {
 			case "testnet":
@@ -1018,7 +1023,12 @@ const services = {
 		return doc;
 	},
 	"ledgeriumfaucet" : () => {
-		let validatorName = validatorNames[0] +'-' + basicConfig.publicKeys[0].slice(0,5);
+		let validatorName;
+		if(readparams.distributed) {
+			validatorName = validatorNames[0] +'-' + basicConfig.publicKeys[0].slice(0,5);
+		} else {
+			validatorName = "validator-" + readparams.nodeName + "0";
+		}
 		var ledgeriumfaucet = {
 			"image" : "ledgeriumengineering/ledgeriumfaucet:v1.0",
 			"volumes"  	: ["./logs:/logs", "./" + validatorName +':/eth'],
