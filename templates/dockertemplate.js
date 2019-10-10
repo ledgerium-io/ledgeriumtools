@@ -842,6 +842,7 @@ const services = {
 				tesseraNineTemplate.serverConfigs[2].serverAddress = "https://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]))+":"+serverPortThirdParty;
 				tesseraNineTemplate.serverConfigs[0].bindingAddress = "https://0.0.0.0:"+serverPortP2p;
 				tesseraNineTemplate.serverConfigs[2].bindingAddress = "https://0.0.0.0:"+serverPortThirdParty;
+				tesseraNineTemplate.serverConfigs[2].sslConfig.serverKeyStore = `/keystores/server${i}TP-keystore`;
 			}
 		}
 		else if(readparams.modeFlag == "blockproducer") {
