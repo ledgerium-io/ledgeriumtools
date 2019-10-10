@@ -1,6 +1,7 @@
 const readlineSync = require('readline-sync');
 const fs 		   = require('fs');
 const readparams = require('./readparams');
+const execSync = require('child_process').execSync;
 
 var mnemonics = [];
 var passwords = [];
@@ -8,6 +9,8 @@ let ipAddress = [];
 let validatorNames = [];
 let domainNames = [];
 var numberOfNodes;
+
+let currentIp = String(execSync('curl -s https://api.ipify.org'));
 
 if(readparams.modeFlag == "full") {
 	var num = readlineSync.question('Number of Nodes : ');
@@ -18,13 +21,14 @@ if(readparams.modeFlag == "full") {
 	numberOfNodes = parseInt(num) + readparams.faultynode;
 	console.log("Total number of nodes ", numberOfNodes);
 }
-else if(readparams.modeFlag == "masternode") {
-	console.log("There will only be one masternode per setup.");
+else if(readparams.modeFlag == "blockproducer") {
+	console.log("There will only be one blockproducer per setup.");
+	
 	// if(num < 1 || num > 10) {
-	// 	console.log("Number of nodes should be 1 for masternode");
+	// 	console.log("Number of nodes should be 1 for blockproducer");
 	// 	process.exit(1);
 	// }
-	numberOfNodes = 1;// + readparams.faultynode; //There can be only one masternode
+	numberOfNodes = 1;// + readparams.faultynode; //There can be only one blockproducer
 }
 
 if(readparams.faultynode > 0) {
@@ -104,3 +108,4 @@ global.ipAddress = ipAddress;
 global.validatorNames = validatorNames;
 global.domainNames = domainNames;
 global.numberOfNodes = numberOfNodes;
+global.currentIp = currentIp;

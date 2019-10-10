@@ -3,7 +3,7 @@ var randomstring = require("randomstring");
 
 //Possible values are "full" to generate yml with quorum-maker and eth-stat
 //And "single" mode to generate yml without these two containers
-var modeFlag = "masternode";
+var modeFlag = "blockproducer";
 var env = "dev";
 var externalIPAddress = "127.0.0.1";
 var nodeName = "nodeName";
@@ -42,7 +42,7 @@ function readInitialParams(){
 		if(initialData["networkId"] != undefined)
 			networkId = initialData["networkId"];
 
-		if (modeFlag == "full" || modeFlag == "masternode") {
+		if (modeFlag == "full" || modeFlag == "blockproducer") {
 			console.log("YML file with", modeFlag, "mode");
 		} else {
 			console.log ('Invalid mode ::', modeFlag )

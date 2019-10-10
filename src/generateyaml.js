@@ -10,8 +10,8 @@ var dockerCompose  = dockerTemplate.template;
 var dockerComposefull  = dockerTemplate.templatefull;
 
 if(readparams.modeFlag == "full") {
-	dockerCompose.services["blockexplorerclient"] = dockerTemplate.services['blockexplorerclient']();
-	dockerCompose.services["blockexplorerserver"] = dockerTemplate.services['blockexplorerserver']();
+	// dockerCompose.services["blockexplorerclient"] = dockerTemplate.services['blockexplorerclient']();
+	// dockerCompose.services["blockexplorerserver"] = dockerTemplate.services['blockexplorerserver']();
 	dockerCompose.services["ledgeriumstats"] = dockerTemplate.services['ledgeriumstats']();
 	// dockerCompose["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
 	switch (readparams.env) {
@@ -96,9 +96,9 @@ if(readparams.modeFlag == "full") {
 			}));
 		
 		} else {
-			dockerComposeSplit.services["blockexplorerclient"] = dockerTemplate.services['blockexplorerclient']();
-			dockerComposeSplit.services["blockexplorerserver"] = dockerTemplate.services['blockexplorerserver']();
-			dockerCompose.services["ledgeriumstats"] = dockerTemplate.services['ledgeriumstats']();
+			// dockerComposeSplit.services["blockexplorerclient"] = dockerTemplate.services['blockexplorerclient']();
+			// dockerComposeSplit.services["blockexplorerserver"] = dockerTemplate.services['blockexplorerserver']();
+			// dockerCompose.services["ledgeriumstats"] = dockerTemplate.services['ledgeriumstats']();
 			// dockerCompose["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
 
 			dockerCompose.services["validator-"+readparams.nodeName + i] = dockerTemplate.services.validator(i);
@@ -164,16 +164,20 @@ if(readparams.modeFlag == "full") {
 		}
 	});
 }
-else if(readparams.modeFlag == "masternode") {
+else if(readparams.modeFlag == "blockproducer") {
 	for (var i = 0; i < numberOfNodes - readparams.faultynode ; i++) {
-		dockerCompose.services["validator-" + readparams.nodeName] = dockerTemplate.services.validator(i);
+		
+		let trimmedPubKey = basicConfig.publicKeys[i].slice(0,5);
+		let validatorName = validatorNames[i] + '-' + trimmedPubKey;
+
+		dockerCompose.services[validatorName] = dockerTemplate.services.validator(i);
 		if(!type){
 			dockerCompose.services["constellation-" + readparams.nodeName] = dockerTemplate.services.constellation(i);
 		}else{
-			dockerCompose.services["tessera-" + readparams.nodeName] = dockerTemplate.services.tessera(i);		
+			dockerCompose.services["tessera-" + trimmedPubKey] = dockerTemplate.services.tessera(i);		
 		}
-		dockerCompose.services["governance-ui-" + readparams.nodeName] = dockerTemplate.services.governanceapp(i);
-		let volumes = dockerCompose.services["validator-" + readparams.nodeName].volumes;
+		dockerCompose.services["governance-ui-" + trimmedPubKey] = dockerTemplate.services.governanceapp(i);
+		let volumes = dockerCompose.services[validatorName].volumes;
 		for (var j = volumes.length - 1; j >= 0; j--) {
 			if(volumes[j].slice(0,1) != ".")
 				dockerCompose.volumes[volumes[j].split(":")[0]] = null;

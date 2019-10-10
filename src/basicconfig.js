@@ -14,6 +14,8 @@ var nodeJSON = {};
 var nodeDetails = [];
 var faultyNodeFlag = readparams.faultynode;
 var writeprivatekeys = true;
+let envParams = "";
+let privateKeyJSON = {};
 var validatorIDs = [], hostNames = [], privateKeys = [], publicKeys = [], static_nodes = "[", staticNodesExternal = "[", extraData, enodes = [];
 const vanity = mnemonic.istanbul.vanity || "0x0000000000000000000000000000000000000000000000000000000000000000";
 const seal   = mnemonic.istanbul.seal || "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
@@ -44,16 +46,18 @@ var baseIp = dockerTemplate.serviceConfig.validator.startIp.split(".");
 const startIp = (parseInt(baseIp[3]));
 baseIp = baseIp[0]+"."+baseIp[1]+"."+baseIp[2]+".";
 for (var i = 0; i < privateKeys.length; i++) {
-	let envParams = "";
-	let privateKeyJSON = {};
+	
 	var temp = ethUtil.privateToPublic(privateKeys[i]).toString('hex');
+	let pubk = ethUtil.privateToAddress(privateKeys[i]).toString('hex');
 	enodes.push(temp);
 
 	if(readparams.distributed) {
+		envParams="";
+		privateKeyJSON={};
 		static_nodes += (
 			"\"enode://"+temp+
 			"@"+
-			domainNames[i]+
+			ipAddress[i]+
 			":"+
 			(dockerTemplate.serviceConfig.validator.gossipPort) +
 			"?discport=0\""
@@ -61,11 +65,27 @@ for (var i = 0; i < privateKeys.length; i++) {
 		staticNodesExternal += (
 			"\"enode://"+temp+
 			"@"+
-			domainNames[i]+
+			ipAddress[i]+
 			":"+
 			(dockerTemplate.serviceConfig.validator.gossipPort+i)+
 			"?discport=0\""
 		);
+
+		
+		privateKeyJSON["0x" + pubk] = privateKeys[i].split("0x")[1];
+		
+		//Append private keys and passwords to a variable
+		// envParams += "PRIVATEKEY" + i + "=" + privateKeys[i].split("0x")[1] + "\n";
+		// envParams += "PASSWORD" + i + "=" + input.passwords[i] + "\n";
+		envParams += "PRIVATEKEY" + "=" + privateKeys[i].split("0x")[1] + "\n";
+		envParams += "PASSWORD" + "=" + input.passwords[i];
+		if(i === 0) {
+			fs.writeFileSync(outputDir + ".env", envParams);
+			fs.writeFileSync(tempDir+ "privatekeys.json", JSON.stringify(privateKeyJSON,null, 2))
+		} else {
+			fs.writeFileSync(fullnodeDir + ".env" +i, envParams);
+			fs.writeFileSync(fullnodeTempDir+ "privatekeys" + i + ".json", JSON.stringify(privateKeyJSON,null, 2))
+		}
 	} else {
 		static_nodes += (
 			"\"enode://"+temp+
@@ -84,24 +104,18 @@ for (var i = 0; i < privateKeys.length; i++) {
 			(dockerTemplate.serviceConfig.validator.gossipPort+i)+
 			"?discport=0\""
 		);
-	}
 
-	let pubk = ethUtil.privateToAddress(privateKeys[i]).toString('hex');
-	privateKeyJSON["0x" + pubk] = privateKeys[i].split("0x")[1];
-	
-	//Append private keys and passwords to a variable
-	// envParams += "PRIVATEKEY" + i + "=" + privateKeys[i].split("0x")[1] + "\n";
-	// envParams += "PASSWORD" + i + "=" + input.passwords[i] + "\n";
-	envParams += "PRIVATEKEY" + "=" + privateKeys[i].split("0x")[1] + "\n";
-	envParams += "PASSWORD" + "=" + input.passwords[i];
-	if(i === 0) {
+		privateKeyJSON["0x" + pubk] = privateKeys[i].split("0x")[1];
+		
+		//Append private keys and passwords to a variable
+		envParams += "PRIVATEKEY" + i + "=" + privateKeys[i].split("0x")[1] + "\n";
+		envParams += "PASSWORD" + i + "=" + input.passwords[i] + "\n";
+
+		if(i === privateKeys.length-1)
 		fs.writeFileSync(outputDir + ".env", envParams);
 		fs.writeFileSync(tempDir+ "privatekeys.json", JSON.stringify(privateKeyJSON,null, 2))
-	} else {
-		fs.writeFileSync(fullnodeDir + ".env" +i, envParams);
-		fs.writeFileSync(fullnodeTempDir+ "privatekeys" + i + ".json", JSON.stringify(privateKeyJSON,null, 2))
 	}
-	
+
 	publicKeys.push(pubk);
 	if(i != privateKeys.length-1){
 		static_nodes+=",";
@@ -171,7 +185,7 @@ if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir);
 }
 
-//Create env file for both full/masternode mode
+//Create env file for both full/blockproducer mode
 // fs.writeFileSync(envFile, envParams); //Write private keys and passwords to .env file
 
 if(readparams.modeFlag == "full") {

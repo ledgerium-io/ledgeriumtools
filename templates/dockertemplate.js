@@ -15,10 +15,13 @@ const network_name = "test_net";
 var base_ip = "172.19.240.0",entrypoint, qmvolumes =[];
 var gateway = "172.19.240.1";
 var statsURL;
+var protocol;
 if(readparams.distributed){
 	statsURL = "flinders.ledgerium.io/stats";
+	protocol = "https://";
 } else {
 	statsURL = "toorak.ledgerium.io/stats";
+	protocol = "https://";
 }
 
 const genCommand = (commands)=>{
@@ -521,6 +524,8 @@ const services = {
 	// },
 	"validator": (i,test)=> {
 		var validatorName = "validator-", constellationName = "constellation-", tesseraName = "tessera-";
+		let PASSWORD;
+		let PRIVATEKEY;
 		if(test){
 			validatorName += "test-"; 
 			constellationName += "test-";
@@ -532,13 +537,17 @@ const services = {
 			validatorName = validatorNames[i] + '-' + basicConfig.publicKeys[i].slice(0,5)
 			constellationName += ipAddress[i];
 			tesseraName += basicConfig.publicKeys[i].slice(0,5);
+			PRIVATEKEY = `{PRIVATEKEY}`;
+			PASSWORD = `{PASSWORD}`;
 		} else {
 			if(readparams.modeFlag == "full") {
 				validatorName += readparams.nodeName + i;
 				constellationName += readparams.nodeName + i;
 				tesseraName += readparams.nodeName + i;
+				PRIVATEKEY = `{PRIVATEKEY${i}}`;
+				PASSWORD = `{PASSWORD${i}}`;
 			}
-			else if(readparams.modeFlag == "masternode") {
+			else if(readparams.modeFlag == "blockproducer") {
 				validatorName += readparams.nodeName;
 				constellationName += readparams.nodeName;
 				tesseraName += readparams.nodeName;
@@ -547,17 +556,21 @@ const services = {
 		
 		var ipaddressText;
 		var startGeth;
-		if(readparams.modeFlag == "full") {
+		if(readparams.modeFlag == "full" && readparams.distributed) {
 			ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+statsURL;
-		}
-		else if(readparams.modeFlag == "masternode") {
-			ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+domainNames[0]+"/stats";
+			startGeth = gethCom + " --rpcvhosts=" + domainNames[i] + " --nodekeyhex \""+"${PRIVATEKEY}"+"\" "
+		} else if (readparams.modeFlag == "full" && !readparams.distributed) {
+			ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+serviceConfig["ledgeriumstats"].ip+":3000";
+			startGeth = gethCom + " --rpcvhosts=" + readparams.nodeName + " --nodekeyhex \""+"${PRIVATEKEY" + i + "}"+"\" "
+		} else if(readparams.modeFlag == "blockproducer") {
+			ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+statsURL;
+			startGeth = gethCom + " --rpcvhosts=" + domainNames[i] + " --nodekeyhex \""+"${PRIVATEKEY}"+"\" "
 		}
 		
-		startGeth = gethCom + " --rpcvhosts=" + domainNames[i] + " --nodekeyhex \""+"${PRIVATEKEY}"+"\" "
-		+"--etherbase \""+basicConfig.publicKeys[i]+"\" --port \""+serviceConfig.validator.gossipPort+"\""
+		startGeth += "--etherbase \""+basicConfig.publicKeys[i]+"\" --port \""+serviceConfig.validator.gossipPort+"\""
 		+ipaddressText+ "\" --rpcport "+serviceConfig.validator.rpcPort
 		+" --wsport "+serviceConfig.validator.wsPort; // quorum maker service uses this identity
+
 		const startIp = serviceConfig.validator.startIp.split(".");
 		var validator = {
 			"hostname"   : validatorName, 
@@ -609,7 +622,7 @@ const services = {
 				}
 			}
 		}
-		else if(readparams.modeFlag == "masternode"){
+		else if(readparams.modeFlag == "blockproducer"){
 			if ( !tesseraFlag ){
 				validator.volumes 	    = ["./" + validatorName +":/eth", constellationName +":/constellation:z","./tmp:/tmp"];
 				validator["depends_on"] = [constellationName];
@@ -638,8 +651,8 @@ const services = {
 			"cp /tmp/static-nodes.json /eth/static-nodes.json",
 			cpPubKeys,
 			"geth init /eth/genesis.json --datadir /eth",		
-			"echo '"+"${PASSWORD}"+"' > ./password",
-			"echo '"+"${PRIVATEKEY}"+"' > ./file",
+			"echo '"+ PASSWORD +"' > ./password",
+			"echo '"+PRIVATEKEY+"' > ./file",
 			"geth account import file --datadir /eth --password password",
 			"rm -f ./file && rm -f ./password",
 			"fi"
@@ -681,7 +694,7 @@ const services = {
 			validatorName += readparams.nodeName + i;
 			constellationName += readparams.nodeName + i;
 		// }
-		// else if(readparams.modeFlag == "masternode") {
+		// else if(readparams.modeFlag == "blockproducer") {
 		// 	validatorName += readparams.nodeName + i;
 		// 	constellationName += readparams.nodeName + i;
 		// }
@@ -704,7 +717,7 @@ const services = {
 				}
 			}
 		}
-		else if(readparams.modeFlag == "masternode") {
+		else if(readparams.modeFlag == "blockproducer") {
 			for (var j = 0; j < limit; j++) {
 				othernodes+="http://"+readparams.externalIPAddress+":"+(serviceConfig.constellation.port+j)+"/";
 				if(j != limit-1) {
@@ -762,7 +775,7 @@ const services = {
 				validatorName += readparams.nodeName + i;
 				tesseraName += readparams.nodeName + i;
 			}
-			else if(readparams.modeFlag == "masternode") {
+			else if(readparams.modeFlag == "blockproducer") {
 				validatorName += readparams.nodeName;
 				tesseraName += readparams.nodeName;
 			}
@@ -826,14 +839,14 @@ const services = {
 				tesseraNineTemplate.serverConfigs[2].bindingAddress = "https://0.0.0.0:"+serverPortThirdParty;
 			}
 		}
-		else if(readparams.modeFlag == "masternode") {
+		else if(readparams.modeFlag == "blockproducer") {
 			for (var j = 0; j < basicConfig.publicKeys.length; j++) {
-				peers.push({ "url" : "http://"+readparams.externalIPAddress+":"+(port+j)+"/"})
+				peers.push({ "url" : protocol+readparams.externalIPAddress+":"+(port)+"/"})
 			}
-			const serverPortP2p 		= tesseraNineTemplate.serverConfigs[0].serverAddress;
-			const serverPortThirdParty  = tesseraNineTemplate.serverConfigs[2].serverAddress;
-			tesseraNineTemplate.serverConfigs[0].serverAddress = "http://"+readparams.externalIPAddress+":"+serverPortP2p;
-			tesseraNineTemplate.serverConfigs[2].serverAddress = "http://"+readparams.externalIPAddress+":"+serverPortThirdParty;
+			tesseraNineTemplate.serverConfigs[0].serverAddress = protocol+currentIp+":"+port;
+			tesseraNineTemplate.serverConfigs[2].serverAddress = protocol+currentIp+":"+(port + 100);
+			tesseraNineTemplate.serverConfigs[0].bindingAddress = "https://0.0.0.0:"+(port);
+			tesseraNineTemplate.serverConfigs[2].bindingAddress = "https://0.0.0.0:"+(port+100);
 		}
 		/* old tessera versions
 		tesseraTemplate.server.port 				   = port+i;
@@ -848,7 +861,7 @@ const services = {
 		if(readparams.distributed){
 			keytoolStr = `keytool -alias tessera -dname CN=${tesseraName} -genKeypair -keyalg RSA -keysize 2048 -keystore /keystores/server${i}-keystore -storepass quorum -ext SAN=dns:localhost,dns:${tesseraName},ip:127.0.0.1,ip:0.0.0.0,ip:${startIp[0]}.${startIp[1]}.${startIp[2]}.${(i+parseInt(startIp[3]))},ip:${ipAddress[i]}`
 		} else {
-			keytoolStr = `keytool -alias tessera -dname CN=${tesseraName} -genKeypair -keyalg RSA -keysize 2048 -keystore /keystores/server${i}-keystore -storepass quorum -ext SAN=dns:localhost,dns:${tesseraName},ip:127.0.0.1,ip:0.0.0.0,ip:${startIp[0]}.${startIp[1]}.${startIp[2]}.${(i+parseInt(startIp[3]))},ip:${readparams.externalIPAddress}`
+			keytoolStr = `keytool -alias tessera -dname CN=${tesseraName} -genKeypair -keyalg RSA -keysize 2048 -keystore /keystores/server${i}-keystore -storepass quorum -ext SAN=dns:localhost,dns:${tesseraName},ip:127.0.0.1,ip:0.0.0.0,ip:${startIp[0]}.${startIp[1]}.${startIp[2]}.${(i+parseInt(startIp[3]))},ip:${currentIp}`
 		}
 		const commands = [
 			"DATE=`date '+%Y-%m-%d_%H-%M-%S'`",
