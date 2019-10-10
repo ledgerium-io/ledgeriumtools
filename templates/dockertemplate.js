@@ -1025,10 +1025,13 @@ const services = {
 	},
 	"ledgeriumfaucet" : () => {
 		let validatorName;
+		let PRIVATEKEY;
 		if(readparams.distributed) {
 			validatorName = validatorNames[0] +'-' + basicConfig.publicKeys[0].slice(0,5);
+			PRIVATEKEY = `{PRIVATEKEY}`;
 		} else {
 			validatorName = "validator-" + readparams.nodeName + "0";
+			PRIVATEKEY = `{PRIVATEKEY0}`;
 		}
 		var ledgeriumfaucet = {
 			"image" : "ledgeriumengineering/ledgeriumfaucet:v1.0",
@@ -1050,7 +1053,7 @@ const services = {
 			"sleep 1",
 			"echo \"Waiting for validator to be ready...\"",
 			"done",
-			"node index.js ${PRIVATEKEY} >/logs/ledgeriumfaucetlogs/ledgeriumfaucet_$${DATE}_log.txt"
+			"node index.js " + PRIVATEKEY + " >/logs/ledgeriumfaucetlogs/ledgeriumfaucet_$${DATE}_log.txt"
 		];
 		ledgeriumfaucet.entrypoint.push(genCommand(commands));
 		ledgeriumfaucet.networks[network_name] = {"ipv4_address": serviceConfig["ledgeriumfaucet"].ip};
