@@ -1028,10 +1028,10 @@ const services = {
 		let PRIVATEKEY;
 		if(readparams.distributed) {
 			validatorName = validatorNames[0] +'-' + basicConfig.publicKeys[0].slice(0,5);
-			PRIVATEKEY = `{PRIVATEKEY}`;
+			PRIVATEKEY = '${PRIVATEKEY}';
 		} else {
 			validatorName = "validator-" + readparams.nodeName + "0";
-			PRIVATEKEY = `{PRIVATEKEY0}`;
+			PRIVATEKEY = '${PRIVATEKEY0}';
 		}
 		var ledgeriumfaucet = {
 			"image" : "ledgeriumengineering/ledgeriumfaucet:v1.0",
