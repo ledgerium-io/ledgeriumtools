@@ -23,6 +23,13 @@ if(readparams.modeFlag == "full") {
 }
 else if(readparams.modeFlag == "blockproducer") {
 	console.log("There will only be one blockproducer per setup.");
+
+	//Update distributed flag to true for flinders and false for toorak
+	if(readparams.network === 'flinders'){
+		readparams.distributed = true
+	} else {
+		readparams.distributed = false
+	}
 	
 	// if(num < 1 || num > 10) {
 	// 	console.log("Number of nodes should be 1 for blockproducer");

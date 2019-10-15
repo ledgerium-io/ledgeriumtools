@@ -108,8 +108,13 @@ for (var i = 0; i < privateKeys.length; i++) {
 		privateKeyJSON["0x" + pubk] = privateKeys[i].split("0x")[1];
 		
 		//Append private keys and passwords to a variable
-		envParams += "PRIVATEKEY" + i + "=" + privateKeys[i].split("0x")[1] + "\n";
-		envParams += "PASSWORD" + i + "=" + input.passwords[i] + "\n";
+		if(readparams.modeFlag === 'blockproducer') {
+			envParams += "PRIVATEKEY" + "=" + privateKeys[i].split("0x")[1] + "\n";
+			envParams += "PASSWORD" + "=" + input.passwords[i] + "\n";	
+		} else {
+			envParams += "PRIVATEKEY" + i + "=" + privateKeys[i].split("0x")[1] + "\n";
+			envParams += "PASSWORD" + i + "=" + input.passwords[i] + "\n";
+		}
 
 		if(i === privateKeys.length-1)
 		fs.writeFileSync(outputDir + ".env", envParams);
@@ -171,12 +176,12 @@ const staticFile = "static-nodes.json";
 const permissionedFile = "permissioned-nodes.json";
 // const envFile = __dirname + "/../output/.env"; //.env file path
 
-if(fs.existsSync(tempDir + genesisFile))
-	fs.unlinkSync(tempDir + genesisFile);
+// if(fs.existsSync(tempDir + genesisFile))
+// 	fs.unlinkSync(tempDir + genesisFile);
 // if(fs.existsSync(tempDir + privatekeysFile))
 // 	fs.unlinkSync(tempDir + privatekeysFile);
-if(fs.existsSync(tempDir + staticFile))
-	fs.unlinkSync(tempDir + staticFile);
+// if(fs.existsSync(tempDir + staticFile))
+// 	fs.unlinkSync(tempDir + staticFile);
 if(fs.existsSync(tempDir + permissionedFile))
 	fs.unlinkSync(tempDir + permissionedFile);
 // if(fs.existsSync(envFile))

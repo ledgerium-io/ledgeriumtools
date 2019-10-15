@@ -10,6 +10,7 @@ var nodeName = "nodeName";
 var faultynode = 0;
 var networkId = "2019";
 var distributed = "false";
+var network = "toorak";
 
 readInitialParams();
 
@@ -42,6 +43,9 @@ function readInitialParams(){
 		if(initialData["networkId"] != undefined)
 			networkId = initialData["networkId"];
 
+		if(initialData["network"] != undefined)
+			network = initialData["network"];
+
 		if (modeFlag == "full" || modeFlag == "blockproducer") {
 			console.log("YML file with", modeFlag, "mode");
 		} else {
@@ -54,6 +58,7 @@ function readInitialParams(){
 }
 exports.modeFlag = modeFlag;
 exports.distributed = distributed;
+exports.network = network;
 exports.env = env;
 exports.externalIPAddress = externalIPAddress;
 exports.nodeName = nodeName;

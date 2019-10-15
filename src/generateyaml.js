@@ -176,15 +176,25 @@ else if(readparams.modeFlag == "blockproducer") {
 	for (var i = 0; i < numberOfNodes - readparams.faultynode ; i++) {
 		
 		let trimmedPubKey = basicConfig.publicKeys[i].slice(0,5);
-		let validatorName = validatorNames[i] + '-' + trimmedPubKey;
+		let validatorName, tesseraName, governanceName;
+		
+		if(readparams.network === 'flinders'){
+			validatorName = validatorNames[i] + '-' + trimmedPubKey;
+			tesseraName = 'tessera-' + trimmedPubKey;
+			governanceName = 'governance-ui-' + trimmedPubKey
+		} else {
+			validatorName = 'validator-' + readparams.nodeName;
+			tesseraName = 'tessera-' + readparams.nodeName;
+			governanceName = 'governance-ui-' + readparams.nodeName;
+		}
 
 		dockerCompose.services[validatorName] = dockerTemplate.services.validator(i);
 		if(!type){
 			dockerCompose.services["constellation-" + readparams.nodeName] = dockerTemplate.services.constellation(i);
 		}else{
-			dockerCompose.services["tessera-" + trimmedPubKey] = dockerTemplate.services.tessera(i);		
+			dockerCompose.services[tesseraName] = dockerTemplate.services.tessera(i);		
 		}
-		dockerCompose.services["governance-ui-" + trimmedPubKey] = dockerTemplate.services.governanceapp(i);
+		dockerCompose.services[governanceName] = dockerTemplate.services.governanceapp(i);
 		let volumes = dockerCompose.services[validatorName].volumes;
 		for (var j = volumes.length - 1; j >= 0; j--) {
 			if(volumes[j].slice(0,1) != ".")

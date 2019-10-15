@@ -15,13 +15,11 @@ const network_name = "test_net";
 var base_ip = "172.19.240.0",entrypoint, qmvolumes =[];
 var gateway = "172.19.240.1";
 var statsURL;
-var protocol;
-if(readparams.distributed){
+var protocol = "https://";
+if(readparams.network === "flinders"){
 	statsURL = "flinders.ledgerium.io/stats";
-	protocol = "https://";
-} else {
+} else if (readparams.network === "toorak") {
 	statsURL = "toorak.ledgerium.io/stats";
-	protocol = "https://";
 }
 
 const genCommand = (commands)=>{
@@ -529,8 +527,9 @@ const services = {
 	// },
 	"validator": (i,test)=> {
 		var validatorName = "validator-", constellationName = "constellation-", tesseraName = "tessera-";
-		let PASSWORD;
-		let PRIVATEKEY;
+		let PRIVATEKEY = `{PRIVATEKEY}`;
+		let PASSWORD = `{PASSWORD}`;
+		let domainName;
 		if(test){
 			validatorName += "test-"; 
 			constellationName += "test-";
@@ -542,8 +541,7 @@ const services = {
 			validatorName = validatorNames[i] + '-' + basicConfig.publicKeys[i].slice(0,5)
 			constellationName += ipAddress[i];
 			tesseraName += basicConfig.publicKeys[i].slice(0,5);
-			PRIVATEKEY = `{PRIVATEKEY}`;
-			PASSWORD = `{PASSWORD}`;
+			
 		} else {
 			if(readparams.modeFlag == "full") {
 				validatorName += readparams.nodeName + i;
@@ -553,9 +551,17 @@ const services = {
 				PASSWORD = `{PASSWORD${i}}`;
 			}
 			else if(readparams.modeFlag == "blockproducer") {
-				validatorName += readparams.nodeName;
-				constellationName += readparams.nodeName;
-				tesseraName += readparams.nodeName;
+				if(readparams.network === 'flinders'){
+					validatorName = validatorNames[i] + '-' + trimmedPubKey;
+					tesseraName = 'tessera-' + trimmedPubKey;
+					governanceName = 'governance-ui-' + trimmedPubKey;
+					domainName = domainNames[i];
+				} else {
+					validatorName = 'validator-' + readparams.nodeName;
+					tesseraName = 'tessera-' + readparams.nodeName;
+					governanceName = 'governance-ui-' + readparams.nodeName;
+					domainName = readparams.nodeName;
+				}
 			}
 		}
 		
@@ -569,7 +575,7 @@ const services = {
 			startGeth = gethCom + " --rpcvhosts=" + readparams.nodeName + " --nodekeyhex \""+"${PRIVATEKEY" + i + "}"+"\" "
 		} else if(readparams.modeFlag == "blockproducer") {
 			ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+statsURL;
-			startGeth = gethCom + " --rpcvhosts=" + domainNames[i] + " --nodekeyhex \""+"${PRIVATEKEY}"+"\" "
+			startGeth = gethCom + " --rpcvhosts=" + domainName + " --nodekeyhex \""+"${PRIVATEKEY}"+"\" "
 		}
 		
 		startGeth += "--etherbase \""+basicConfig.publicKeys[i]+"\" --port \""+serviceConfig.validator.gossipPort+"\""
