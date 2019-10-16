@@ -176,16 +176,16 @@ const staticFile = "static-nodes.json";
 const permissionedFile = "permissioned-nodes.json";
 // const envFile = __dirname + "/../output/.env"; //.env file path
 
-// if(fs.existsSync(tempDir + genesisFile))
-// 	fs.unlinkSync(tempDir + genesisFile);
-// if(fs.existsSync(tempDir + privatekeysFile))
-// 	fs.unlinkSync(tempDir + privatekeysFile);
-// if(fs.existsSync(tempDir + staticFile))
-// 	fs.unlinkSync(tempDir + staticFile);
+if(fs.existsSync(tempDir + genesisFile))
+	fs.unlinkSync(tempDir + genesisFile);
+if(fs.existsSync(tempDir + privatekeysFile))
+	fs.unlinkSync(tempDir + privatekeysFile);
+if(fs.existsSync(tempDir + staticFile))
+	fs.unlinkSync(tempDir + staticFile);
 if(fs.existsSync(tempDir + permissionedFile))
 	fs.unlinkSync(tempDir + permissionedFile);
-// if(fs.existsSync(envFile))
-// 	fs.unlinkSync(envFile);
+if(fs.existsSync(envFile))
+	fs.unlinkSync(envFile);
 if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir);
 }
