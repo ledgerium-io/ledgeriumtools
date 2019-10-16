@@ -184,8 +184,8 @@ if(fs.existsSync(tempDir + staticFile))
 	fs.unlinkSync(tempDir + staticFile);
 if(fs.existsSync(tempDir + permissionedFile))
 	fs.unlinkSync(tempDir + permissionedFile);
-if(fs.existsSync(envFile))
-	fs.unlinkSync(envFile);
+// if(fs.existsSync(envFile))
+// 	fs.unlinkSync(envFile);
 if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir);
 }
