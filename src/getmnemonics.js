@@ -9,8 +9,10 @@ let ipAddress = [];
 let validatorNames = [];
 let domainNames = [];
 var numberOfNodes;
+let menmonic;
+let password;
 
-let currentIp = String(execSync('curl -s https://api.ipify.org'));
+var currentIp = String(execSync('curl -s https://api.ipify.org'));
 
 if(readparams.modeFlag == "full") {
 	var num = readlineSync.question('Number of Nodes : ');
@@ -43,9 +45,47 @@ if(readparams.faultynode > 0) {
 }
 
 for (var i = 0; i < numberOfNodes; i++) {
-
+	
 	/** IP Addresses for distributed setup */
-	if(readparams.distributed) {
+	if (readparams.modeFlag === "blockproducer") {
+		console.log(`Enter IP address if it is not ${currentIp}, else leave it blank and hit Enter`)
+		let ip = readlineSync.question('Enter IP Address : ', {
+			hideEchoBack: false
+		});
+
+		if(ip === "") {
+			ip = currentIp;
+		}
+
+		if(!validateIPaddress(ip)) {
+			console.log("Invalid IP address");
+			process.exit(1);
+		}
+		
+		console.log("If there is no DNS, leave it blank and hit Enter")
+		let domainName = readlineSync.question('Enter DNS : ', {
+			hideEchoBack : false
+		});
+		
+		if(domainName === "") {
+			domainName = ip;
+		}
+
+		let validatorName = readlineSync.question('Enter validator name : ', {
+			hideEchoBack : false
+		});
+
+		ipAddress.push(ip);
+		validatorNames.push(validatorName);
+		domainNames.push(domainName);
+		
+		menmonic = readlineSync.question('Enter Mnemonic : ', {
+			hideEchoBack: true
+		});
+		password = readlineSync.question('Enter Password : ', {
+			hideEchoBack: true
+		});
+	} else if(readparams.modeFlag === "full" && readparams.distributed) {
 		let ip = readlineSync.question('Enter IP Address '+i+" : ", {
 			hideEchoBack: false
 		});
@@ -55,26 +95,37 @@ for (var i = 0; i < numberOfNodes; i++) {
 			process.exit(1);
 		}
 		
+		console.log("If there is no DNS, leave it blank and hit Enter")
+		let domainName = readlineSync.question('Enter DNS : ', {
+			hideEchoBack : false
+		});
+		
+		if(domainName === "") {
+			domainName = ip;
+		}
+
 		let validatorName = readlineSync.question('Enter validator name '+i+ ' : ', {
 			hideEchoBack : false
 		});
 
-		let domainName = readlineSync.question('Enter DNS '+i+ ' : ', {
-			hideEchoBack : false
-		}); 
-
 		ipAddress.push(ip);
 		validatorNames.push(validatorName);
 		domainNames.push(domainName);
+		
+		menmonic = readlineSync.question('Enter Mnemonic '+i+" : ", {
+			hideEchoBack: true
+		});
+		password = readlineSync.question('Enter Password '+i+" : ", {
+			hideEchoBack: true
+		});
+	} else if (readparams.modeFlag === "full" && !readparams.distributed){
+		menmonic = readlineSync.question('Enter Mnemonic '+i+" : ", {
+			hideEchoBack: true
+		});
+		password = readlineSync.question('Enter Password '+i+" : ", {
+			hideEchoBack: true
+		});
 	}
-
-
-	var menmonic = readlineSync.question('Enter Mnemonic '+i+" : ", {
-		hideEchoBack: true
-	});
-	var password = readlineSync.question('Enter Password '+i+" : ", {
-		hideEchoBack: true
-	});
 
 	if(menmonic == ""){
 		i--;

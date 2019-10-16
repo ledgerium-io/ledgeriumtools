@@ -178,15 +178,9 @@ else if(readparams.modeFlag == "blockproducer") {
 		let trimmedPubKey = basicConfig.publicKeys[i].slice(0,5);
 		let validatorName, tesseraName, governanceName;
 		
-		if(readparams.network === 'flinders'){
-			validatorName = validatorNames[i] + '-' + trimmedPubKey;
-			tesseraName = 'tessera-' + trimmedPubKey;
-			governanceName = 'governance-ui-' + trimmedPubKey
-		} else {
-			validatorName = 'validator-' + readparams.nodeName;
-			tesseraName = 'tessera-' + readparams.nodeName;
-			governanceName = 'governance-ui-' + readparams.nodeName;
-		}
+		validatorName = validatorNames[i] + '-' + trimmedPubKey;
+		tesseraName = 'tessera-' + trimmedPubKey;
+		governanceName = 'governance-ui-' + trimmedPubKey
 
 		dockerCompose.services[validatorName] = dockerTemplate.services.validator(i);
 		if(!type){

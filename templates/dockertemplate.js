@@ -526,56 +526,37 @@ const services = {
 	// 	return quorum;
 	// },
 	"validator": (i,test)=> {
-		var validatorName = "validator-", constellationName = "constellation-", tesseraName = "tessera-";
+		var validatorName = "validator-", constellationName = "constellation-", tesseraName = "tessera-", governanceName = "governance-ui-";
+		let trimmedPubKey = basicConfig.publicKeys[i].slice(0,5);
 		let PRIVATEKEY = `{PRIVATEKEY}`;
 		let PASSWORD = `{PASSWORD}`;
-		let domainName;
 		if(test){
 			validatorName += "test-"; 
 			constellationName += "test-";
 			tesseraName += "test-";
 		}
 
-		if(readparams.distributed) {
-			// validatorName += ipAddress[i];
-			validatorName = validatorNames[i] + '-' + basicConfig.publicKeys[i].slice(0,5)
-			constellationName += ipAddress[i];
-			tesseraName += basicConfig.publicKeys[i].slice(0,5);
-			
-		} else {
-			if(readparams.modeFlag == "full") {
-				validatorName += readparams.nodeName + i;
-				constellationName += readparams.nodeName + i;
-				tesseraName += readparams.nodeName + i;
-				PRIVATEKEY = `{PRIVATEKEY${i}}`;
-				PASSWORD = `{PASSWORD${i}}`;
-			}
-			else if(readparams.modeFlag == "blockproducer") {
-				if(readparams.network === 'flinders'){
-					validatorName = validatorNames[i] + '-' + trimmedPubKey;
-					tesseraName = 'tessera-' + trimmedPubKey;
-					governanceName = 'governance-ui-' + trimmedPubKey;
-					domainName = domainNames[i];
-				} else {
-					validatorName = 'validator-' + readparams.nodeName;
-					tesseraName = 'tessera-' + readparams.nodeName;
-					governanceName = 'governance-ui-' + readparams.nodeName;
-					domainName = readparams.nodeName;
-				}
-			}
+		if(readparams.modeFlag == "full" && !readparams.distributed) {
+			validatorName += readparams.nodeName + i;
+			constellationName += readparams.nodeName + i;
+			tesseraName += readparams.nodeName + i;
+			PRIVATEKEY = `{PRIVATEKEY${i}}`;
+			PASSWORD = `{PASSWORD${i}}`;
+		}
+		else {
+			validatorName = validatorNames[i] + '-' + trimmedPubKey;
+			tesseraName += trimmedPubKey;
+			governanceName += trimmedPubKey;
 		}
 		
 		var ipaddressText;
 		var startGeth;
-		if(readparams.modeFlag == "full" && readparams.distributed) {
-			ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+statsURL;
-			startGeth = gethCom + " --rpcvhosts=" + domainNames[i] + " --nodekeyhex \""+"${PRIVATEKEY}"+"\" "
-		} else if (readparams.modeFlag == "full" && !readparams.distributed) {
+		if (readparams.modeFlag == "full" && !readparams.distributed) {
 			ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+serviceConfig["ledgeriumstats"].ip+":3000";
 			startGeth = gethCom + " --rpcvhosts=" + readparams.nodeName + " --nodekeyhex \""+"${PRIVATEKEY" + i + "}"+"\" "
-		} else if(readparams.modeFlag == "blockproducer") {
+		} else {
 			ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+statsURL;
-			startGeth = gethCom + " --rpcvhosts=" + domainName + " --nodekeyhex \""+"${PRIVATEKEY}"+"\" "
+			startGeth = gethCom + " --rpcvhosts=" + domainNames[i] + " --nodekeyhex \""+"${PRIVATEKEY}"+"\" "
 		}
 		
 		startGeth += "--etherbase \""+basicConfig.publicKeys[i]+"\" --port \""+serviceConfig.validator.gossipPort+"\""
@@ -776,22 +757,15 @@ const services = {
 			validatorName += "test-"; 
 			tesseraName += "test-";
 		}
-
-		if(readparams.distributed) {
-			validatorName += ipAddress[i];
-			// tesseraName += ipAddress[i];
-			tesseraName += basicConfig.publicKeys[i].slice(0,5);
-		} else {
-			if(readparams.modeFlag == "full") {
-				validatorName += readparams.nodeName + i;
-				tesseraName += readparams.nodeName + i;
-			}
-			else if(readparams.modeFlag == "blockproducer") {
-				validatorName += readparams.nodeName;
-				tesseraName += readparams.nodeName;
-			}
+		
+		if(readparams.modeFlag == "full" && !readparams.distributed) {
+			validatorName += readparams.nodeName + i;
+			tesseraName += readparams.nodeName + i;
 		}
-
+		else {
+			validatorName += ipAddress[i];
+			tesseraName += basicConfig.publicKeys[i].slice(0,5);
+		}
 
 		var startTess = "java -Xms1024M -Xmx1024M -jar /tessera/tessera-app.jar -configfile /priv/tessera-config.json";
 		startTess+=" >/logs/tesseralogs/"+ tesseraName + "_log_$${DATE}.txt";
@@ -913,24 +887,17 @@ const services = {
 			governanceUIName += "test-";
 		}
 		let trimmedPubKey = basicConfig.publicKeys[i].slice(0,5);
-		if(readparams.distributed) {
+
+		if(readparams.modeFlag == "full" && !readparams.distributed){
+			validatorName += readparams.nodeName + i;
+			constellationName += readparams.nodeName + i;
+			tesseraName += readparams.nodeName + i;
+			governanceUIName += readparams.nodeName + i;
+		}else {
 			validatorName = validatorNames[i] + '-' + trimmedPubKey;
 			constellationName += ipAddress[i];
 			tesseraName += trimmedPubKey;
 			governanceUIName += trimmedPubKey;
-		} else {
-
-			if(readparams.modeFlag == "full"){
-				validatorName += readparams.nodeName + i;
-				constellationName += readparams.nodeName + i;
-				tesseraName += readparams.nodeName + i;
-				governanceUIName += readparams.nodeName + i;
-			}else {
-				validatorName += readparams.nodeName;
-				constellationName += readparams.nodeName;
-				tesseraName += readparams.nodeName;
-				governanceUIName += readparams.nodeName;
-			}
 		}
 
 		var gov = {

@@ -2,6 +2,7 @@ const fs = require('fs');
 const ethUtil = require('ethereumjs-util');
 const dockerTemplate = require("../templates/dockertemplate");
 var genesisTemplate = require('../templates/genesistemplate');
+const path = require('path');
 
 const amount = "0xfffffffffffffffffffffffffffffffffffff";
 var readparams = require('./readparams');
@@ -20,17 +21,26 @@ var validatorIDs = [], hostNames = [], privateKeys = [], publicKeys = [], static
 const vanity = mnemonic.istanbul.vanity || "0x0000000000000000000000000000000000000000000000000000000000000000";
 const seal   = mnemonic.istanbul.seal || "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
 
-const outputDir = __dirname + "/../output/";
-const tempDir = __dirname + "/../output/tmp/";
-const fullnodeDir = __dirname + "/../output/fullnode/"
-const fullnodeTempDir = __dirname + "/../output/fullnode/tmp/"
+const outputDir = path.join(__dirname, "/../output/");
+const tempDir = path.join(__dirname, "/../output/tmp/");
+const fullnodeDir = path.join(__dirname, "/../output/fullnode/");
+const fullnodeTempDir = path.join(__dirname, "/../output/fullnode/tmp/");
 
-if (!fs.existsSync(fullnodeDir)) {
-    fs.mkdirSync(fullnodeDir);
-}
-
-if (!fs.existsSync(fullnodeTempDir)) {
-    fs.mkdirSync(fullnodeTempDir);
+if(readparams.modeFlag === "blockproducer") {
+	if (fs.existsSync(fullnodeTempDir, true)) {
+		fs.rmdirSync(fullnodeTempDir);
+	}	
+	if (fs.existsSync(fullnodeDir)) {
+		fs.rmdirSync(fullnodeDir);
+	}
+} else {
+	if (!fs.existsSync(fullnodeDir)) {
+		fs.mkdirSync(fullnodeDir);
+	}
+	
+	if (!fs.existsSync(fullnodeTempDir)) {
+		fs.mkdirSync(fullnodeTempDir);
+	}
 }
 
 if(mnemonic.mode == 0){
