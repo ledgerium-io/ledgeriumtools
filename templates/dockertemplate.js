@@ -13,7 +13,14 @@ const gethCom   = `geth --rpc --rpcaddr '0.0.0.0' --rpccorsdomain '*' \
 const tesseraFlag = true;
 const network_name = "test_net";
 var base_ip = "172.19.240.0",entrypoint, qmvolumes =[];
-var gateway = "172.19.240.1"
+var gateway = "172.19.240.1";
+var statsURL;
+var protocol = "https://";
+if(readparams.network === "flinders"){
+	statsURL = "flinders.ledgerium.io/stats";
+} else if (readparams.network === "toorak") {
+	statsURL = "toorak.ledgerium.io/stats";
+}
 
 const genCommand = (commands)=>{
 	var commandString = "";
@@ -69,9 +76,12 @@ const serviceConfig = {
 	"ledgeriumfaucet" : {
 		"ip" : base_ip.slice(0, base_ip.length-1)+"4"
 	},
-	"docusaurus" : {
-		"ip" : base_ip.slice(0, base_ip.length-1)+"5"
+	"mongodb" : {
+		"ip" : base_ip.slice(0, base_ip.length-1)+"2"
 	},
+	// "docusaurus" : {
+	// 	"ip" : base_ip.slice(0, base_ip.length-1)+"5"
+	// },
 	"blockexplorerclient":{
 		"ip" : base_ip.slice(0, base_ip.length-1)+"6",
 		"deploy": deployConfig(500,128)
@@ -84,9 +94,9 @@ const serviceConfig = {
 		"ip" : base_ip.slice(0, base_ip.length-1)+"8",
 		"deploy": deployConfig(500,128)
 	},
-	"ledgeriumdocs" : {
-		"ip" : base_ip.slice(0, base_ip.length-1)+"9"
-	},
+	// "ledgeriumdocs" : {
+	// 	"ip" : base_ip.slice(0, base_ip.length-1)+"9"
+	// },
 	"validator": {
 		"startIp": base_ip.slice(0, base_ip.length-1)+"10",
 		"gossipPort":30303,
@@ -246,13 +256,13 @@ const serviceConfig = {
 					    "sslConfig": {
 					        "tls": "STRICT",
 					        "generateKeyStoreIfNotExisted": true,
-					        "serverKeyStore": "/priv/server"+i+"-keystore",
+					        "serverKeyStore": "/keystores/server"+i+"-keystore",
 					        "serverKeyStorePassword": "quorum",
 					        "serverTrustStore": "/priv/server-truststore",
 					        "serverTrustStorePassword": "quorum",
 					        "serverTrustMode": "TOFU",
 					        "knownClientsFile": "/priv/knownClients",
-					        "clientKeyStore": "/priv/client"+i+"-keystore",
+					        "clientKeyStore": "/keystores/client"+i+"-keystore",
 					        "clientKeyStorePassword": "quorum",
 					        "clientTrustStore": "/priv/client-truststore",
 					        "clientTrustStorePassword": "quorum",
@@ -268,11 +278,27 @@ const serviceConfig = {
 						"communicationType" : "REST"
 					},
 					{
-						"app":"ThirdParty",
+						"app": "ThirdParty",
 						"enabled": true,
-						"serverAddress" : (port+100+i),
-						"bindingAddress": "http://0.0.0.0:"+(port+100+i),
-						"communicationType" : "REST"
+						"serverAddress": (port + 100 + i),
+						"bindingAddress": "http://0.0.0.0:" + (port + 100 + i),
+						"communicationType": "REST",
+						"sslConfig": {
+							"tls": "STRICT",
+							"generateKeyStoreIfNotExisted": true,
+							"serverKeyStore": "/keystores/server0TP-keystore",
+							"serverKeyStorePassword": "quorum",
+							"serverTrustStore": "/priv/serverTP-truststore",
+							"serverTrustStorePassword": "quorum",
+							"serverTrustMode": "TOFU",
+							"knownClientsFile": "/priv/knownTPClients",
+							"clientKeyStore": "/keystores/client0TP-keystore",
+							"clientKeyStorePassword": "quorum",
+							"clientTrustStore": "/priv/clientTP-truststore",
+							"clientTrustStorePassword": "quorum",
+							"clientTrustMode": "TOFU",
+							"knownServersFile": "/priv/knownTPServers"
+						}
 					}
 				],
 				"peer" : [],
@@ -290,11 +316,11 @@ const serviceConfig = {
 			}
 		}
 	},
-	"quorum-maker": {
-		"ip"   : base_ip.slice(0, base_ip.length-1)+"196",
-		"port" : 9999,
-		'deploy': deployConfig(500,128)
-	},
+	// "quorum-maker": {
+	// 	"ip"   : base_ip.slice(0, base_ip.length-1)+"196",
+	// 	"port" : 9999,
+	// 	'deploy': deployConfig(500,128)
+	// },
 	"governance-app": {
 		"port-exp": 3545,
 		"port-int": 3003,
@@ -303,11 +329,15 @@ const serviceConfig = {
 	}
 };
 
+// let hostValidatorName;
+// if(readparams.distributed) {
+// 	hostValidatorName = validatorNames[0]+'-'+basicConfig.publicKeys[0].slice(0,5);
+// }
 const services = {
 	"blockexplorerclient": ()=> {
 		var blockclient = {
 			"hostname"		: "blockexplorerclient",
-			"image"     	: "ledgeriumengineering/blockexplorerclient:v1.0",
+			"image"     	: "blengineering.azurecr.io/blengineering/blockexplorerclient:v1.1",
 			"ports"     	: ["2000:80"],
 			"volumes" 		: ["./logs:/logs"],
 			"depends_on"	: ["blockexplorerserver"],
@@ -331,6 +361,12 @@ const services = {
 		return blockclient;
 	},
 	"blockexplorerserver": ()=> {
+		let validatorName;
+		if(readparams.distributed) {
+			validatorName = validatorNames[0] +'-' + basicConfig.publicKeys[0].slice(0,5);
+		} else {
+			validatorName = "validator-" + readparams.nodeName + "0";
+		}
 		var mongoHostURL, mongoDBName;
 		switch (readparams.env) {
 			case "testnet":
@@ -338,8 +374,8 @@ const services = {
 				mongoDBName = "testnet";
 				break;
 			case "devnet":
-				mongoHostURL = "cluster0-cu7v2.mongodb.net";
-				mongoDBName = "devnet"
+				mongoHostURL = serviceConfig["mongodb"].ip;
+				mongoDBName = "flinders"
 				break;
 			default:
 				break;
@@ -347,20 +383,20 @@ const services = {
 
 		var blockserver = {
 			"hostname"	: "blockexplorerserver",
-			"image"     : "ledgeriumengineering/blockexplorerserver:v1.0",
+			"image"     : "blengineering.azurecr.io/blengineering/blockexplorerserver:v1.1",
 			"ports"     : ["2002:2002"],
+			"volumes" 	: ["./logs:/logs", "./" + validatorName +':/eth'],
 			"environment": ["SERVER_PORT=2002", "SYNC_REQUESTS=100", "API_LIMIT_BLOCKS=100", "API_LIMIT_TRANSACTIONS=100"],
-			"volumes" 	: ["./logs:/logs"],
 			"entrypoint": ["/bin/sh", "-c"],
-			"depends_on": (readparams.distributed)? ["validator-" + ipAddress[0]] : ["validator-" + readparams.nodeName + '0'],
+			"depends_on": (readparams.distributed)? [validatorName] : ["validator-" + readparams.nodeName + '0'],
 			"restart"	: "always",
 			"networks"	: {
 			}
 		};
 		blockserver.environment.push("MONGO_HOST="+mongoHostURL);
 		blockserver.environment.push("MONGO_DB="+mongoDBName);
-		blockserver.environment.push("MONGO_USERNAME="+"root");
-		blockserver.environment.push("MONGO_PASSWORD="+"toor");
+		blockserver.environment.push("MONGO_USERNAME="+"");
+		blockserver.environment.push("MONGO_PASSWORD="+"");
 		blockserver.environment.push("WEB3_HTTP=http://"+gateway+":"+serviceConfig.validator.rpcPort);
 		blockserver.environment.push("WEB3_WS=ws://"+gateway+":"+serviceConfig.validator.wsPort);
 		var startEntryPoint = "";
@@ -370,6 +406,10 @@ const services = {
 		const commands = [
 			startEntryPoint,
 			"DATE=`date '+%Y-%m-%d_%H-%M-%S'`",
+			"while [ ! -e /eth/geth.ipc ];do",
+			"sleep 1",
+			"echo \"Waiting for validator to be ready...\"",
+			"done",
 			"npm start >/logs/blockexplorerserverlogs/blockexplorerserver_$${DATE}_log.txt"
 		];
 		blockserver.entrypoint.push(genCommand(commands));
@@ -391,140 +431,138 @@ const services = {
 		eth.networks[network_name] = { "ipv4_address":serviceConfig["ledgeriumstats"].ip };
 		return eth;
 	},
-	"quorum-maker": ()=> {
-		var quorum = {
-			"hostname": "quorum-maker",
-			"image"   : "ledgeriumengineering/quorum-maker:v0.1",
-			"ports"	  : [serviceConfig["quorum-maker"].port+":"+serviceConfig["quorum-maker"].port],
-			"volumes" : ["./logs:/logs","./tmp:/tmp","quorum-maker:/quorum-maker"],
-			"depends_on": (readparams.distributed)? ["validator-" + ipAddress[0]] : ["validator-" + readparams.nodeName + '0'],
-			"entrypoint":[ "/bin/sh", "-c"],
-			"networks": {
-			},
-			"restart": "always"
-		};
-		quorum.deploy = serviceConfig['quorum-maker'].deploy;
-		quorum.networks[network_name] = { "ipv4_address": serviceConfig["quorum-maker"].ip }
+	// "quorum-maker": ()=> {
+	// 	var quorum = {
+	// 		"hostname": "quorum-maker",
+	// 		"image"   : "ledgeriumengineering/quorum-maker:v0.1",
+	// 		"ports"	  : [serviceConfig["quorum-maker"].port+":"+serviceConfig["quorum-maker"].port],
+	// 		"volumes" : ["./logs:/logs","./tmp:/tmp","quorum-maker:/quorum-maker"],
+	// 		"depends_on": (readparams.distributed)? [validatorNames[0]+'-'+basicConfig.publicKeys[0].slice(0,5)] : ["validator-" + readparams.nodeName + '0'],
+	// 		"entrypoint":[ "/bin/sh", "-c"],
+	// 		"networks": {
+	// 		},
+	// 		"restart": "always"
+	// 	};
+	// 	quorum.deploy = serviceConfig['quorum-maker'].deploy;
+	// 	quorum.networks[network_name] = { "ipv4_address": serviceConfig["quorum-maker"].ip }
 
-		if(readparams.distributed) {
-			quorum.volumes.push("./validator-" + ipAddress[0] + ":/eth");
-			var publicKeyPath = (i) => { return "/tmp/tm"+i+".pub"; };
-			if(tesseraFlag) {
-				quorum.volumes.push("./tessera-" + ipAddress[0] + ":/priv");
-			}
-			else{
-				quorum.volumes.push("constellation-" + ipAddress[0] + ":/constellation:z");
-			}
-		} else {
-			quorum.volumes.push("./validator-" + readparams.nodeName + "0" + ":/eth");
-			var publicKeyPath = (i) => { return "/tmp/tm"+i+".pub"; };
-			if(tesseraFlag) {
-				quorum.volumes.push("./tessera-" + readparams.nodeName + "0" + ":/priv");
-			}
-			else{
-				quorum.volumes.push("constellation-" + readparams.nodeName + "0" + ":/constellation:z");
-			}
-		}
+	// 	if(readparams.distributed) {
+	// 		quorum.volumes.push("./validator-" + ipAddress[0] + ":/eth");
+	// 		var publicKeyPath = (i) => { return "/tmp/tm"+i+".pub"; };
+	// 		if(tesseraFlag) {
+	// 			quorum.volumes.push("./tessera-" + ipAddress[0] + ":/priv");
+	// 		}
+	// 		else{
+	// 			quorum.volumes.push("constellation-" + ipAddress[0] + ":/constellation:z");
+	// 		}
+	// 	} else {
+	// 		quorum.volumes.push("./validator-" + readparams.nodeName + "0" + ":/eth");
+	// 		var publicKeyPath = (i) => { return "/tmp/tm"+i+".pub"; };
+	// 		if(tesseraFlag) {
+	// 			quorum.volumes.push("./tessera-" + readparams.nodeName + "0" + ":/priv");
+	// 		}
+	// 		else{
+	// 			quorum.volumes.push("constellation-" + readparams.nodeName + "0" + ":/constellation:z");
+	// 		}
+	// 	}
 
-		var commands = [
-			"set -u",
-			"set -e",
-			"mkdir -p /logs/quorummakerlogs",
-			"DATE=`date '+%Y-%m-%d_%H-%M-%S'`",
-			"while : ;do",
-			"sleep 1",
-			"if [ -e /eth/geth.ipc ];then",
-			"break;",
-			"fi",
-			"done",
-			"cd /quorum-maker",
-			"if [ ! -e /quorum-maker/setup.conf ];then",
-			"RESPONSE=\`curl https://ipinfo.io/ip\` || \"--\"",
-			"echo \"EXTERNAL_IP=$${RESPONSE}\" > ./setup.conf"
-		];
-		for (var i = 0; i < basicConfig.publicKeys.length; i++) {
-			var prefix = "";
-			const startIp = serviceConfig.validator.startIp.split(".");
-			const ip = startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+i);
-			// const ip = (readparams.distributed)? ipAddress[i] : startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+i);
-			if(i != 0){
-				prefix = i+"_";
-				commands.push("echo \""+prefix+"ENODE="+basicConfig.enodes[i]+"\" >> ./setup.conf")
-			}else{
-				commands.push("echo \"CONTRACT_ADD=\" >> setup.conf");
-				commands.push("echo \"RPC_PORT="+serviceConfig.validator.rpcPort+"\" >> ./setup.conf");
-				commands.push("echo \"WS_PORT="+serviceConfig.validator.wsPort+"\" >> ./setup.conf");
-				commands.push("echo \"WHISPER_PORT="+serviceConfig.validator.gossipPort+"\" >> ./setup.conf");
-				commands.push("echo \"CONSTELLATION_PORT="+serviceConfig.constellation.port+"\" >> ./setup.conf");
-				commands.push("echo \"TOTAL_NODES="+basicConfig.publicKeys.length+"\" >> ./setup.conf")
-				commands.push("echo \"MODE=ACTIVE\" >> ./setup.conf")
-				commands.push("echo \"STATE=I\" >> ./setup.conf")
-				commands.push("echo \"PRIVATE_KEY="+"${PRIVATEKEY"+i+"}"+"\" >> ./setup.conf");
-			}
-			commands.push("if [ -e "+publicKeyPath(i)+" ];then")
-			commands.push("PUB=$$(cat "+publicKeyPath(i)+")");
-			commands.push("fi");
-			commands.push("echo \""+prefix+"PUBKEY=\"$${PUB} >> ./setup.conf")
-			commands.push("echo \""+prefix+"ROLE=Unassigned\" >> ./setup.conf")
-			commands.push("echo \""+prefix+"CURRENT_IP="+ip+"\" >> ./setup.conf");
-			commands.push("echo \""+prefix+"REGISTERED=\" >> ./setup.conf")
-			commands.push("echo \""+prefix+"NODENAME=validator-\""+i+" >> ./setup.conf")     // check validator name for below value
-		}
-		commands.push("fi");
-		commands.push("cd /root/quorum-maker/");
-		var tranStr;
-		if(!tesseraFlag) {
-			tranStr = "/logs/constellationlogs";
-		} else {
-			tranStr = "/logs/tesseralogs";
-		}
-		var commandString = " /logs/validatorlogs/ " +  tranStr + " /quorum-maker/setup.conf" + " >/logs/quorummakerlogs/" + "$${DATE}_log.txt";
-		//commands.push("./NodeManager http://"+serviceConfig.validator.startIp+":"+serviceConfig.validator.rpcPort+" "
-		commands.push("./NodeManager http://"+gateway+":"+serviceConfig.validator.rpcPort+" "
-			+serviceConfig["quorum-maker"]["port"]+ commandString);
-		quorum.entrypoint.push(genCommand(commands));
-		return quorum;
-	},
+	// 	var commands = [
+	// 		"set -u",
+	// 		"set -e",
+	// 		"mkdir -p /logs/quorummakerlogs",
+	// 		"DATE=`date '+%Y-%m-%d_%H-%M-%S'`",
+	// 		"while : ;do",
+	// 		"sleep 1",
+	// 		"if [ -e /eth/geth.ipc ];then",
+	// 		"break;",
+	// 		"fi",
+	// 		"done",
+	// 		"cd /quorum-maker",
+	// 		"if [ ! -e /quorum-maker/setup.conf ];then",
+	// 		"RESPONSE=\`curl https://ipinfo.io/ip\` || \"--\"",
+	// 		"echo \"EXTERNAL_IP=$${RESPONSE}\" > ./setup.conf"
+	// 	];
+	// 	for (var i = 0; i < basicConfig.publicKeys.length; i++) {
+	// 		var prefix = "";
+	// 		const startIp = serviceConfig.validator.startIp.split(".");
+	// 		const ip = startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+i);
+	// 		// const ip = (readparams.distributed)? ipAddress[i] : startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3])+i);
+	// 		if(i != 0){
+	// 			prefix = i+"_";
+	// 			commands.push("echo \""+prefix+"ENODE="+basicConfig.enodes[i]+"\" >> ./setup.conf")
+	// 		}else{
+	// 			commands.push("echo \"CONTRACT_ADD=\" >> setup.conf");
+	// 			commands.push("echo \"RPC_PORT="+serviceConfig.validator.rpcPort+"\" >> ./setup.conf");
+	// 			commands.push("echo \"WS_PORT="+serviceConfig.validator.wsPort+"\" >> ./setup.conf");
+	// 			commands.push("echo \"WHISPER_PORT="+serviceConfig.validator.gossipPort+"\" >> ./setup.conf");
+	// 			commands.push("echo \"CONSTELLATION_PORT="+serviceConfig.constellation.port+"\" >> ./setup.conf");
+	// 			commands.push("echo \"TOTAL_NODES="+basicConfig.publicKeys.length+"\" >> ./setup.conf")
+	// 			commands.push("echo \"MODE=ACTIVE\" >> ./setup.conf")
+	// 			commands.push("echo \"STATE=I\" >> ./setup.conf")
+	// 			commands.push("echo \"PRIVATE_KEY="+"${PRIVATEKEY"+i+"}"+"\" >> ./setup.conf");
+	// 		}
+	// 		commands.push("if [ -e "+publicKeyPath(i)+" ];then")
+	// 		commands.push("PUB=$$(cat "+publicKeyPath(i)+")");
+	// 		commands.push("fi");
+	// 		commands.push("echo \""+prefix+"PUBKEY=\"$${PUB} >> ./setup.conf")
+	// 		commands.push("echo \""+prefix+"ROLE=Unassigned\" >> ./setup.conf")
+	// 		commands.push("echo \""+prefix+"CURRENT_IP="+ip+"\" >> ./setup.conf");
+	// 		commands.push("echo \""+prefix+"REGISTERED=\" >> ./setup.conf")
+	// 		commands.push("echo \""+prefix+"NODENAME=validator-\""+i+" >> ./setup.conf")     // check validator name for below value
+	// 	}
+	// 	commands.push("fi");
+	// 	commands.push("cd /root/quorum-maker/");
+	// 	var tranStr;
+	// 	if(!tesseraFlag) {
+	// 		tranStr = "/logs/constellationlogs";
+	// 	} else {
+	// 		tranStr = "/logs/tesseralogs";
+	// 	}
+	// 	var commandString = " /logs/validatorlogs/ " +  tranStr + " /quorum-maker/setup.conf" + " >/logs/quorummakerlogs/" + "$${DATE}_log.txt";
+	// 	//commands.push("./NodeManager http://"+serviceConfig.validator.startIp+":"+serviceConfig.validator.rpcPort+" "
+	// 	commands.push("./NodeManager http://"+gateway+":"+serviceConfig.validator.rpcPort+" "
+	// 		+serviceConfig["quorum-maker"]["port"]+ commandString);
+	// 	quorum.entrypoint.push(genCommand(commands));
+	// 	return quorum;
+	// },
 	"validator": (i,test)=> {
-		var validatorName = "validator-", constellationName = "constellation-", tesseraName = "tessera-";
+		var validatorName = "validator-", constellationName = "constellation-", tesseraName = "tessera-", governanceName = "governance-ui-";
+		let trimmedPubKey = basicConfig.publicKeys[i].slice(0,5);
+		let PRIVATEKEY = `{PRIVATEKEY}`;
+		let PASSWORD = `{PASSWORD}`;
 		if(test){
 			validatorName += "test-"; 
 			constellationName += "test-";
 			tesseraName += "test-";
 		}
 
-		if(readparams.distributed) {
-			validatorName += ipAddress[i];
-			constellationName += ipAddress[i];
-			tesseraName += ipAddress[i];
-		} else {
-			if(readparams.modeFlag == "full") {
-				validatorName += readparams.nodeName + i;
-				constellationName += readparams.nodeName + i;
-				tesseraName += readparams.nodeName + i;
-			}
-			else if(readparams.modeFlag == "masternode") {
-				validatorName += readparams.nodeName;
-				constellationName += readparams.nodeName;
-				tesseraName += readparams.nodeName;
-			}
+		if(readparams.modeFlag == "full" && !readparams.distributed) {
+			validatorName += readparams.nodeName + i;
+			constellationName += readparams.nodeName + i;
+			tesseraName += readparams.nodeName + i;
+			PRIVATEKEY = `{PRIVATEKEY${i}}`;
+			PASSWORD = `{PASSWORD${i}}`;
+		}
+		else {
+			validatorName = validatorNames[i] + '-' + trimmedPubKey;
+			tesseraName += trimmedPubKey;
+			governanceName += trimmedPubKey;
 		}
 		
 		var ipaddressText;
 		var startGeth;
-		if(readparams.modeFlag == "full") {
-			if(readparams.distributed) {
-				ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+ipAddress[0];
-			} else {
-				ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+serviceConfig["ledgeriumstats"].ip;
-			}
+		if (readparams.modeFlag == "full" && !readparams.distributed) {
+			ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+serviceConfig["ledgeriumstats"].ip+":3000";
+			startGeth = gethCom + " --rpcvhosts=" + readparams.nodeName + " --nodekeyhex \""+"${PRIVATEKEY" + i + "}"+"\" "
+		} else {
+			ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+statsURL;
+			startGeth = gethCom + " --rpcvhosts=" + domainNames[i] + " --nodekeyhex \""+"${PRIVATEKEY}"+"\" "
 		}
-		else if(readparams.modeFlag == "masternode")
-			ipaddressText = " --ethstats \"" + validatorName + ":bb98a0b6442334d0cdf8a31b267892c1@"+readparams.externalIPAddress;
-		startGeth = gethCom + " --rpcvhosts=" + readparams.domainName + " --nodekeyhex \""+"${PRIVATEKEY"+[i]+"}"+"\" "
-		+"--etherbase \""+basicConfig.publicKeys[i]+"\" --port \""+serviceConfig.validator.gossipPort+"\""
-		+ipaddressText+":3000\" --rpcport "+serviceConfig.validator.rpcPort
+		
+		startGeth += "--etherbase \""+basicConfig.publicKeys[i]+"\" --port \""+serviceConfig.validator.gossipPort+"\""
+		+ipaddressText+ "\" --rpcport "+serviceConfig.validator.rpcPort
 		+" --wsport "+serviceConfig.validator.wsPort; // quorum maker service uses this identity
+
 		const startIp = serviceConfig.validator.startIp.split(".");
 		var validator = {
 			"hostname"   : validatorName, 
@@ -568,10 +606,15 @@ const services = {
 				validator["depends_on"] = [tesseraName];
 				validator["environment"]= ["PRIVATE_CONFIG=/priv/tm.ipc"];
 				startWait               = "while [ ! -e /priv/tm.ipc ];do";
-				cpPubKeys = "cp /priv/tm.pub /tmp/tm"+i+".pub";
+
+				if(readparams.distributed){
+					cpPubKeys = "cp /priv/tm.pub /tmp/tm.pub";
+				} else {
+					cpPubKeys = "cp /priv/tm.pub /tmp/tm"+i+".pub";
+				}
 			}
 		}
-		else if(readparams.modeFlag == "masternode"){
+		else if(readparams.modeFlag == "blockproducer"){
 			if ( !tesseraFlag ){
 				validator.volumes 	    = ["./" + validatorName +":/eth", constellationName +":/constellation:z","./tmp:/tmp"];
 				validator["depends_on"] = [constellationName];
@@ -600,8 +643,8 @@ const services = {
 			"cp /tmp/static-nodes.json /eth/static-nodes.json",
 			cpPubKeys,
 			"geth init /eth/genesis.json --datadir /eth",		
-			"echo '"+"${PASSWORD"+[i]+"}"+"' > ./password",
-			"echo '"+"${PRIVATEKEY"+[i]+"}"+"' > ./file",
+			"echo '"+ PASSWORD +"' > ./password",
+			"echo '"+PRIVATEKEY+"' > ./file",
 			"geth account import file --datadir /eth --password password",
 			"rm -f ./file && rm -f ./password",
 			"fi"
@@ -643,7 +686,7 @@ const services = {
 			validatorName += readparams.nodeName + i;
 			constellationName += readparams.nodeName + i;
 		// }
-		// else if(readparams.modeFlag == "masternode") {
+		// else if(readparams.modeFlag == "blockproducer") {
 		// 	validatorName += readparams.nodeName + i;
 		// 	constellationName += readparams.nodeName + i;
 		// }
@@ -666,7 +709,7 @@ const services = {
 				}
 			}
 		}
-		else if(readparams.modeFlag == "masternode") {
+		else if(readparams.modeFlag == "blockproducer") {
 			for (var j = 0; j < limit; j++) {
 				othernodes+="http://"+readparams.externalIPAddress+":"+(serviceConfig.constellation.port+j)+"/";
 				if(j != limit-1) {
@@ -714,21 +757,15 @@ const services = {
 			validatorName += "test-"; 
 			tesseraName += "test-";
 		}
-
-		if(readparams.distributed) {
-			validatorName += ipAddress[i];
-			tesseraName += ipAddress[i];
-		} else {
-			if(readparams.modeFlag == "full") {
-				validatorName += readparams.nodeName + i;
-				tesseraName += readparams.nodeName + i;
-			}
-			else if(readparams.modeFlag == "masternode") {
-				validatorName += readparams.nodeName;
-				tesseraName += readparams.nodeName;
-			}
+		
+		if(readparams.modeFlag == "full" && !readparams.distributed) {
+			validatorName += readparams.nodeName + i;
+			tesseraName += readparams.nodeName + i;
 		}
-
+		else {
+			validatorName += ipAddress[i];
+			tesseraName += basicConfig.publicKeys[i].slice(0,5);
+		}
 
 		var startTess = "java -Xms1024M -Xmx1024M -jar /tessera/tessera-app.jar -configfile /priv/tessera-config.json";
 		startTess+=" >/logs/tesseralogs/"+ tesseraName + "_log_$${DATE}.txt";
@@ -746,7 +783,7 @@ const services = {
 		var tessera          = {
 			"hostname"   : tesseraName,
 			"image"		 : "ledgeriumengineering/tessera:v1.1",
-			"volumes"    : [],
+			"volumes"    : ["./"+tesseraName+":/priv", "./keystores:/keystores"],
 			"entrypoint" : ["/bin/sh","-c"],
 			"networks"	 : {
 			},
@@ -785,16 +822,17 @@ const services = {
 				tesseraNineTemplate.serverConfigs[2].serverAddress = "https://"+startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(i+parseInt(startIp[3]))+":"+serverPortThirdParty;
 				tesseraNineTemplate.serverConfigs[0].bindingAddress = "https://0.0.0.0:"+serverPortP2p;
 				tesseraNineTemplate.serverConfigs[2].bindingAddress = "https://0.0.0.0:"+serverPortThirdParty;
+				tesseraNineTemplate.serverConfigs[2].sslConfig.serverKeyStore = `/keystores/server${i}TP-keystore`;
 			}
 		}
-		else if(readparams.modeFlag == "masternode") {
+		else if(readparams.modeFlag == "blockproducer") {
 			for (var j = 0; j < basicConfig.publicKeys.length; j++) {
-				peers.push({ "url" : "http://"+readparams.externalIPAddress+":"+(port+j)+"/"})
+				peers.push({ "url" : protocol+readparams.externalIPAddress+":"+(port)+"/"})
 			}
-			const serverPortP2p 		= tesseraNineTemplate.serverConfigs[0].serverAddress;
-			const serverPortThirdParty  = tesseraNineTemplate.serverConfigs[2].serverAddress;
-			tesseraNineTemplate.serverConfigs[0].serverAddress = "http://"+readparams.externalIPAddress+":"+serverPortP2p;
-			tesseraNineTemplate.serverConfigs[2].serverAddress = "http://"+readparams.externalIPAddress+":"+serverPortThirdParty;
+			tesseraNineTemplate.serverConfigs[0].serverAddress = protocol+currentIp+":"+port;
+			tesseraNineTemplate.serverConfigs[2].serverAddress = protocol+currentIp+":"+(port + 100);
+			tesseraNineTemplate.serverConfigs[0].bindingAddress = "https://0.0.0.0:"+(port);
+			tesseraNineTemplate.serverConfigs[2].bindingAddress = "https://0.0.0.0:"+(port+100);
 		}
 		/* old tessera versions
 		tesseraTemplate.server.port 				   = port+i;
@@ -805,12 +843,11 @@ const services = {
 		eTesseraTemplate.peer 						   = peers;
 		*/
 		tesseraNineTemplate.peer              			   = peers;
-		tessera.volumes								       = ["./"+tesseraName+":/priv"];
 		var keytoolStr;
 		if(readparams.distributed){
-			keytoolStr = `keytool -alias tessera -dname CN=${tesseraName} -genkeypair -keystore /priv/server${i}-keystore -storepass quorum -ext SAN=dns:localhost,dns:${tesseraName},ip:127.0.0.1,ip:0.0.0.0,ip:${startIp[0]}.${startIp[1]}.${startIp[2]}.${(i+parseInt(startIp[3]))},ip:${ipAddress[i]}`
+			keytoolStr = `keytool -alias tessera -dname CN=${tesseraName} -genKeypair -keyalg RSA -keysize 2048 -keystore /keystores/server${i}-keystore -storepass quorum -ext SAN=dns:localhost,dns:${tesseraName},ip:127.0.0.1,ip:0.0.0.0,ip:${startIp[0]}.${startIp[1]}.${startIp[2]}.${(i+parseInt(startIp[3]))},ip:${ipAddress[i]}`
 		} else {
-			keytoolStr = `keytool -alias tessera -dname CN=${tesseraName} -genkeypair -keystore /priv/server${i}-keystore -storepass quorum -ext SAN=dns:localhost,dns:${tesseraName},ip:127.0.0.1,ip:0.0.0.0,ip:${startIp[0]}.${startIp[1]}.${startIp[2]}.${(i+parseInt(startIp[3]))},ip:${readparams.externalIPAddress}`
+			keytoolStr = `keytool -alias tessera -dname CN=${tesseraName} -genKeypair -keyalg RSA -keysize 2048 -keystore /keystores/server${i}-keystore -storepass quorum -ext SAN=dns:localhost,dns:${tesseraName},ip:127.0.0.1,ip:0.0.0.0,ip:${startIp[0]}.${startIp[1]}.${startIp[2]}.${(i+parseInt(startIp[3]))},ip:${currentIp}`
 		}
 		const commands = [
 			"DATE=`date '+%Y-%m-%d_%H-%M-%S'`",
@@ -818,14 +855,16 @@ const services = {
 			"if [ ! -e \"/priv/tm.key\" ];then",
 			"mkdir -p /priv",
 			"mkdir -p /logs/tesseralogs",
+			"if [ ! -e \"/keystores/server"+i+"-keystore\" ];then",
 			keytoolStr,
+			"fi",
 			"echo -e \"\\n\" | java -jar /tessera/tessera-app.jar -keygen -filename /priv/tm",
 			/* old tessera versions
 			"echo '"+JSON.stringify(tesseraTemplate)+"' > /priv/tessera-config.json",
 			"echo '"+JSON.stringify(eTesseraTemplate)+"' > /priv/tessera-config.json",
 			*/
 			"echo '"+JSON.stringify(tesseraNineTemplate)+"' > /priv/tessera-config.json",
-			"cp /priv/tm.pub /tmp/tm"+i+".pub",
+			"cp /priv/tm.pub /tmp/tm.pub",
 			"fi",
 			startTess
 		];
@@ -847,25 +886,18 @@ const services = {
 			tesseraName += "test-";
 			governanceUIName += "test-";
 		}
+		let trimmedPubKey = basicConfig.publicKeys[i].slice(0,5);
 
-		if(readparams.distributed) {
-			validatorName += ipAddress[i];
+		if(readparams.modeFlag == "full" && !readparams.distributed){
+			validatorName += readparams.nodeName + i;
+			constellationName += readparams.nodeName + i;
+			tesseraName += readparams.nodeName + i;
+			governanceUIName += readparams.nodeName + i;
+		}else {
+			validatorName = validatorNames[i] + '-' + trimmedPubKey;
 			constellationName += ipAddress[i];
-			tesseraName += ipAddress[i];
-			governanceUIName += ipAddress[i];
-		} else {
-
-			if(readparams.modeFlag == "full"){
-				validatorName += readparams.nodeName + i;
-				constellationName += readparams.nodeName + i;
-				tesseraName += readparams.nodeName + i;
-				governanceUIName += readparams.nodeName + i;
-			}else {
-				validatorName += readparams.nodeName;
-				constellationName += readparams.nodeName;
-				tesseraName += readparams.nodeName;
-				governanceUIName += readparams.nodeName;
-			}
+			tesseraName += trimmedPubKey;
+			governanceUIName += trimmedPubKey;
 		}
 
 		var gov = {
@@ -896,42 +928,42 @@ const services = {
 		string+="sleep 1\n";
 		string+="echo \"Waiting for validator to be ready...\"\n";
 		string+="done\n";
-		if((i == 0) && (readparams.modeFlag == "full")) { //Initialisation is to be done only for one node. We are doing for the first node -> i == 0
-			string+="cp /tmp/nodesdetails.json /eth/nodesdetails.json\n";
-			string+="cd /ledgerium/governanceapp/governanceapp\n",
-			//string+="node index.js protocol=http hostname=" + vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i) +" port=" + serviceConfig.validator.rpcPort + " initiateApp="
-			string+="node index.js protocol=http hostname=" + gateway + " port=" + serviceConfig.validator.rpcPort + " initiateApp="
-			var privateKeyString="";
-			for(var nodeIndex = 0; nodeIndex < numberOfNodes;) {
-				privateKeyString+= "${PRIVATEKEY" + (nodeIndex++) + "}"
-				if(nodeIndex < numberOfNodes){ //if not the last node
-					privateKeyString+= ",";
-				}	
-			}
-			string+=privateKeyString;
-			string+=",/eth/nodesdetails.json";
+		// if((i == 0) && (readparams.modeFlag == "full")) { //Initialisation is to be done only for one node. We are doing for the first node -> i == 0
+		// 	string+="cp /tmp/nodesdetails.json /eth/nodesdetails.json\n";
+		// 	string+="cd /ledgerium/governanceapp/governanceapp\n",
+		// 	//string+="node index.js protocol=http hostname=" + vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i) +" port=" + serviceConfig.validator.rpcPort + " initiateApp="
+		// 	string+="node index.js protocol=http hostname=" + gateway + " port=" + serviceConfig.validator.rpcPort + " initiateApp="
+		// 	var privateKeyString="";
+		// 	for(var nodeIndex = 0; nodeIndex < numberOfNodes;) {
+		// 		privateKeyString+= "${PRIVATEKEY" + (nodeIndex++) + "}"
+		// 		if(nodeIndex < numberOfNodes){ //if not the last node
+		// 			privateKeyString+= ",";
+		// 		}	
+		// 	}
+		// 	string+=privateKeyString;
+		// 	string+=",/eth/nodesdetails.json";
 
-			var accountString="";
-			for(nodeIndex = 3; nodeIndex < numberOfNodes;) {
-				//first 3 accounts are init from initiateApp, rest of them should be added as adminValidatorSet and simpleValidatorSet
-				accountString+= "0x" + basicConfig.publicKeys[nodeIndex++];
-				if(nodeIndex < numberOfNodes){ //if not the last node
-					accountString+=",";
-				}	
-			}
-			string+=" runadminvalidator=addOneAdmin,"+accountString;
-			string+=" runsimplevalidator=addSimpleSetContractValidatorForAdmin,"+accountString;
-			string+= "\n"
-		}	
+		// 	var accountString="";
+		// 	for(nodeIndex = 3; nodeIndex < numberOfNodes;) {
+		// 		//first 3 accounts are init from initiateApp, rest of them should be added as adminValidatorSet and simpleValidatorSet
+		// 		accountString+= "0x" + basicConfig.publicKeys[nodeIndex++];
+		// 		if(nodeIndex < numberOfNodes){ //if not the last node
+		// 			accountString+=",";
+		// 		}	
+		// 	}
+		// 	string+=" runadminvalidator=addOneAdmin,"+accountString;
+		// 	string+=" runsimplevalidator=addSimpleSetContractValidatorForAdmin,"+accountString;
+		// 	string+= "\n"
+		// }	
 		string+="cd /ledgerium/governanceapp/governanceapp/app\n";
 		
 		//string+="node governanceUI.js "+vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i)+" "+(serviceConfig.validator.rpcPort+i)+"\n";
 		if(readparams.distributed) {
 			if((i == 0) && (readparams.modeFlag == "full")) {
-				string+="node governanceUI.js "+ ipAddress[i] +" "+(serviceConfig.validator.rpcPort)+ " " + "0x${PRIVATEKEY0}";
+				string+="node governanceUI.js "+ gateway +" "+(serviceConfig.validator.rpcPort)+ " " + "0x${PRIVATEKEY}";
 			}
 			else {
-				string+="node governanceUI.js "+ ipAddress[i] +" "+(serviceConfig.validator.rpcPort);
+				string+="node governanceUI.js "+ gateway +" "+(serviceConfig.validator.rpcPort);
 			}
 		} else {
 			if((i == 0) && (readparams.modeFlag == "full")) {
@@ -965,11 +997,21 @@ const services = {
 		return doc;
 	},
 	"ledgeriumfaucet" : () => {
+		let validatorName;
+		let PRIVATEKEY;
+		if(readparams.distributed) {
+			validatorName = validatorNames[0] +'-' + basicConfig.publicKeys[0].slice(0,5);
+			PRIVATEKEY = '${PRIVATEKEY}';
+		} else {
+			validatorName = "validator-" + readparams.nodeName + "0";
+			PRIVATEKEY = '${PRIVATEKEY0}';
+		}
 		var ledgeriumfaucet = {
 			"image" : "ledgeriumengineering/ledgeriumfaucet:v1.0",
+			"volumes"  	: ["./logs:/logs", "./" + validatorName +':/eth'],
+			"depends_on" : [validatorName],
 			"ports" : ["5577:5577"],
 			"entrypoint" : ["/bin/sh", "-c"],
-			"volumes"  	: ["./logs:/logs"],
 			"environment": ["GOOGLE_CAPTCHA_SECRET=6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe","REQUEST_LIMIT=3","REDIS_EXPIRE_SECONDS=86400"],
 			"networks" : {}
 		};
@@ -980,7 +1022,11 @@ const services = {
 		const commands = [
 			startEntryPoint,
 			"DATE=`date '+%Y-%m-%d_%H-%M-%S'`",
-			"node index.js ${PRIVATEKEY0} >/logs/ledgeriumfaucetlogs/ledgeriumfaucet_$${DATE}_log.txt"
+			"while [ ! -e /eth/geth.ipc ];do",
+			"sleep 1",
+			"echo \"Waiting for validator to be ready...\"",
+			"done",
+			"node index.js " + PRIVATEKEY + " >/logs/ledgeriumfaucetlogs/ledgeriumfaucet_$${DATE}_log.txt"
 		];
 		ledgeriumfaucet.entrypoint.push(genCommand(commands));
 		ledgeriumfaucet.networks[network_name] = {"ipv4_address": serviceConfig["ledgeriumfaucet"].ip};
@@ -1006,6 +1052,17 @@ const services = {
 		};
 		doc.networks[network_name] = {"ipv4_address": serviceConfig["ledgeriumdocs"].ip};
 		return doc;
+	},
+	"mongodb": () => {
+		var mongodb = {
+			"image": "mongo:3.4.10",
+			"container_name": "blk-free-mongodb",
+			"ports": ["27017:27017"],
+			"entrypoint": "mongod --smallfiles --logpath=/dev/null --bind_ip '0.0.0.0'",
+			"networks" : {}
+		}
+		mongodb.networks[network_name] = { "ipv4_address":serviceConfig["mongodb"].ip };
+		return mongodb;
 	}
 };
 const template = {

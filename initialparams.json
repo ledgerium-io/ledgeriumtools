@@ -1,9 +1,1 @@
-{
-    "mode": "full",
-    "distributed":false,
-    "env": "devnet",
-    "externalIPAddress": "125.254.27.14",
-    "nodeName": "msc",
-    "domainName": "msc",
-    "networkId": 2019
-}
+{"mode":"full","network":"toorak","distributed":true,"env":"devnet","externalIPAddress":"122.175.67.228","nodeName":"msc","networkId":1111,"domainName":"msc"}

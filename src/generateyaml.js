@@ -10,17 +10,17 @@ var dockerCompose  = dockerTemplate.template;
 var dockerComposefull  = dockerTemplate.templatefull;
 
 if(readparams.modeFlag == "full") {
-	dockerCompose.services["blockexplorerclient"] = dockerTemplate.services['blockexplorerclient']();
-	dockerCompose.services["blockexplorerserver"] = dockerTemplate.services['blockexplorerserver']();
+	// dockerCompose.services["blockexplorerclient"] = dockerTemplate.services['blockexplorerclient']();
+	// dockerCompose.services["blockexplorerserver"] = dockerTemplate.services['blockexplorerserver']();
 	dockerCompose.services["ledgeriumstats"] = dockerTemplate.services['ledgeriumstats']();
-	dockerCompose["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
+	// dockerCompose["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
 	switch (readparams.env) {
 		case "testnet":
 		case "devnet":
 		dockerComposefull.services["redis"] = dockerTemplate.services['redis']();
 		dockerComposefull.services["ledgeriumfaucet"] = dockerTemplate.services['ledgeriumfaucet']();
-		dockerComposefull.services["docusaurus"] = dockerTemplate.services['docusaurus']();
-		dockerComposefull.services["ledgeriumdocs"] = dockerTemplate.services["ledgeriumdocs"]();
+		// dockerComposefull.services["docusaurus"] = dockerTemplate.services['docusaurus']();
+		// dockerComposefull.services["ledgeriumdocs"] = dockerTemplate.services["ledgeriumdocs"]();
 		break;
 		case "mainnet":
 			// dockerComposefull.services["blockexplorer"] = dockerTemplate.services['blockexplorer']();
@@ -43,7 +43,7 @@ if(!dockerTemplate.networks.Externalflag) {
 
 const type = dockerTemplate.tesseraFlag;
 if(readparams.modeFlag == "full") {
-	dockerCompose.volumes["quorum-maker"] = null;
+	// dockerCompose.volumes["quorum-maker"] = null;
 	let YMLFileSplit;
 	let volumes;
 	for (var i = 0; i < numberOfNodes - readparams.faultynode; i++) {
@@ -51,29 +51,36 @@ if(readparams.modeFlag == "full") {
 			//Clear services for every yml file
 			dockerComposeSplit.services = {};
 			dockerComposeSplit.volumes = {};
-			//Add ledgeriumstats,blockexplorerclient,blockexplorerserver to first yml file
-			if(i == 0) {
-				dockerComposeSplit.services["blockexplorerclient"] = dockerTemplate.services['blockexplorerclient']();
-				dockerComposeSplit.services["blockexplorerserver"] = dockerTemplate.services['blockexplorerserver']();
-				dockerComposeSplit.services["ledgeriumstats"] = dockerTemplate.services['ledgeriumstats']();
-				dockerComposeSplit["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
-				dockerComposeSplit.volumes["quorum-maker"] = null;
-			}
-			dockerCompose.services["validator-"+ipAddress[i]] = dockerTemplate.services.validator(i);
-			dockerComposeSplit.services["validator-"+ipAddress[i]] = dockerTemplate.services.validator(i);
+			let trimmedPubKey = basicConfig.publicKeys[i].slice(0,5);
+			let validatorName = validatorNames[i] + '-' + trimmedPubKey;
+			
+			dockerCompose.services[validatorName] = dockerTemplate.services.validator(i);
+			dockerComposeSplit.services[validatorName] = dockerTemplate.services.validator(i);
 			
 			if(!type) {
 				dockerCompose.services["constellation-"+ipAddress[i]] = dockerTemplate.services.constellation(i);
 				dockerComposeSplit.services["constellation-"+ipAddress[i]] = dockerTemplate.services.constellation(i);
 			} else {
-				dockerCompose.services["tessera-"+ipAddress[i]] = dockerTemplate.services.tessera(i);		
-				dockerComposeSplit.services["tessera-"+ipAddress[i]] = dockerTemplate.services.tessera(i);		
+				dockerCompose.services["tessera-"+trimmedPubKey] = dockerTemplate.services.tessera(i);		
+				dockerComposeSplit.services["tessera-"+trimmedPubKey] = dockerTemplate.services.tessera(i);		
 			}
-			dockerCompose.services["governance-ui-"+ipAddress[i]] = dockerTemplate.services.governanceapp(i);
-			dockerComposeSplit.services["governance-ui-"+ipAddress[i]] = dockerTemplate.services.governanceapp(i);
+			dockerCompose.services["governance-ui-"+trimmedPubKey] = dockerTemplate.services.governanceapp(i);
+			dockerComposeSplit.services["governance-ui-"+trimmedPubKey] = dockerTemplate.services.governanceapp(i);
 
-			volumes = dockerCompose.services["validator-"+ipAddress[i]].volumes;
-			YMLFileSplit = "./output/fullnode/docker-compose_" + i + "_" + ipAddress[i] +".yml";
+			//Add ledgeriumstats,blockexplorerclient,blockexplorerserver to first yml file
+			if(i == 0) {
+				dockerComposeSplit.services["ledgeriumstats"] = dockerTemplate.services['ledgeriumstats']();
+				dockerComposeSplit.services["redis"] = dockerTemplate.services['redis']();
+				dockerComposeSplit.services["ledgeriumfaucet"] = dockerTemplate.services['ledgeriumfaucet']();
+				dockerComposeSplit.services["mongodb"] = dockerTemplate.services['mongodb']();
+				dockerComposeSplit.services["blockexplorerclient"] = dockerTemplate.services['blockexplorerclient']();
+				dockerComposeSplit.services["blockexplorerserver"] = dockerTemplate.services['blockexplorerserver']();
+				// dockerComposeSplit["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
+				// dockerComposeSplit.volumes["quorum-maker"] = null;
+			}
+
+			volumes = dockerCompose.services[validatorName].volumes;
+			YMLFileSplit = "./output/fullnode/docker-compose_" + i +".yml";
 
 			for (var j = volumes.length - 1; j >= 0; j--) {
 				if(volumes[j].slice(0,1) != ".")
@@ -89,10 +96,10 @@ if(readparams.modeFlag == "full") {
 			}));
 		
 		} else {
-			dockerComposeSplit.services["blockexplorerclient"] = dockerTemplate.services['blockexplorerclient']();
-			dockerComposeSplit.services["blockexplorerserver"] = dockerTemplate.services['blockexplorerserver']();
-			dockerCompose.services["ledgeriumstats"] = dockerTemplate.services['ledgeriumstats']();
-			dockerCompose["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
+			// dockerComposeSplit.services["blockexplorerclient"] = dockerTemplate.services['blockexplorerclient']();
+			// dockerComposeSplit.services["blockexplorerserver"] = dockerTemplate.services['blockexplorerserver']();
+			// dockerCompose.services["ledgeriumstats"] = dockerTemplate.services['ledgeriumstats']();
+			// dockerCompose["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
 
 			dockerCompose.services["validator-"+readparams.nodeName + i] = dockerTemplate.services.validator(i);
 			//dockerComposeSplit.services["validator-"+readparams.nodeName + i] = dockerTemplate.services.validator(i);
@@ -107,6 +114,14 @@ if(readparams.modeFlag == "full") {
 			dockerCompose.services["governance-ui-"+readparams.nodeName + i] = dockerTemplate.services.governanceapp(i);
 			//dockerComposeSplit.services["governance-ui-"+readparams.nodeName + i] = dockerTemplate.services.governanceapp(i);
 	
+			if(i == numberOfNodes -1) {
+				dockerCompose.services["redis"] = dockerTemplate.services['redis']();
+				dockerCompose.services["ledgeriumfaucet"] = dockerTemplate.services['ledgeriumfaucet']();
+				dockerCompose.services["mongodb"] = dockerTemplate.services['mongodb']();
+				dockerCompose.services["blockexplorerclient"] = dockerTemplate.services['blockexplorerclient']();
+				dockerCompose.services["blockexplorerserver"] = dockerTemplate.services['blockexplorerserver']();
+			}
+
 			volumes = dockerCompose.services["validator-"+readparams.nodeName + i].volumes;
 			//YMLFileSplit = "./output/fullnode/docker-compose_" + i + "_" + readparams.nodeName +".yml";
 
@@ -157,16 +172,24 @@ if(readparams.modeFlag == "full") {
 		}
 	});
 }
-else if(readparams.modeFlag == "masternode") {
+else if(readparams.modeFlag == "blockproducer") {
 	for (var i = 0; i < numberOfNodes - readparams.faultynode ; i++) {
-		dockerCompose.services["validator-" + readparams.nodeName] = dockerTemplate.services.validator(i);
+		
+		let trimmedPubKey = basicConfig.publicKeys[i].slice(0,5);
+		let validatorName, tesseraName, governanceName;
+		
+		validatorName = validatorNames[i] + '-' + trimmedPubKey;
+		tesseraName = 'tessera-' + trimmedPubKey;
+		governanceName = 'governance-ui-' + trimmedPubKey
+
+		dockerCompose.services[validatorName] = dockerTemplate.services.validator(i);
 		if(!type){
 			dockerCompose.services["constellation-" + readparams.nodeName] = dockerTemplate.services.constellation(i);
 		}else{
-			dockerCompose.services["tessera-" + readparams.nodeName] = dockerTemplate.services.tessera(i);		
+			dockerCompose.services[tesseraName] = dockerTemplate.services.tessera(i);		
 		}
-		dockerCompose.services["governance-ui-" + readparams.nodeName] = dockerTemplate.services.governanceapp(i);
-		let volumes = dockerCompose.services["validator-" + readparams.nodeName].volumes;
+		dockerCompose.services[governanceName] = dockerTemplate.services.governanceapp(i);
+		let volumes = dockerCompose.services[validatorName].volumes;
 		for (var j = volumes.length - 1; j >= 0; j--) {
 			if(volumes[j].slice(0,1) != ".")
 				dockerCompose.volumes[volumes[j].split(":")[0]] = null;
