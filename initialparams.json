@@ -1,1 +1,1 @@
-{"mode":"full","network":"toorak","distributed":true,"env":"devnet","externalIPAddress":"122.175.67.228","nodeName":"msc","networkId":1111,"domainName":"msc"}
+{"mode":"blockproducer","network":"toorak","distributed":false,"env":"testnet","externalIPAddress":"122.175.67.228","nodeName":"msc","networkId":2018,"domainName":"msc"}

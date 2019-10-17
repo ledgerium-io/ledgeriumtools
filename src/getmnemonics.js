@@ -15,7 +15,7 @@ let password;
 var currentIp = String(execSync('curl -s https://api.ipify.org'));
 
 if(readparams.modeFlag == "full") {
-	var num = readlineSync.question('Number of Nodes : ');
+	var num = readlineSync.question('Number of nodes : ');
 	if(num < 4 || num > 10) {
 		console.log("Number of nodes should not be less than 4 and more than 10 for full mode");
 		process.exit(1);
@@ -48,8 +48,8 @@ for (var i = 0; i < numberOfNodes; i++) {
 	
 	/** IP Addresses for distributed setup */
 	if (readparams.modeFlag === "blockproducer") {
-		console.log(`Enter IP address if it is not ${currentIp}, else leave it blank and hit Enter`)
-		let ip = readlineSync.question('Enter IP Address : ', {
+		console.log(`Your public IP address is ${currentIp}, if you want to change, provide it else ignore and hit Enter.`)
+		let ip = readlineSync.question('Enter the IP address : ', {
 			hideEchoBack: false
 		});
 
@@ -62,8 +62,8 @@ for (var i = 0; i < numberOfNodes; i++) {
 			process.exit(1);
 		}
 		
-		console.log("If there is no DNS, leave it blank and hit Enter")
-		let domainName = readlineSync.question('Enter DNS : ', {
+		console.log("If you have the domain name ready, provide it else ignore and hit Enter.")
+		let domainName = readlineSync.question('Enter domain name : ', {
 			hideEchoBack : false
 		});
 		
@@ -79,14 +79,14 @@ for (var i = 0; i < numberOfNodes; i++) {
 		validatorNames.push(validatorName);
 		domainNames.push(domainName);
 		
-		menmonic = readlineSync.question('Enter Mnemonic : ', {
+		menmonic = readlineSync.question('Enter mnemonic : ', {
 			hideEchoBack: true
 		});
-		password = readlineSync.question('Enter Password : ', {
+		password = readlineSync.question('Enter password : ', {
 			hideEchoBack: true
 		});
 	} else if(readparams.modeFlag === "full" && readparams.distributed) {
-		let ip = readlineSync.question('Enter IP Address '+i+" : ", {
+		let ip = readlineSync.question('Enter the IP address '+i+" : ", {
 			hideEchoBack: false
 		});
 
@@ -95,8 +95,8 @@ for (var i = 0; i < numberOfNodes; i++) {
 			process.exit(1);
 		}
 		
-		console.log("If there is no DNS, leave it blank and hit Enter")
-		let domainName = readlineSync.question('Enter DNS : ', {
+		console.log("If you have the domain name ready, provide it else ignore and hit Enter.")
+		let domainName = readlineSync.question('Enter domain name : ', {
 			hideEchoBack : false
 		});
 		
@@ -112,17 +112,17 @@ for (var i = 0; i < numberOfNodes; i++) {
 		validatorNames.push(validatorName);
 		domainNames.push(domainName);
 		
-		menmonic = readlineSync.question('Enter Mnemonic '+i+" : ", {
+		menmonic = readlineSync.question('Enter mnemonic '+i+" : ", {
 			hideEchoBack: true
 		});
-		password = readlineSync.question('Enter Password '+i+" : ", {
+		password = readlineSync.question('Enter password '+i+" : ", {
 			hideEchoBack: true
 		});
 	} else if (readparams.modeFlag === "full" && !readparams.distributed){
-		menmonic = readlineSync.question('Enter Mnemonic '+i+" : ", {
+		menmonic = readlineSync.question('Enter mnemonic '+i+" : ", {
 			hideEchoBack: true
 		});
-		password = readlineSync.question('Enter Password '+i+" : ", {
+		password = readlineSync.question('Enter password '+i+" : ", {
 			hideEchoBack: true
 		});
 	}
@@ -138,7 +138,7 @@ for (var i = 0; i < numberOfNodes; i++) {
 for (var i = 0; i < mnemonics.length; i++) {
 	for (var j = i+1; j < mnemonics.length; j++) {
 		if(mnemonics[i] == mnemonics[j])
-			throw "two mnemonics cannot be the same";
+			throw "two mnemonics cannot be the same.";
 	}
 }
 
