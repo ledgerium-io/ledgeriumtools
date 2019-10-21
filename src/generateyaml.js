@@ -10,26 +10,7 @@ var dockerCompose  = dockerTemplate.template;
 var dockerComposefull  = dockerTemplate.templatefull;
 
 if(readparams.modeFlag == "full") {
-	// dockerCompose.services["blockexplorerclient"] = dockerTemplate.services['blockexplorerclient']();
-	// dockerCompose.services["blockexplorerserver"] = dockerTemplate.services['blockexplorerserver']();
 	dockerCompose.services["ledgeriumstats"] = dockerTemplate.services['ledgeriumstats']();
-	// dockerCompose["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
-	switch (readparams.env) {
-		case "testnet":
-		case "devnet":
-		dockerComposefull.services["redis"] = dockerTemplate.services['redis']();
-		dockerComposefull.services["ledgeriumfaucet"] = dockerTemplate.services['ledgeriumfaucet']();
-		// dockerComposefull.services["docusaurus"] = dockerTemplate.services['docusaurus']();
-		// dockerComposefull.services["ledgeriumdocs"] = dockerTemplate.services["ledgeriumdocs"]();
-		break;
-		case "mainnet":
-			// dockerComposefull.services["blockexplorer"] = dockerTemplate.services['blockexplorer']();
-			// dockerComposefull.services["mongodb"] = dockerTemplate.services['mongodb']();
-			// dockerComposefull.services["web"] = dockerTemplate.services['web']();
-			break;
-		default:
-			break;
-	}
 }	
 
 if(!dockerTemplate.networks.Externalflag) {
@@ -72,11 +53,11 @@ if(readparams.modeFlag == "full") {
 				dockerComposeSplit.services["ledgeriumstats"] = dockerTemplate.services['ledgeriumstats']();
 				dockerComposeSplit.services["redis"] = dockerTemplate.services['redis']();
 				dockerComposeSplit.services["ledgeriumfaucet"] = dockerTemplate.services['ledgeriumfaucet']();
-				dockerComposeSplit.services["mongodb"] = dockerTemplate.services['mongodb']();
-				dockerComposeSplit.services["blockexplorerclient"] = dockerTemplate.services['blockexplorerclient']();
-				dockerComposeSplit.services["blockexplorerserver"] = dockerTemplate.services['blockexplorerserver']();
-				// dockerComposeSplit["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
-				// dockerComposeSplit.volumes["quorum-maker"] = null;
+				if(readparams.env === "testnet") {
+					dockerComposeSplit.services["mongodb"] = dockerTemplate.services['mongodb']();
+					dockerComposeSplit.services["blockexplorerclient"] = dockerTemplate.services['blockexplorerclient']();
+					dockerComposeSplit.services["blockexplorerserver"] = dockerTemplate.services['blockexplorerserver']();
+				}
 			}
 
 			volumes = dockerCompose.services[validatorName].volumes;
@@ -117,9 +98,11 @@ if(readparams.modeFlag == "full") {
 			if(i == numberOfNodes -1) {
 				dockerCompose.services["redis"] = dockerTemplate.services['redis']();
 				dockerCompose.services["ledgeriumfaucet"] = dockerTemplate.services['ledgeriumfaucet']();
-				dockerCompose.services["mongodb"] = dockerTemplate.services['mongodb']();
-				dockerCompose.services["blockexplorerclient"] = dockerTemplate.services['blockexplorerclient']();
-				dockerCompose.services["blockexplorerserver"] = dockerTemplate.services['blockexplorerserver']();
+				if(readparams.env === "testnet"){
+					dockerCompose.services["mongodb"] = dockerTemplate.services['mongodb']();
+					dockerCompose.services["blockexplorerclient"] = dockerTemplate.services['blockexplorerclient']();
+					dockerCompose.services["blockexplorerserver"] = dockerTemplate.services['blockexplorerserver']();
+				}
 			}
 
 			volumes = dockerCompose.services["validator-"+readparams.nodeName + i].volumes;
