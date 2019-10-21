@@ -367,19 +367,8 @@ const services = {
 		} else {
 			validatorName = "validator-" + readparams.nodeName + "0";
 		}
-		var mongoHostURL, mongoDBName;
-		switch (readparams.env) {
-			case "testnet":
-				mongoHostURL = "cluster0-gq8ep.mongodb.net";
-				mongoDBName = "testnet";
-				break;
-			case "devnet":
-				mongoHostURL = serviceConfig["mongodb"].ip;
-				mongoDBName = "flinders"
-				break;
-			default:
-				break;
-		}
+		var mongoHostURL = serviceConfig["mongodb"].ip;
+		var mongoDBName = readparams.network;
 
 		var blockserver = {
 			"hostname"	: "blockexplorerserver",
@@ -395,8 +384,8 @@ const services = {
 		};
 		blockserver.environment.push("MONGO_HOST="+mongoHostURL);
 		blockserver.environment.push("MONGO_DB="+mongoDBName);
-		blockserver.environment.push("MONGO_USERNAME="+"");
-		blockserver.environment.push("MONGO_PASSWORD="+"");
+		blockserver.environment.push("MONGO_USERNAME="+"sa");
+		blockserver.environment.push("MONGO_PASSWORD="+"sa");
 		blockserver.environment.push("WEB3_HTTP=http://"+gateway+":"+serviceConfig.validator.rpcPort);
 		blockserver.environment.push("WEB3_WS=ws://"+gateway+":"+serviceConfig.validator.wsPort);
 		var startEntryPoint = "";

@@ -26,12 +26,26 @@ const tempDir = path.join(__dirname, "/../output/tmp/");
 const fullnodeDir = path.join(__dirname, "/../output/fullnode/");
 const fullnodeTempDir = path.join(__dirname, "/../output/fullnode/tmp/");
 
+var deleteFolderRecursive = function(path) {
+	if (fs.existsSync(path)) {
+	  fs.readdirSync(path).forEach(function(file, index){
+		var curPath = path + "/" + file;
+		if (fs.lstatSync(curPath).isDirectory()) { // recurse
+		  deleteFolderRecursive(curPath);
+		} else { // delete file
+		  fs.unlinkSync(curPath);
+		}
+	  });
+	  fs.rmdirSync(path);
+	}
+};
+
 if(readparams.modeFlag === "blockproducer") {
 	if (fs.existsSync(fullnodeTempDir, true)) {
-		fs.rmdirSync(fullnodeTempDir);
+		deleteFolderRecursive(fullnodeTempDir);
 	}	
 	if (fs.existsSync(fullnodeDir)) {
-		fs.rmdirSync(fullnodeDir);
+		deleteFolderRecursive(fullnodeDir);
 	}
 } else {
 	if (!fs.existsSync(fullnodeDir)) {
