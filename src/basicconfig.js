@@ -47,15 +47,16 @@ if(readparams.modeFlag === "blockproducer") {
 	if (fs.existsSync(fullnodeDir)) {
 		deleteFolderRecursive(fullnodeDir);
 	}
-} else {
-	if (!fs.existsSync(fullnodeDir)) {
-		fs.mkdirSync(fullnodeDir);
-	}
+} 
+// else {
+// 	if (!fs.existsSync(fullnodeDir)) {
+// 		fs.mkdirSync(fullnodeDir);
+// 	}
 	
-	if (!fs.existsSync(fullnodeTempDir)) {
-		fs.mkdirSync(fullnodeTempDir);
-	}
-}
+// 	if (!fs.existsSync(fullnodeTempDir)) {
+// 		fs.mkdirSync(fullnodeTempDir);
+// 	}
+// }
 
 if(mnemonic.mode == 0){
 	var temp = mnemonic.mnemonic;

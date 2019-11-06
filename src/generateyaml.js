@@ -59,22 +59,21 @@ if(readparams.modeFlag == "full") {
 					dockerComposeSplit.services["blockexplorerserver"] = dockerTemplate.services['blockexplorerserver']();
 				}
 			}
+			// volumes = dockerCompose.services[validatorName].volumes;
+			// YMLFileSplit = "./output/fullnode/docker-compose_" + i +".yml";
 
-			volumes = dockerCompose.services[validatorName].volumes;
-			YMLFileSplit = "./output/fullnode/docker-compose_" + i +".yml";
-
-			for (var j = volumes.length - 1; j >= 0; j--) {
-				if(volumes[j].slice(0,1) != ".")
-					dockerCompose.volumes[volumes[j].split(":")[0]] = null;
-					// dockerComposeSplit.volumes[volumes[j].split(":")[0]] = null;
-			}
+			// for (var j = volumes.length - 1; j >= 0; j--) {
+			// 	if(volumes[j].slice(0,1) != ".")
+			// 		dockerCompose.volumes[volumes[j].split(":")[0]] = null;
+			// 		// dockerComposeSplit.volumes[volumes[j].split(":")[0]] = null;
+			// }
 			
-			//Final output to the fullnode yml
-			fs.writeFileSync(YMLFileSplit, yaml.dump(dockerComposeSplit, {
-				styles: {
-					'!!null' : 'canonical'
-				}
-			}));
+			// //Final output to the fullnode yml
+			// fs.writeFileSync(YMLFileSplit, yaml.dump(dockerComposeSplit, {
+			// 	styles: {
+			// 		'!!null' : 'canonical'
+			// 	}
+			// }));
 		
 		} else {
 			// dockerComposeSplit.services["blockexplorerclient"] = dockerTemplate.services['blockexplorerclient']();
