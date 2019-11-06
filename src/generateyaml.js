@@ -130,13 +130,13 @@ if(readparams.modeFlag == "full") {
 			}
 		}	
 	}
-	const YMLFileFull = "./output/fullnode/docker-compose.yml";
-	//Final output to the fullnode yml
-	fs.writeFileSync(YMLFileFull, yaml.dump(dockerComposefull, {
-		styles: {
-			'!!null' : 'canonical'
-		}
-	}));
+	// const YMLFileFull = "./output/fullnode/docker-compose.yml";
+	// //Final output to the fullnode yml
+	// fs.writeFileSync(YMLFileFull, yaml.dump(dockerComposefull, {
+	// 	styles: {
+	// 		'!!null' : 'canonical'
+	// 	}
+	// }));
 
 	var replace = "sed -i -e 's/~//g' " + YMLFileFull;
 	exec(replace, function(error, stdout, stderr) {

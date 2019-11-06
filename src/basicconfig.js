@@ -107,10 +107,11 @@ for (var i = 0; i < privateKeys.length; i++) {
 		if(i === 0) {
 			fs.writeFileSync(outputDir + ".env", envParams);
 			fs.writeFileSync(tempDir+ "privatekeys.json", JSON.stringify(privateKeyJSON,null, 2))
-		} else {
-			fs.writeFileSync(fullnodeDir + ".env" +i, envParams);
-			fs.writeFileSync(fullnodeTempDir+ "privatekeys" + i + ".json", JSON.stringify(privateKeyJSON,null, 2))
-		}
+		} 
+		// else {
+		// 	fs.writeFileSync(fullnodeDir + ".env" +i, envParams);
+		// 	fs.writeFileSync(fullnodeTempDir+ "privatekeys" + i + ".json", JSON.stringify(privateKeyJSON,null, 2))
+		// }
 	} else {
 		static_nodes += (
 			"\"enode://"+temp+
@@ -220,12 +221,12 @@ if (!fs.existsSync(tempDir)) {
 
 if(readparams.modeFlag == "full") {
 	const nodeDetailsFile = "nodesdetails.json";
-	if (!fs.existsSync(fullnodeDir)) {
-		fs.mkdirSync(fullnodeDir);
-	}
-	const envFilefullnode = __dirname + "/../output/fullnode/.env"; //.env file path
-	if(fs.existsSync(envFilefullnode))
-		fs.unlinkSync(envFilefullnode);
+	// if (!fs.existsSync(fullnodeDir)) {
+	// 	fs.mkdirSync(fullnodeDir);
+	// }
+	// const envFilefullnode = __dirname + "/../output/fullnode/.env"; //.env file path
+	// if(fs.existsSync(envFilefullnode))
+	// 	fs.unlinkSync(envFilefullnode);
 	//Create env file for full node, will be used by faucet
 	// fs.writeFileSync(envFilefullnode, envParams); //Write private keys and passwords to .env file
 	
