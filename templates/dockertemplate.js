@@ -337,7 +337,7 @@ const services = {
 	"blockexplorerclient": ()=> {
 		var blockclient = {
 			"hostname"		: "blockexplorerclient",
-			"image"     	: "blengineering.azurecr.io/blengineering/blockexplorerclient:v1.1",
+			"image"     	: "ledgeriumengineering/blockexplorerclient:v1.0",
 			"ports"     	: ["2000:80"],
 			"volumes" 		: ["./logs:/logs"],
 			"depends_on"	: ["blockexplorerserver"],
@@ -372,7 +372,7 @@ const services = {
 
 		var blockserver = {
 			"hostname"	: "blockexplorerserver",
-			"image"     : "blengineering.azurecr.io/blengineering/blockexplorerserver:v1.1",
+			"image"     : "ledgeriumengineering/blockexplorerserver:v1.0",
 			"ports"     : ["2002:2002"],
 			"volumes" 	: ["./logs:/logs", "./" + validatorName +':/eth'],
 			"environment": ["SERVER_PORT=2002", "SYNC_REQUESTS=100", "API_LIMIT_BLOCKS=100", "API_LIMIT_TRANSACTIONS=100"],
