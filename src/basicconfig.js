@@ -26,6 +26,14 @@ const tempDir = path.join(__dirname, "/../output/tmp/");
 const fullnodeDir = path.join(__dirname, "/../output/fullnode/");
 const fullnodeTempDir = path.join(__dirname, "/../output/fullnode/tmp/");
 
+if (!fs.existsSync(outputDir)) {
+	fs.mkdirSync(outputDir);
+}
+
+if (!fs.existsSync(tempDir)) {
+	fs.mkdirSync(tempDir);
+}
+
 var deleteFolderRecursive = function(path) {
 	if (fs.existsSync(path)) {
 	  fs.readdirSync(path).forEach(function(file, index){
@@ -48,15 +56,15 @@ if(readparams.modeFlag === "blockproducer") {
 		deleteFolderRecursive(fullnodeDir);
 	}
 } 
-// else {
-// 	if (!fs.existsSync(fullnodeDir)) {
-// 		fs.mkdirSync(fullnodeDir);
-// 	}
+if(readparams.distributed === true) {
+	if (!fs.existsSync(fullnodeDir)) {
+		fs.mkdirSync(fullnodeDir);
+	}
 	
-// 	if (!fs.existsSync(fullnodeTempDir)) {
-// 		fs.mkdirSync(fullnodeTempDir);
-// 	}
-// }
+	if (!fs.existsSync(fullnodeTempDir)) {
+		fs.mkdirSync(fullnodeTempDir);
+	}
+}
 
 if(mnemonic.mode == 0){
 	var temp = mnemonic.mnemonic;
@@ -108,10 +116,10 @@ for (var i = 0; i < privateKeys.length; i++) {
 			fs.writeFileSync(outputDir + ".env", envParams);
 			fs.writeFileSync(tempDir+ "privatekeys.json", JSON.stringify(privateKeyJSON,null, 2))
 		} 
-		// else {
-		// 	fs.writeFileSync(fullnodeDir + ".env" +i, envParams);
-		// 	fs.writeFileSync(fullnodeTempDir+ "privatekeys" + i + ".json", JSON.stringify(privateKeyJSON,null, 2))
-		// }
+		else {
+			fs.writeFileSync(fullnodeDir + ".env" +i, envParams);
+			fs.writeFileSync(fullnodeTempDir+ "privatekeys" + i + ".json", JSON.stringify(privateKeyJSON,null, 2))
+		}
 	} else {
 		static_nodes += (
 			"\"enode://"+temp+
@@ -142,9 +150,10 @@ for (var i = 0; i < privateKeys.length; i++) {
 			envParams += "PASSWORD" + i + "=" + input.passwords[i] + "\n";
 		}
 
-		if(i === privateKeys.length-1)
-		fs.writeFileSync(outputDir + ".env", envParams);
-		fs.writeFileSync(tempDir+ "privatekeys.json", JSON.stringify(privateKeyJSON,null, 2))
+		if(i === privateKeys.length-1){
+			fs.writeFileSync(tempDir+ "privatekeys.json", JSON.stringify(privateKeyJSON,null, 2))
+			fs.writeFileSync(outputDir + ".env", envParams);
+		}
 	}
 
 	publicKeys.push(pubk);
@@ -200,18 +209,15 @@ const genesisFile = "genesis.json";
 const privatekeysFile = "privatekeys.json";
 const staticFile = "static-nodes.json";
 const permissionedFile = "permissioned-nodes.json";
-// const envFile = __dirname + "/../output/.env"; //.env file path
 
 if(fs.existsSync(tempDir + genesisFile))
 	fs.unlinkSync(tempDir + genesisFile);
-if(fs.existsSync(tempDir + privatekeysFile))
-	fs.unlinkSync(tempDir + privatekeysFile);
+// if(fs.existsSync(tempDir + privatekeysFile))
+// 	fs.unlinkSync(tempDir + privatekeysFile);
 if(fs.existsSync(tempDir + staticFile))
 	fs.unlinkSync(tempDir + staticFile);
 if(fs.existsSync(tempDir + permissionedFile))
 	fs.unlinkSync(tempDir + permissionedFile);
-// if(fs.existsSync(envFile))
-// 	fs.unlinkSync(envFile);
 if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir);
 }
