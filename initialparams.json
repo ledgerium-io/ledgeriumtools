@@ -1,1 +1,1 @@
-{"mode":"blockproducer","network":"flinders","distributed":true,"env":"devnet","externalIPAddress":"104.210.106.138","nodeName":"msc","networkId":2019,"domainName":"msc"}
+{"mode":"full","network":"toorak","distributed":false,"env":"devnet","externalIPAddress":"20.188.233.239","nodeName":"au-mel-flinders-apptest","networkId":2024,"domainName":"au-mel-flinders-apptest"}

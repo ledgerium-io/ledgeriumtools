@@ -138,21 +138,21 @@ if(readparams.modeFlag == "full") {
 	// 	}
 	// }));
 
-	var replace = "sed -i -e 's/~//g' " + YMLFileFull;
-	exec(replace, function(error, stdout, stderr) {
-		if (error) {
-			console.log(error.code);
-		}
-	});
+	// var replace = "sed -i -e 's/~//g' " + YMLFileFull;
+	// exec(replace, function(error, stdout, stderr) {
+	// 	if (error) {
+	// 		console.log(error.code);
+	// 	}
+	// });
 
-	sleep(1000, function() {
-		// executes after one second, and blocks the thread
-		//Remove the -e file on MAC platform
-		if (process.platform == "darwin") {
-				if(fs.existsSync(YMLFileFull+"-e"))
-					fs.unlinkSync(YMLFileFull+"-e");
-		}
-	});
+	// sleep(1000, function() {
+	// 	// executes after one second, and blocks the thread
+	// 	//Remove the -e file on MAC platform
+	// 	if (process.platform == "darwin") {
+	// 			if(fs.existsSync(YMLFileFull+"-e"))
+	// 				fs.unlinkSync(YMLFileFull+"-e");
+	// 	}
+	// });
 }
 else if(readparams.modeFlag == "blockproducer") {
 	for (var i = 0; i < numberOfNodes - readparams.faultynode ; i++) {
