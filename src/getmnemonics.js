@@ -78,6 +78,10 @@ for (var i = 0; i < numberOfNodes; i++) {
 			hideEchoBack : false
 		});
 
+		if(validatorName == "") {
+			validatorName = hostname;
+		}
+
 		ipAddress.push(ip);
 		validatorNames.push(validatorName);
 		domainNames.push(domainName);
