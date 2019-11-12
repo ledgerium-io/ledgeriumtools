@@ -1,5 +1,6 @@
 const readlineSync = require('readline-sync');
 const fs 		   = require('fs');
+const os		   = require('os');
 const readparams = require('./readparams');
 const execSync = require('child_process').execSync;
 
@@ -71,6 +72,8 @@ for (var i = 0; i < numberOfNodes; i++) {
 			domainName = ip;
 		}
 
+		let hostname = os.hostname();
+		console.log(`If you want to use hostname (${hostname}) as validator name, ignore and hit Enter. Else provide validator name`)
 		let validatorName = readlineSync.question('Enter validator name : ', {
 			hideEchoBack : false
 		});
@@ -79,10 +82,10 @@ for (var i = 0; i < numberOfNodes; i++) {
 		validatorNames.push(validatorName);
 		domainNames.push(domainName);
 		
-		menmonic = readlineSync.question('Enter mnemonic : ', {
+		menmonic = readlineSync.question('Enter mnemonic (Refer docs to know more about mnemonics): ', {
 			hideEchoBack: true
 		});
-		password = readlineSync.question('Enter password : ', {
+		password = readlineSync.question('Enter password (Refer docs to know more about password): ', {
 			hideEchoBack: true
 		});
 	} else if(readparams.modeFlag === "full" && readparams.distributed) {
