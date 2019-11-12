@@ -65,7 +65,7 @@ if(readparams.modeFlag == "full") {
 			for (var j = volumes.length - 1; j >= 0; j--) {
 				if(volumes[j].slice(0,1) != ".")
 					dockerCompose.volumes[volumes[j].split(":")[0]] = null;
-					dockerComposeSplit.volumes[volumes[j].split(":")[0]] = null;
+					// dockerComposeSplit.volumes[volumes[j].split(":")[0]] = null;
 			}
 			
 			//Final output to the fullnode yml
