@@ -56,7 +56,7 @@ if(readparams.modeFlag === "blockproducer") {
 		deleteFolderRecursive(fullnodeDir);
 	}
 } 
-if(readparams.distributed === true) {
+if(readparams.modeFlag === "full" && readparams.distributed === true) {
 	if (!fs.existsSync(fullnodeDir)) {
 		fs.mkdirSync(fullnodeDir);
 	}
