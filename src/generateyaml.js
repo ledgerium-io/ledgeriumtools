@@ -34,6 +34,8 @@ if(readparams.modeFlag == "full") {
 			dockerComposeSplit.volumes = {};
 			let trimmedPubKey = basicConfig.publicKeys[i].slice(0,5);
 			let validatorName = validatorNames[i] + '-' + trimmedPubKey;
+			let governanceServerName = 'governance-server-' + trimmedPubKey;
+			let governanceClientName = 'governance-client-' + trimmedPubKey;
 			
 			dockerCompose.services[validatorName] = dockerTemplate.services.validator(i);
 			dockerComposeSplit.services[validatorName] = dockerTemplate.services.validator(i);
@@ -45,8 +47,12 @@ if(readparams.modeFlag == "full") {
 				dockerCompose.services["tessera-"+trimmedPubKey] = dockerTemplate.services.tessera(i);		
 				dockerComposeSplit.services["tessera-"+trimmedPubKey] = dockerTemplate.services.tessera(i);		
 			}
-			dockerCompose.services["governance-ui-"+trimmedPubKey] = dockerTemplate.services.governanceapp(i);
-			dockerComposeSplit.services["governance-ui-"+trimmedPubKey] = dockerTemplate.services.governanceapp(i);
+			// dockerCompose.services["governance-ui-"+trimmedPubKey] = dockerTemplate.services.governanceapp(i);
+			// dockerComposeSplit.services["governance-ui-"+trimmedPubKey] = dockerTemplate.services.governanceapp(i);
+			dockerCompose.services[governanceServerName] = dockerTemplate.services.governanceappserver(i);
+			dockerCompose.services[governanceClientName] = dockerTemplate.services.governanceappclient(i);
+			dockerComposeSplit.services[governanceServerName] = dockerTemplate.services.governanceappserver(i);
+			dockerComposeSplit.services[governanceClientName] = dockerTemplate.services.governanceappclient(i);
 
 			//Add ledgeriumstats,blockexplorerclient,blockexplorerserver to first yml file
 			if(i == 0) {
@@ -91,7 +97,9 @@ if(readparams.modeFlag == "full") {
 				dockerCompose.services["tessera-"+readparams.nodeName + i] = dockerTemplate.services.tessera(i);		
 				//dockerComposeSplit.services["tessera-"+readparams.nodeName + i] = dockerTemplate.services.tessera(i);		
 			}
-			dockerCompose.services["governance-ui-"+readparams.nodeName + i] = dockerTemplate.services.governanceapp(i);
+			// dockerCompose.services["governance-ui-"+readparams.nodeName + i] = dockerTemplate.services.governanceapp(i);
+			dockerCompose.services["governance-server-" + readparams.nodeName + i] = dockerTemplate.services.governanceappserver(i);
+			dockerCompose.services["governance-client-" + readparams.nodeName + i] = dockerTemplate.services.governanceappclient(i);
 			//dockerComposeSplit.services["governance-ui-"+readparams.nodeName + i] = dockerTemplate.services.governanceapp(i);
 	
 			if(i == numberOfNodes -1) {
@@ -158,11 +166,13 @@ else if(readparams.modeFlag == "blockproducer") {
 	for (var i = 0; i < numberOfNodes - readparams.faultynode ; i++) {
 		
 		let trimmedPubKey = basicConfig.publicKeys[i].slice(0,5);
-		let validatorName, tesseraName, governanceName;
+		let validatorName, tesseraName, governanceName, governanceClientName, governanceServerName;
 		
 		validatorName = validatorNames[i] + '-' + trimmedPubKey;
 		tesseraName = 'tessera-' + trimmedPubKey;
-		governanceName = 'governance-ui-' + trimmedPubKey
+		governanceName = 'governance-ui-' + trimmedPubKey;
+		governanceServerName = 'governance-server-' + trimmedPubKey;
+		governanceClientName = 'governance-client-' + trimmedPubKey;
 
 		dockerCompose.services[validatorName] = dockerTemplate.services.validator(i);
 		if(!type){
@@ -170,7 +180,9 @@ else if(readparams.modeFlag == "blockproducer") {
 		}else{
 			dockerCompose.services[tesseraName] = dockerTemplate.services.tessera(i);		
 		}
-		dockerCompose.services[governanceName] = dockerTemplate.services.governanceapp(i);
+		// dockerCompose.services[governanceName] = dockerTemplate.services.governanceapp(i);
+		dockerCompose.services[governanceServerName] = dockerTemplate.services.governanceappserver(i);
+		dockerCompose.services[governanceClientName] = dockerTemplate.services.governanceappclient(i);
 		let volumes = dockerCompose.services[validatorName].volumes;
 		for (var j = volumes.length - 1; j >= 0; j--) {
 			if(volumes[j].slice(0,1) != ".")

@@ -326,6 +326,18 @@ const serviceConfig = {
 		"port-int": 3003,
 		"startIp" : base_ip.slice(0, base_ip.length-1)+"150",
 		'deploy': deployConfig(500,128)
+	},
+	"governanceappclient": {
+		"port-exp": 3545,
+		"port-int": 80,
+		"startIp" : base_ip.slice(0, base_ip.length-1)+"15",
+		'deploy': deployConfig(500,128)
+	},
+	"governanceappserver": {
+		"port-exp": 3535,
+		"port-int": 3535,
+		"startIp" : base_ip.slice(0, base_ip.length-1)+"14",
+		'deploy': deployConfig(500,128)
 	}
 };
 
@@ -972,6 +984,107 @@ const services = {
 		gov.networks[network_name] = { "ipv4_address":ip };
 		gov.deploy = serviceConfig['governance-app'].deploy;
 		return gov;
+	},
+	"governanceappserver": (i,test)=>{
+		var validatorName = "validator-", tesseraName = "tessera-", governanceServerName = "governance-server-";
+		let trimmedPubKey = basicConfig.publicKeys[i].slice(0,5);
+
+		if(readparams.modeFlag == "full" && !readparams.distributed){
+			validatorName += readparams.nodeName + i;
+			tesseraName += readparams.nodeName + i;
+			governanceServerName += readparams.nodeName + i;
+		}else {
+			validatorName = validatorNames[i] + '-' + trimmedPubKey;
+			tesseraName += trimmedPubKey;
+			governanceServerName += trimmedPubKey;
+		}
+
+		let govServer = {
+			"hostname" 		: governanceServerName,
+			"image"    		: "ledgeriumengineering/ledgeriumgovernance-server:v1.0",
+			"volumes"  		: ["./logs:/logs","./" + validatorName +':/eth',"./tmp:/tmp", "./"+ tesseraName + ':/priv'],
+			"environment"	: ["SERVER_PORT=3535","WEB3_HTTP=http://172.19.240.1:8545"],
+			"depends_on" 	: [validatorName],
+			"entrypoint"    : [ "/bin/sh","-c"],
+			"networks"      : {
+
+			},
+			"restart"	 : "always",
+			"deploy" : {
+				"resources" : {
+					"limits" : {
+						"memory" : "500M"
+					},
+					"reservations" : {
+						"memory" : "128M"
+					}
+				}
+			}
+		}
+
+		if(readparams.distributed) {
+			govServer.ports = [serviceConfig["governanceappserver"]["port-exp"]+":"+serviceConfig["governanceappserver"]["port-int"]]
+		} else {
+			govServer.ports = [(serviceConfig["governanceappserver"]["port-exp"]+i)+":"+serviceConfig["governanceappserver"]["port-int"]]
+		}
+
+		var string = "set -u\nset -e\n";
+		string+="mkdir -p /logs/governanceapplogs\n";
+		string+="DATE=`date '+%Y-%m-%d_%H-%M-%S'`\n";
+		string+="while [ ! -e /eth/geth.ipc ];do\n";
+		string+="sleep 1\n";
+		string+="echo \"Waiting for validator to be ready...\"\n";
+		string+="done\n";
+		string+="cd /ledgerium/governanceapp/governanceapp/app\n";
+		string+= "node service.js";
+		string+= " >/logs/governanceapplogs/"+ governanceServerName + "_log_$${DATE}.txt";
+		govServer.entrypoint.push(string);
+		const ip = serviceConfig["governanceappserver"].startIp;
+		govServer.networks[network_name] = { "ipv4_address":ip };
+		return govServer;
+	},
+	"governanceappclient": (i,test)=>{
+		var governanceClientName = "governance-client-", governanceServerName = "governance-server-";
+		let trimmedPubKey = basicConfig.publicKeys[i].slice(0,5);
+		let reactAppBaseUrl = '';
+
+		if(readparams.modeFlag == "full" && !readparams.distributed){
+			governanceClientName += readparams.nodeName + i;
+			governanceServerName += readparams.nodeName + i;
+		}else {
+			governanceClientName += trimmedPubKey;
+			governanceServerName += trimmedPubKey;
+		}
+
+		let govClient = {
+			"hostname" 		: governanceClientName,
+			"image"    		: "ledgeriumengineering/ledgeriumgovernance-client:v1.0",
+			"volumes"  		: ["./logs:/logs"],
+			"environment"	: [],
+			"depends_on" 	: [governanceServerName],
+			"entrypoint"    : [ "/bin/sh","-c"],
+			"networks"      : {
+
+			},
+			"restart"	 : "always"
+		}
+
+		if(readparams.distributed) {
+			govClient.ports = [serviceConfig["governanceappclient"]["port-exp"]+":"+serviceConfig["governanceappclient"]["port-int"]]
+		} else {
+			govClient.ports = [(serviceConfig["governanceappclient"]["port-exp"]+i)+":"+serviceConfig["governanceappclient"]["port-int"]]
+		}
+		//React App Base URl
+		if(readparams.network == "flinders") {
+			reactAppBaseUrl = `https://${domainNames[i]}/governancesvc`;
+		} else if (readparams.network == "toorak") {
+			reactAppBaseUrl = "http://localhost/governancesvc";
+		}
+		govClient.environment.push(`REACT_APP_BASE_URL=${reactAppBaseUrl}`);
+
+		const ip = serviceConfig["governanceappclient"].startIp;
+		govClient.networks[network_name] = { "ipv4_address":ip };
+		return govClient;
 	},
 	"docusaurus" : () => {
 		var doc = {
