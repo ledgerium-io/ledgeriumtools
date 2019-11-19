@@ -1064,7 +1064,6 @@ const services = {
 			"volumes"  		: ["./logs:/logs"],
 			"environment"	: [],
 			"depends_on" 	: [governanceServerName],
-			"entrypoint"    : [ "/bin/sh","-c"],
 			"networks"      : {
 
 			},
