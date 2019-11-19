@@ -7,7 +7,7 @@ const gethCom   = `geth --rpc --rpcaddr '0.0.0.0' --rpccorsdomain '*' \
 --txpool.accountqueue 512 --txpool.globalqueue 8192 \
 --ws --wsorigins '*' --wsapi 'db,eth,net,web3,personal,admin,debug,txpool' \
 --wsaddr '0.0.0.0' --networkid ${readparams.networkId} --targetgaslimit 9007199254740000 \
---debug --metrics --syncmode 'full' --mine --verbosity 6 \
+--debug --metrics --syncmode 'full' --mine --vmodule eth/*=5,consensus=6,core=6,ethstats=3,rpc=6,node=6 \
 --minerthreads 1`;
 
 const tesseraFlag = true;
@@ -326,6 +326,18 @@ const serviceConfig = {
 		"port-int": 3003,
 		"startIp" : base_ip.slice(0, base_ip.length-1)+"150",
 		'deploy': deployConfig(500,128)
+	},
+	"governanceappclient": {
+		"port-exp": 3545,
+		"port-int": 80,
+		"startIp" : base_ip.slice(0, base_ip.length-1)+"40",
+		'deploy': deployConfig(500,128)
+	},
+	"governanceappserver": {
+		"port-exp": 3535,
+		"port-int": 3535,
+		"startIp" : base_ip.slice(0, base_ip.length-1)+"20",
+		'deploy': deployConfig(500,128)
 	}
 };
 
@@ -337,7 +349,7 @@ const services = {
 	"blockexplorerclient": ()=> {
 		var blockclient = {
 			"hostname"		: "blockexplorerclient",
-			"image"     	: "blengineering.azurecr.io/blengineering/blockexplorerclient:v1.1",
+			"image"     	: "ledgeriumengineering/blockexplorerclient:v1.0",
 			"ports"     	: ["2000:80"],
 			"volumes" 		: ["./logs:/logs"],
 			"depends_on"	: ["blockexplorerserver"],
@@ -372,7 +384,7 @@ const services = {
 
 		var blockserver = {
 			"hostname"	: "blockexplorerserver",
-			"image"     : "blengineering.azurecr.io/blengineering/blockexplorerserver:v1.1",
+			"image"     : "ledgeriumengineering/blockexplorerserver:v1.0",
 			"ports"     : ["2002:2002"],
 			"volumes" 	: ["./logs:/logs", "./" + validatorName +':/eth'],
 			"environment": ["SERVER_PORT=2002", "SYNC_REQUESTS=100", "API_LIMIT_BLOCKS=100", "API_LIMIT_TRANSACTIONS=100"],
@@ -388,6 +400,7 @@ const services = {
 		blockserver.environment.push("MONGO_PASSWORD="+"sa");
 		blockserver.environment.push("WEB3_HTTP=http://"+gateway+":"+serviceConfig.validator.rpcPort);
 		blockserver.environment.push("WEB3_WS=ws://"+gateway+":"+serviceConfig.validator.wsPort);
+		blockserver.environment.push("NODESTATS_URL=wss://"+serviceConfig["ledgeriumstats"].ip+"/primus");
 		var startEntryPoint = "";
 		startEntryPoint+="set -u\n";
 		startEntryPoint+="set -e\n";
@@ -969,9 +982,121 @@ const services = {
 		}else{
 			gov.volumes.push("./"+tesseraName+":/priv")
 		}
+		
 		gov.networks[network_name] = { "ipv4_address":ip };
 		gov.deploy = serviceConfig['governance-app'].deploy;
 		return gov;
+	},
+	"governanceappserver": (i,test)=>{
+		var validatorName = "validator-", tesseraName = "tessera-", governanceServerName = "governance-server-";
+		let trimmedPubKey = basicConfig.publicKeys[i].slice(0,5);
+
+		if(readparams.modeFlag == "full" && !readparams.distributed){
+			validatorName += readparams.nodeName + i;
+			tesseraName += readparams.nodeName + i;
+			governanceServerName += readparams.nodeName + i;
+		}else {
+			validatorName = validatorNames[i] + '-' + trimmedPubKey;
+			tesseraName += trimmedPubKey;
+			governanceServerName += trimmedPubKey;
+		}
+
+		let govServer = {
+			"hostname" 		: governanceServerName,
+			"image"    		: "ledgeriumengineering/ledgeriumgovernance-server:v1.0",
+			"volumes"  		: ["./logs:/logs","./" + validatorName +':/eth',"./tmp:/tmp", "./"+ tesseraName + ':/priv'],
+			"environment"	: [],
+			"depends_on" 	: [validatorName],
+			"entrypoint"    : [ "/bin/sh","-c"],
+			"networks"      : {
+
+			},
+			"restart"	 : "always",
+			"deploy" : {
+				"resources" : {
+					"limits" : {
+						"memory" : "500M"
+					},
+					"reservations" : {
+						"memory" : "128M"
+					}
+				}
+			}
+		}
+
+		if(readparams.distributed) {
+			govServer.ports = [serviceConfig["governanceappserver"]["port-exp"]+":"+serviceConfig["governanceappserver"]["port-int"]]
+		} else {
+			govServer.ports = [(serviceConfig["governanceappserver"]["port-exp"]+i)+":"+serviceConfig["governanceappserver"]["port-int"]]
+		}
+
+		var string = "set -u\nset -e\n";
+		string+="mkdir -p /logs/governanceapplogs\n";
+		string+="DATE=`date '+%Y-%m-%d_%H-%M-%S'`\n";
+		string+="while [ ! -e /eth/geth.ipc ];do\n";
+		string+="sleep 1\n";
+		string+="echo \"Waiting for validator to be ready...\"\n";
+		string+="done\n";
+		string+="cd /ledgerium/governanceapp/governanceapp\n";
+		string+= "node service.js";
+		string+= " >/logs/governanceapplogs/"+ governanceServerName + "_log_$${DATE}.txt";
+		govServer.entrypoint.push(string);
+
+		let validatorUrl = `http://${gateway}:${serviceConfig.validator.rpcPort+i}`;
+		govServer.environment.push(`SERVER_PORT=${serviceConfig["governanceappserver"]["port-exp"]}`);
+		govServer.environment.push(`WEB3_HTTP=${validatorUrl}`);
+
+		const startIp = serviceConfig["governanceappserver"].startIp.split(".");
+		const ip = startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3]) + i);
+		govServer.networks[network_name] = { "ipv4_address":ip };
+		return govServer;
+	},
+	"governanceappclient": (i,test)=>{
+		var governanceClientName = "governance-client-", governanceServerName = "governance-server-";
+		let trimmedPubKey = basicConfig.publicKeys[i].slice(0,5);
+		let reactAppBaseUrl = '';
+
+		if(readparams.modeFlag == "full" && !readparams.distributed){
+			governanceClientName += readparams.nodeName + i;
+			governanceServerName += readparams.nodeName + i;
+		}else {
+			governanceClientName += trimmedPubKey;
+			governanceServerName += trimmedPubKey;
+		}
+
+		let govClient = {
+			"hostname" 		: governanceClientName,
+			"image"    		: "ledgeriumengineering/ledgeriumgovernance-client:v1.0",
+			"volumes"  		: ["./logs:/logs"],
+			"environment"	: [],
+			"depends_on" 	: [governanceServerName],
+			"networks"      : {
+
+			},
+			"restart"	 : "always"
+		}
+
+		if(readparams.distributed) {
+			govClient.ports = [serviceConfig["governanceappclient"]["port-exp"]+":"+serviceConfig["governanceappclient"]["port-int"]]
+		} else {
+			govClient.ports = [(serviceConfig["governanceappclient"]["port-exp"]+i)+":"+serviceConfig["governanceappclient"]["port-int"]]
+		}
+		
+		let govServerPort;
+		if(readparams.distributed) {
+			govServerPort = serviceConfig["governanceappserver"]["port-exp"];
+		} else {
+			govServerPort = serviceConfig["governanceappserver"]["port-exp"]+i;
+		}
+		
+		//React App Base URl
+		reactAppBaseUrl = `http://${currentIp}:${govServerPort}`;
+		govClient.environment.push(`REACT_APP_BASE_URL=${reactAppBaseUrl}`);
+
+		const startIp = serviceConfig["governanceappclient"].startIp.split(".");
+		const ip = startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3]) + i);
+		govClient.networks[network_name] = { "ipv4_address":ip };
+		return govClient;
 	},
 	"docusaurus" : () => {
 		var doc = {
@@ -1047,6 +1172,7 @@ const services = {
 			"image": "mongo:3.4.10",
 			"container_name": "blk-free-mongodb",
 			"ports": ["27017:27017"],
+			"volumes": ["./mongo:/data/db:rw"],
 			"entrypoint": "mongod --smallfiles --logpath=/dev/null --bind_ip '0.0.0.0'",
 			"networks" : {}
 		}

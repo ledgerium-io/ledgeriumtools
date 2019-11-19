@@ -1,5 +1,6 @@
 const readlineSync = require('readline-sync');
 const fs 		   = require('fs');
+const os		   = require('os');
 const readparams = require('./readparams');
 const execSync = require('child_process').execSync;
 
@@ -48,7 +49,7 @@ for (var i = 0; i < numberOfNodes; i++) {
 	
 	/** IP Addresses for distributed setup */
 	if (readparams.modeFlag === "blockproducer") {
-		console.log(`Your public IP address is ${currentIp}, if you want to change, provide it else ignore and hit Enter.`)
+		console.log(`Your host machine public IP address ${currentIp}. If you want to change, provide it else ignore and hit enter.`)
 		let ip = readlineSync.question('Enter the IP address : ', {
 			hideEchoBack: false
 		});
@@ -62,7 +63,7 @@ for (var i = 0; i < numberOfNodes; i++) {
 			process.exit(1);
 		}
 		
-		console.log("If you have the domain name ready, provide it else ignore and hit Enter.")
+		console.log("If you have the domain name ready, provide it else ignore and hit enter.")
 		let domainName = readlineSync.question('Enter domain name : ', {
 			hideEchoBack : false
 		});
@@ -71,18 +72,24 @@ for (var i = 0; i < numberOfNodes; i++) {
 			domainName = ip;
 		}
 
+		let hostname = os.hostname();
+		console.log(`Your hostname is ${hostname} which will be used as validator moniker. If you want to change, provide it else ignore and hit enter.`)
 		let validatorName = readlineSync.question('Enter validator name : ', {
 			hideEchoBack : false
 		});
+
+		if(validatorName == "") {
+			validatorName = hostname;
+		}
 
 		ipAddress.push(ip);
 		validatorNames.push(validatorName);
 		domainNames.push(domainName);
 		
-		menmonic = readlineSync.question('Enter mnemonic : ', {
+		menmonic = readlineSync.question('Enter mnemonic (Refer docs to know more about mnemonics): ', {
 			hideEchoBack: true
 		});
-		password = readlineSync.question('Enter password : ', {
+		password = readlineSync.question('Enter password (Refer docs to know more about password): ', {
 			hideEchoBack: true
 		});
 	} else if(readparams.modeFlag === "full" && readparams.distributed) {
@@ -95,7 +102,7 @@ for (var i = 0; i < numberOfNodes; i++) {
 			process.exit(1);
 		}
 		
-		console.log("If you have the domain name ready, provide it else ignore and hit Enter.")
+		console.log("If you have the domain name ready, provide it else ignore and hit enter.")
 		let domainName = readlineSync.question('Enter domain name : ', {
 			hideEchoBack : false
 		});

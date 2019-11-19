@@ -34,6 +34,8 @@ if(readparams.modeFlag == "full") {
 			dockerComposeSplit.volumes = {};
 			let trimmedPubKey = basicConfig.publicKeys[i].slice(0,5);
 			let validatorName = validatorNames[i] + '-' + trimmedPubKey;
+			let governanceServerName = 'governance-server-' + trimmedPubKey;
+			let governanceClientName = 'governance-client-' + trimmedPubKey;
 			
 			dockerCompose.services[validatorName] = dockerTemplate.services.validator(i);
 			dockerComposeSplit.services[validatorName] = dockerTemplate.services.validator(i);
@@ -45,21 +47,24 @@ if(readparams.modeFlag == "full") {
 				dockerCompose.services["tessera-"+trimmedPubKey] = dockerTemplate.services.tessera(i);		
 				dockerComposeSplit.services["tessera-"+trimmedPubKey] = dockerTemplate.services.tessera(i);		
 			}
-			dockerCompose.services["governance-ui-"+trimmedPubKey] = dockerTemplate.services.governanceapp(i);
-			dockerComposeSplit.services["governance-ui-"+trimmedPubKey] = dockerTemplate.services.governanceapp(i);
+			// dockerCompose.services["governance-ui-"+trimmedPubKey] = dockerTemplate.services.governanceapp(i);
+			// dockerComposeSplit.services["governance-ui-"+trimmedPubKey] = dockerTemplate.services.governanceapp(i);
+			dockerCompose.services[governanceServerName] = dockerTemplate.services.governanceappserver(i);
+			dockerCompose.services[governanceClientName] = dockerTemplate.services.governanceappclient(i);
+			dockerComposeSplit.services[governanceServerName] = dockerTemplate.services.governanceappserver(i);
+			dockerComposeSplit.services[governanceClientName] = dockerTemplate.services.governanceappclient(i);
 
 			//Add ledgeriumstats,blockexplorerclient,blockexplorerserver to first yml file
 			if(i == 0) {
 				dockerComposeSplit.services["ledgeriumstats"] = dockerTemplate.services['ledgeriumstats']();
 				dockerComposeSplit.services["redis"] = dockerTemplate.services['redis']();
 				dockerComposeSplit.services["ledgeriumfaucet"] = dockerTemplate.services['ledgeriumfaucet']();
-				if(readparams.env === "testnet") {
+				//if(readparams.env === "testnet") {
 					dockerComposeSplit.services["mongodb"] = dockerTemplate.services['mongodb']();
 					dockerComposeSplit.services["blockexplorerclient"] = dockerTemplate.services['blockexplorerclient']();
 					dockerComposeSplit.services["blockexplorerserver"] = dockerTemplate.services['blockexplorerserver']();
-				}
+				//}
 			}
-
 			volumes = dockerCompose.services[validatorName].volumes;
 			YMLFileSplit = "./output/fullnode/docker-compose_" + i +".yml";
 
@@ -77,8 +82,6 @@ if(readparams.modeFlag == "full") {
 			}));
 		
 		} else {
-			// dockerComposeSplit.services["blockexplorerclient"] = dockerTemplate.services['blockexplorerclient']();
-			// dockerComposeSplit.services["blockexplorerserver"] = dockerTemplate.services['blockexplorerserver']();
 			// dockerCompose.services["ledgeriumstats"] = dockerTemplate.services['ledgeriumstats']();
 			// dockerCompose["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
 
@@ -92,17 +95,19 @@ if(readparams.modeFlag == "full") {
 				dockerCompose.services["tessera-"+readparams.nodeName + i] = dockerTemplate.services.tessera(i);		
 				//dockerComposeSplit.services["tessera-"+readparams.nodeName + i] = dockerTemplate.services.tessera(i);		
 			}
-			dockerCompose.services["governance-ui-"+readparams.nodeName + i] = dockerTemplate.services.governanceapp(i);
+			// dockerCompose.services["governance-ui-"+readparams.nodeName + i] = dockerTemplate.services.governanceapp(i);
+			dockerCompose.services["governance-server-" + readparams.nodeName + i] = dockerTemplate.services.governanceappserver(i);
+			dockerCompose.services["governance-client-" + readparams.nodeName + i] = dockerTemplate.services.governanceappclient(i);
 			//dockerComposeSplit.services["governance-ui-"+readparams.nodeName + i] = dockerTemplate.services.governanceapp(i);
 	
 			if(i == numberOfNodes -1) {
 				dockerCompose.services["redis"] = dockerTemplate.services['redis']();
 				dockerCompose.services["ledgeriumfaucet"] = dockerTemplate.services['ledgeriumfaucet']();
-				if(readparams.env === "testnet"){
+				//if(readparams.env === "testnet"){
 					dockerCompose.services["mongodb"] = dockerTemplate.services['mongodb']();
 					dockerCompose.services["blockexplorerclient"] = dockerTemplate.services['blockexplorerclient']();
 					dockerCompose.services["blockexplorerserver"] = dockerTemplate.services['blockexplorerserver']();
-				}
+				//}
 			}
 
 			volumes = dockerCompose.services["validator-"+readparams.nodeName + i].volumes;
@@ -131,39 +136,41 @@ if(readparams.modeFlag == "full") {
 			}
 		}	
 	}
-	const YMLFileFull = "./output/fullnode/docker-compose.yml";
-	//Final output to the fullnode yml
-	fs.writeFileSync(YMLFileFull, yaml.dump(dockerComposefull, {
-		styles: {
-			'!!null' : 'canonical'
-		}
-	}));
+	// const YMLFileFull = "./output/fullnode/docker-compose.yml";
+	// //Final output to the fullnode yml
+	// fs.writeFileSync(YMLFileFull, yaml.dump(dockerComposefull, {
+	// 	styles: {
+	// 		'!!null' : 'canonical'
+	// 	}
+	// }));
 
-	var replace = "sed -i -e 's/~//g' " + YMLFileFull;
-	exec(replace, function(error, stdout, stderr) {
-		if (error) {
-			console.log(error.code);
-		}
-	});
+	// var replace = "sed -i -e 's/~//g' " + YMLFileFull;
+	// exec(replace, function(error, stdout, stderr) {
+	// 	if (error) {
+	// 		console.log(error.code);
+	// 	}
+	// });
 
-	sleep(1000, function() {
-		// executes after one second, and blocks the thread
-		//Remove the -e file on MAC platform
-		if (process.platform == "darwin") {
-				if(fs.existsSync(YMLFileFull+"-e"))
-					fs.unlinkSync(YMLFileFull+"-e");
-		}
-	});
+	// sleep(1000, function() {
+	// 	// executes after one second, and blocks the thread
+	// 	//Remove the -e file on MAC platform
+	// 	if (process.platform == "darwin") {
+	// 			if(fs.existsSync(YMLFileFull+"-e"))
+	// 				fs.unlinkSync(YMLFileFull+"-e");
+	// 	}
+	// });
 }
 else if(readparams.modeFlag == "blockproducer") {
 	for (var i = 0; i < numberOfNodes - readparams.faultynode ; i++) {
 		
 		let trimmedPubKey = basicConfig.publicKeys[i].slice(0,5);
-		let validatorName, tesseraName, governanceName;
+		let validatorName, tesseraName, governanceName, governanceClientName, governanceServerName;
 		
 		validatorName = validatorNames[i] + '-' + trimmedPubKey;
 		tesseraName = 'tessera-' + trimmedPubKey;
-		governanceName = 'governance-ui-' + trimmedPubKey
+		governanceName = 'governance-ui-' + trimmedPubKey;
+		governanceServerName = 'governance-server-' + trimmedPubKey;
+		governanceClientName = 'governance-client-' + trimmedPubKey;
 
 		dockerCompose.services[validatorName] = dockerTemplate.services.validator(i);
 		if(!type){
@@ -171,7 +178,9 @@ else if(readparams.modeFlag == "blockproducer") {
 		}else{
 			dockerCompose.services[tesseraName] = dockerTemplate.services.tessera(i);		
 		}
-		dockerCompose.services[governanceName] = dockerTemplate.services.governanceapp(i);
+		// dockerCompose.services[governanceName] = dockerTemplate.services.governanceapp(i);
+		dockerCompose.services[governanceServerName] = dockerTemplate.services.governanceappserver(i);
+		dockerCompose.services[governanceClientName] = dockerTemplate.services.governanceappclient(i);
 		let volumes = dockerCompose.services[validatorName].volumes;
 		for (var j = volumes.length - 1; j >= 0; j--) {
 			if(volumes[j].slice(0,1) != ".")

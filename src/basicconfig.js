@@ -23,8 +23,17 @@ const seal   = mnemonic.istanbul.seal || "0x000000000000000000000000000000000000
 
 const outputDir = path.join(__dirname, "/../output/");
 const tempDir = path.join(__dirname, "/../output/tmp/");
+const mongoDir = path.join(__dirname, "/../output/mongo/");
 const fullnodeDir = path.join(__dirname, "/../output/fullnode/");
 const fullnodeTempDir = path.join(__dirname, "/../output/fullnode/tmp/");
+
+if (!fs.existsSync(outputDir)) {
+	fs.mkdirSync(outputDir);
+}
+
+if (!fs.existsSync(tempDir)) {
+	fs.mkdirSync(tempDir);
+}
 
 var deleteFolderRecursive = function(path) {
 	if (fs.existsSync(path)) {
@@ -40,20 +49,33 @@ var deleteFolderRecursive = function(path) {
 	}
 };
 
-if(readparams.modeFlag === "blockproducer") {
-	if (fs.existsSync(fullnodeTempDir, true)) {
-		deleteFolderRecursive(fullnodeTempDir);
-	}	
-	if (fs.existsSync(fullnodeDir)) {
-		deleteFolderRecursive(fullnodeDir);
-	}
-} else {
+//Delete fullnode and fullnode/tmp folders
+if (fs.existsSync(fullnodeTempDir, true)) {
+	deleteFolderRecursive(fullnodeTempDir);
+}	
+if (fs.existsSync(fullnodeDir)) {
+	deleteFolderRecursive(fullnodeDir);
+}
+
+//Create fullnode and fullnode/tmp folders only for full flinders setup
+if(readparams.modeFlag === "full" && readparams.distributed === true) {
 	if (!fs.existsSync(fullnodeDir)) {
 		fs.mkdirSync(fullnodeDir);
 	}
 	
 	if (!fs.existsSync(fullnodeTempDir)) {
 		fs.mkdirSync(fullnodeTempDir);
+	}
+}
+
+//Create mongoDir folder for full setup and only for first host where blockexplorer will be setup
+if(readparams.modeFlag === "full") {
+	if (fs.existsSync(mongoDir, true)) {
+		deleteFolderRecursive(mongoDir);
+	}
+
+	if (!fs.existsSync(mongoDir)) {
+		fs.mkdirSync(mongoDir);
 	}
 }
 
@@ -106,7 +128,8 @@ for (var i = 0; i < privateKeys.length; i++) {
 		if(i === 0) {
 			fs.writeFileSync(outputDir + ".env", envParams);
 			fs.writeFileSync(tempDir+ "privatekeys.json", JSON.stringify(privateKeyJSON,null, 2))
-		} else {
+		} 
+		else {
 			fs.writeFileSync(fullnodeDir + ".env" +i, envParams);
 			fs.writeFileSync(fullnodeTempDir+ "privatekeys" + i + ".json", JSON.stringify(privateKeyJSON,null, 2))
 		}
@@ -140,9 +163,10 @@ for (var i = 0; i < privateKeys.length; i++) {
 			envParams += "PASSWORD" + i + "=" + input.passwords[i] + "\n";
 		}
 
-		if(i === privateKeys.length-1)
-		fs.writeFileSync(outputDir + ".env", envParams);
-		fs.writeFileSync(tempDir+ "privatekeys.json", JSON.stringify(privateKeyJSON,null, 2))
+		if(i === privateKeys.length-1){
+			fs.writeFileSync(tempDir+ "privatekeys.json", JSON.stringify(privateKeyJSON,null, 2))
+			fs.writeFileSync(outputDir + ".env", envParams);
+		}
 	}
 
 	publicKeys.push(pubk);
@@ -198,33 +222,33 @@ const genesisFile = "genesis.json";
 const privatekeysFile = "privatekeys.json";
 const staticFile = "static-nodes.json";
 const permissionedFile = "permissioned-nodes.json";
-// const envFile = __dirname + "/../output/.env"; //.env file path
 
 if(fs.existsSync(tempDir + genesisFile))
 	fs.unlinkSync(tempDir + genesisFile);
-if(fs.existsSync(tempDir + privatekeysFile))
-	fs.unlinkSync(tempDir + privatekeysFile);
+// if(fs.existsSync(tempDir + privatekeysFile))
+// 	fs.unlinkSync(tempDir + privatekeysFile);
 if(fs.existsSync(tempDir + staticFile))
 	fs.unlinkSync(tempDir + staticFile);
 if(fs.existsSync(tempDir + permissionedFile))
 	fs.unlinkSync(tempDir + permissionedFile);
-// if(fs.existsSync(envFile))
-// 	fs.unlinkSync(envFile);
 if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir);
 }
+// if (!fs.existsSync(mongoDir)) {
+// 	fs.mkdirSync(mongoDir);
+// }
 
 //Create env file for both full/blockproducer mode
 // fs.writeFileSync(envFile, envParams); //Write private keys and passwords to .env file
 
 if(readparams.modeFlag == "full") {
 	const nodeDetailsFile = "nodesdetails.json";
-	if (!fs.existsSync(fullnodeDir)) {
-		fs.mkdirSync(fullnodeDir);
-	}
-	const envFilefullnode = __dirname + "/../output/fullnode/.env"; //.env file path
-	if(fs.existsSync(envFilefullnode))
-		fs.unlinkSync(envFilefullnode);
+	// if (!fs.existsSync(fullnodeDir)) {
+	// 	fs.mkdirSync(fullnodeDir);
+	// }
+	// const envFilefullnode = __dirname + "/../output/fullnode/.env"; //.env file path
+	// if(fs.existsSync(envFilefullnode))
+	// 	fs.unlinkSync(envFilefullnode);
 	//Create env file for full node, will be used by faucet
 	// fs.writeFileSync(envFilefullnode, envParams); //Write private keys and passwords to .env file
 	
