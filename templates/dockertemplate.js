@@ -400,7 +400,7 @@ const services = {
 		blockserver.environment.push("MONGO_PASSWORD="+"sa");
 		blockserver.environment.push("WEB3_HTTP=http://"+gateway+":"+serviceConfig.validator.rpcPort);
 		blockserver.environment.push("WEB3_WS=ws://"+gateway+":"+serviceConfig.validator.wsPort);
-		blockserver.environment.push("NODESTATS_URL=wss://"+statsURL+"/primus");
+		blockserver.environment.push("NODESTATS_URL=wss://"+serviceConfig["ledgeriumstats"].ip+"/primus");
 		var startEntryPoint = "";
 		startEntryPoint+="set -u\n";
 		startEntryPoint+="set -e\n";
@@ -528,7 +528,7 @@ const services = {
 	// 	return quorum;
 	// },
 	"validator": (i,test)=> {
-		var validatorName = "validator-", constellationName = "constellation-", tesseraName = "tessera-", governanceName = "governance-ui-";
+		var validatorName = "validator-", constellationName = "constellation-", tesseraName = "tessera-";
 		let trimmedPubKey = basicConfig.publicKeys[i].slice(0,5);
 		let PRIVATEKEY = `{PRIVATEKEY}`;
 		let PASSWORD = `{PASSWORD}`;

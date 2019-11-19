@@ -59,11 +59,11 @@ if(readparams.modeFlag == "full") {
 				dockerComposeSplit.services["ledgeriumstats"] = dockerTemplate.services['ledgeriumstats']();
 				dockerComposeSplit.services["redis"] = dockerTemplate.services['redis']();
 				dockerComposeSplit.services["ledgeriumfaucet"] = dockerTemplate.services['ledgeriumfaucet']();
-				if(readparams.env === "testnet") {
+				//if(readparams.env === "testnet") {
 					dockerComposeSplit.services["mongodb"] = dockerTemplate.services['mongodb']();
 					dockerComposeSplit.services["blockexplorerclient"] = dockerTemplate.services['blockexplorerclient']();
 					dockerComposeSplit.services["blockexplorerserver"] = dockerTemplate.services['blockexplorerserver']();
-				}
+				//}
 			}
 			volumes = dockerCompose.services[validatorName].volumes;
 			YMLFileSplit = "./output/fullnode/docker-compose_" + i +".yml";
@@ -82,8 +82,6 @@ if(readparams.modeFlag == "full") {
 			}));
 		
 		} else {
-			// dockerComposeSplit.services["blockexplorerclient"] = dockerTemplate.services['blockexplorerclient']();
-			// dockerComposeSplit.services["blockexplorerserver"] = dockerTemplate.services['blockexplorerserver']();
 			// dockerCompose.services["ledgeriumstats"] = dockerTemplate.services['ledgeriumstats']();
 			// dockerCompose["services"]["quorum-maker"] = dockerTemplate.services["quorum-maker"]();
 
@@ -105,11 +103,11 @@ if(readparams.modeFlag == "full") {
 			if(i == numberOfNodes -1) {
 				dockerCompose.services["redis"] = dockerTemplate.services['redis']();
 				dockerCompose.services["ledgeriumfaucet"] = dockerTemplate.services['ledgeriumfaucet']();
-				if(readparams.env === "testnet"){
+				//if(readparams.env === "testnet"){
 					dockerCompose.services["mongodb"] = dockerTemplate.services['mongodb']();
 					dockerCompose.services["blockexplorerclient"] = dockerTemplate.services['blockexplorerclient']();
 					dockerCompose.services["blockexplorerserver"] = dockerTemplate.services['blockexplorerserver']();
-				}
+				//}
 			}
 
 			volumes = dockerCompose.services["validator-"+readparams.nodeName + i].volumes;
