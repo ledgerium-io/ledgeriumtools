@@ -330,13 +330,13 @@ const serviceConfig = {
 	"governanceappclient": {
 		"port-exp": 3545,
 		"port-int": 80,
-		"startIp" : base_ip.slice(0, base_ip.length-1)+"15",
+		"startIp" : base_ip.slice(0, base_ip.length-1)+"40",
 		'deploy': deployConfig(500,128)
 	},
 	"governanceappserver": {
 		"port-exp": 3535,
 		"port-int": 3535,
-		"startIp" : base_ip.slice(0, base_ip.length-1)+"14",
+		"startIp" : base_ip.slice(0, base_ip.length-1)+"20",
 		'deploy': deployConfig(500,128)
 	}
 };
@@ -981,6 +981,7 @@ const services = {
 		}else{
 			gov.volumes.push("./"+tesseraName+":/priv")
 		}
+		
 		gov.networks[network_name] = { "ipv4_address":ip };
 		gov.deploy = serviceConfig['governance-app'].deploy;
 		return gov;
@@ -1039,7 +1040,8 @@ const services = {
 		string+= "node service.js";
 		string+= " >/logs/governanceapplogs/"+ governanceServerName + "_log_$${DATE}.txt";
 		govServer.entrypoint.push(string);
-		const ip = serviceConfig["governanceappserver"].startIp;
+		const startIp = serviceConfig["governanceappserver"].startIp.split(".");
+		const ip = startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3]) + i);
 		govServer.networks[network_name] = { "ipv4_address":ip };
 		return govServer;
 	},
@@ -1080,10 +1082,11 @@ const services = {
 		// } else if (readparams.network == "toorak") {
 		// 	reactAppBaseUrl = "http://localhost/governancesvc";
 		// }
-		reactAppBaseUrl = `http://localhost/${serviceConfig["governanceappserver"]["port-exp"]}`;
+		reactAppBaseUrl = `http://localhost:${serviceConfig["governanceappserver"]["port-exp"]}`;
 		govClient.environment.push(`REACT_APP_BASE_URL=${reactAppBaseUrl}`);
 
-		const ip = serviceConfig["governanceappclient"].startIp;
+		const startIp = serviceConfig["governanceappclient"].startIp.split(".");
+		const ip = startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3]) + i);
 		govClient.networks[network_name] = { "ipv4_address":ip };
 		return govClient;
 	},
