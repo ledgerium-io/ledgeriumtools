@@ -1075,11 +1075,12 @@ const services = {
 			govClient.ports = [(serviceConfig["governanceappclient"]["port-exp"]+i)+":"+serviceConfig["governanceappclient"]["port-int"]]
 		}
 		//React App Base URl
-		if(readparams.network == "flinders") {
-			reactAppBaseUrl = `https://${domainNames[i]}/governancesvc`;
-		} else if (readparams.network == "toorak") {
-			reactAppBaseUrl = "http://localhost/governancesvc";
-		}
+		// if(readparams.network == "flinders") {
+		// 	reactAppBaseUrl = `https://${domainNames[i]}/governancesvc`;
+		// } else if (readparams.network == "toorak") {
+		// 	reactAppBaseUrl = "http://localhost/governancesvc";
+		// }
+		reactAppBaseUrl = "http://localhost/governancesvc";
 		govClient.environment.push(`REACT_APP_BASE_URL=${reactAppBaseUrl}`);
 
 		const ip = serviceConfig["governanceappclient"].startIp;
@@ -1160,6 +1161,7 @@ const services = {
 			"image": "mongo:3.4.10",
 			"container_name": "blk-free-mongodb",
 			"ports": ["27017:27017"],
+			"volumes": ["./mongo:/data/db:rw"],
 			"entrypoint": "mongod --smallfiles --logpath=/dev/null --bind_ip '0.0.0.0'",
 			"networks" : {}
 		}
