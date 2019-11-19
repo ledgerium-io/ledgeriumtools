@@ -528,7 +528,7 @@ const services = {
 	// 	return quorum;
 	// },
 	"validator": (i,test)=> {
-		var validatorName = "validator-", constellationName = "constellation-", tesseraName = "tessera-";
+		var validatorName = "validator-", constellationName = "constellation-", tesseraName = "tessera-", governanceName = "governance-ui-";
 		let trimmedPubKey = basicConfig.publicKeys[i].slice(0,5);
 		let PRIVATEKEY = `{PRIVATEKEY}`;
 		let PASSWORD = `{PASSWORD}`;
