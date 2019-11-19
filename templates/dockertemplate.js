@@ -1094,7 +1094,7 @@ const services = {
 			govServerPort = serviceConfig["governanceappserver"]["port-exp"]+i;
 		}
 		
-		reactAppBaseUrl = `http://localhost:${govServerPort}`;
+		reactAppBaseUrl = `http://${readparams.externalIPAddress}:${govServerPort}`;
 		govClient.environment.push(`REACT_APP_BASE_URL=${reactAppBaseUrl}`);
 
 		const startIp = serviceConfig["governanceappclient"].startIp.split(".");
