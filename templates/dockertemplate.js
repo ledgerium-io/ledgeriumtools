@@ -1043,7 +1043,7 @@ const services = {
 		govServer.entrypoint.push(string);
 
 		let validatorUrl = `http://${gateway}:${serviceConfig.validator.rpcPort+i}`;
-		govServer.environment.push(`SERVER_PORT=${serviceConfig["governanceappserver"]["port-exp"]+i}`);
+		govServer.environment.push(`SERVER_PORT=${serviceConfig["governanceappserver"]["port-exp"]}`);
 		govServer.environment.push(`WEB3_HTTP=${validatorUrl}`);
 
 		const startIp = serviceConfig["governanceappserver"].startIp.split(".");
@@ -1081,12 +1081,7 @@ const services = {
 		} else {
 			govClient.ports = [(serviceConfig["governanceappclient"]["port-exp"]+i)+":"+serviceConfig["governanceappclient"]["port-int"]]
 		}
-		//React App Base URl
-		// if(readparams.network == "flinders") {
-		// 	reactAppBaseUrl = `https://${domainNames[i]}/governancesvc`;
-		// } else if (readparams.network == "toorak") {
-		// 	reactAppBaseUrl = "http://localhost/governancesvc";
-		// }
+		
 		let govServerPort;
 		if(readparams.distributed) {
 			govServerPort = serviceConfig["governanceappserver"]["port-exp"];
@@ -1094,6 +1089,7 @@ const services = {
 			govServerPort = serviceConfig["governanceappserver"]["port-exp"]+i;
 		}
 		
+		//React App Base URl
 		reactAppBaseUrl = `http://${readparams.externalIPAddress}:${govServerPort}`;
 		govClient.environment.push(`REACT_APP_BASE_URL=${reactAppBaseUrl}`);
 
