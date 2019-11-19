@@ -1082,7 +1082,14 @@ const services = {
 		// } else if (readparams.network == "toorak") {
 		// 	reactAppBaseUrl = "http://localhost/governancesvc";
 		// }
-		reactAppBaseUrl = `http://localhost:${serviceConfig["governanceappserver"]["port-exp"]}`;
+		let govServerPort;
+		if(readparams.distributed) {
+			govServerPort = serviceConfig["governanceappserver"]["port-exp"];
+		} else {
+			govServerPort = serviceConfig["governanceappserver"]["port-exp"]+i;
+		}
+		
+		reactAppBaseUrl = `http://localhost:${govServerPort}`;
 		govClient.environment.push(`REACT_APP_BASE_URL=${reactAppBaseUrl}`);
 
 		const startIp = serviceConfig["governanceappclient"].startIp.split(".");
