@@ -956,7 +956,7 @@ const services = {
 		// 	string+=" runsimplevalidator=addSimpleSetContractValidatorForAdmin,"+accountString;
 		// 	string+= "\n"
 		// }	
-		string+="cd /ledgerium/governanceapp/governanceapp\n";
+		string+="cd /ledgerium/governanceapp/governanceapp/app\n";
 		
 		//string+="node governanceUI.js "+vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i)+" "+(serviceConfig.validator.rpcPort+i)+"\n";
 		if(readparams.distributed) {
@@ -1035,7 +1035,7 @@ const services = {
 		string+="sleep 1\n";
 		string+="echo \"Waiting for validator to be ready...\"\n";
 		string+="done\n";
-		string+="cd /ledgerium/governanceapp/governanceapp/app\n";
+		string+="cd /ledgerium/governanceapp/governanceapp\n";
 		string+= "node service.js";
 		string+= " >/logs/governanceapplogs/"+ governanceServerName + "_log_$${DATE}.txt";
 		govServer.entrypoint.push(string);
