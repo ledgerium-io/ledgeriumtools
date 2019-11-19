@@ -400,6 +400,7 @@ const services = {
 		blockserver.environment.push("MONGO_PASSWORD="+"sa");
 		blockserver.environment.push("WEB3_HTTP=http://"+gateway+":"+serviceConfig.validator.rpcPort);
 		blockserver.environment.push("WEB3_WS=ws://"+gateway+":"+serviceConfig.validator.wsPort);
+		blockserver.environment.push("NODESTATS_URL=wss://"+statsURL+"/primus");
 		var startEntryPoint = "";
 		startEntryPoint+="set -u\n";
 		startEntryPoint+="set -e\n";
@@ -1004,7 +1005,7 @@ const services = {
 			"hostname" 		: governanceServerName,
 			"image"    		: "ledgeriumengineering/ledgeriumgovernance-server:v1.0",
 			"volumes"  		: ["./logs:/logs","./" + validatorName +':/eth',"./tmp:/tmp", "./"+ tesseraName + ':/priv'],
-			"environment"	: ["SERVER_PORT=3535","WEB3_HTTP=http://172.19.240.1:8545"],
+			"environment"	: [],
 			"depends_on" 	: [validatorName],
 			"entrypoint"    : [ "/bin/sh","-c"],
 			"networks"      : {
@@ -1040,6 +1041,11 @@ const services = {
 		string+= "node service.js";
 		string+= " >/logs/governanceapplogs/"+ governanceServerName + "_log_$${DATE}.txt";
 		govServer.entrypoint.push(string);
+
+		let validatorUrl = `http://${gateway}:${serviceConfig.validator.rpcPort+i}`;
+		govServer.environment.push(`SERVER_PORT=${serviceConfig["governanceappserver"]["port-exp"]+i}`);
+		govServer.environment.push(`WEB3_HTTP=${validatorUrl}`);
+
 		const startIp = serviceConfig["governanceappserver"].startIp.split(".");
 		const ip = startIp[0]+"."+startIp[1]+"."+startIp[2]+"."+(parseInt(startIp[3]) + i);
 		govServer.networks[network_name] = { "ipv4_address":ip };
