@@ -49,14 +49,15 @@ var deleteFolderRecursive = function(path) {
 	}
 };
 
-if(readparams.modeFlag === "blockproducer") {
-	if (fs.existsSync(fullnodeTempDir, true)) {
-		deleteFolderRecursive(fullnodeTempDir);
-	}	
-	if (fs.existsSync(fullnodeDir)) {
-		deleteFolderRecursive(fullnodeDir);
-	}
-} 
+//Delete fullnode and fullnode/tmp folders
+if (fs.existsSync(fullnodeTempDir, true)) {
+	deleteFolderRecursive(fullnodeTempDir);
+}	
+if (fs.existsSync(fullnodeDir)) {
+	deleteFolderRecursive(fullnodeDir);
+}
+
+//Create fullnode and fullnode/tmp folders only for full flinders setup
 if(readparams.modeFlag === "full" && readparams.distributed === true) {
 	if (!fs.existsSync(fullnodeDir)) {
 		fs.mkdirSync(fullnodeDir);
