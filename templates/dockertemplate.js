@@ -956,7 +956,7 @@ const services = {
 		// 	string+=" runsimplevalidator=addSimpleSetContractValidatorForAdmin,"+accountString;
 		// 	string+= "\n"
 		// }	
-		string+="cd /ledgerium/governanceapp/governanceapp/app\n";
+		string+="cd /ledgerium/governanceapp/governanceapp\n";
 		
 		//string+="node governanceUI.js "+vip[0]+"."+vip[1]+"."+vip[2]+"."+(parseInt(vip[3])+i)+" "+(serviceConfig.validator.rpcPort+i)+"\n";
 		if(readparams.distributed) {
@@ -1080,7 +1080,7 @@ const services = {
 		// } else if (readparams.network == "toorak") {
 		// 	reactAppBaseUrl = "http://localhost/governancesvc";
 		// }
-		reactAppBaseUrl = "http://localhost/governancesvc";
+		reactAppBaseUrl = `http://localhost/${serviceConfig["governanceappserver"]["port-exp"]}`;
 		govClient.environment.push(`REACT_APP_BASE_URL=${reactAppBaseUrl}`);
 
 		const ip = serviceConfig["governanceappclient"].startIp;
