@@ -7,7 +7,7 @@ const gethCom   = `geth --rpc --rpcaddr '0.0.0.0' --rpccorsdomain '*' \
 --txpool.accountqueue 512 --txpool.globalqueue 8192 \
 --ws --wsorigins '*' --wsapi 'db,eth,net,web3,personal,admin,debug,txpool' \
 --wsaddr '0.0.0.0' --networkid ${readparams.networkId} --targetgaslimit 9007199254740000 \
---debug --metrics --syncmode 'full' --mine --verbosity 6 \
+--debug --metrics --syncmode 'full' --mine --vmodule eth/*=5,consensus=6,core=6,ethstats=3,rpc=6,node=6 \
 --minerthreads 1`;
 
 const tesseraFlag = true;
