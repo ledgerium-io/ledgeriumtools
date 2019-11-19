@@ -23,6 +23,7 @@ const seal   = mnemonic.istanbul.seal || "0x000000000000000000000000000000000000
 
 const outputDir = path.join(__dirname, "/../output/");
 const tempDir = path.join(__dirname, "/../output/tmp/");
+const mongoDir = path.join(__dirname, "/../output/mongo/");
 const fullnodeDir = path.join(__dirname, "/../output/fullnode/");
 const fullnodeTempDir = path.join(__dirname, "/../output/fullnode/tmp/");
 
@@ -64,6 +65,17 @@ if(readparams.modeFlag === "full" && readparams.distributed === true) {
 	
 	if (!fs.existsSync(fullnodeTempDir)) {
 		fs.mkdirSync(fullnodeTempDir);
+	}
+}
+
+//Create mongoDir folder for full setup and only for first host where blockexplorer will be setup
+if(readparams.modeFlag === "full") {
+	if (fs.existsSync(mongoDir, true)) {
+		deleteFolderRecursive(mongoDir);
+	}
+
+	if (!fs.existsSync(mongoDir)) {
+		fs.mkdirSync(mongoDir);
 	}
 }
 
@@ -221,6 +233,9 @@ if(fs.existsSync(tempDir + permissionedFile))
 	fs.unlinkSync(tempDir + permissionedFile);
 if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir);
+}
+if (!fs.existsSync(mongoDir)) {
+	fs.mkdirSync(mongoDir);
 }
 
 //Create env file for both full/blockproducer mode
