@@ -49,7 +49,7 @@ for (var i = 0; i < numberOfNodes; i++) {
 	
 	/** IP Addresses for distributed setup */
 	if (readparams.modeFlag === "blockproducer") {
-		console.log(`Your public IP address is ${currentIp}, if you want to change, provide it else ignore and hit Enter.`)
+		console.log(`Your host machine public IP address ${currentIp}. If you want to change, provide it else ignore and hit enter.`)
 		let ip = readlineSync.question('Enter the IP address : ', {
 			hideEchoBack: false
 		});
@@ -63,7 +63,7 @@ for (var i = 0; i < numberOfNodes; i++) {
 			process.exit(1);
 		}
 		
-		console.log("If you have the domain name ready, provide it else ignore and hit Enter.")
+		console.log("If you have the domain name ready, provide it else ignore and hit enter.")
 		let domainName = readlineSync.question('Enter domain name : ', {
 			hideEchoBack : false
 		});
@@ -73,7 +73,7 @@ for (var i = 0; i < numberOfNodes; i++) {
 		}
 
 		let hostname = os.hostname();
-		console.log(`If you want to use hostname (${hostname}) as validator name, ignore and hit Enter. Else provide validator name`)
+		console.log(`Your hostname is ${hostname} which will be used as validator moniker. If you want to change, provide it else ignore and hit enter.`)
 		let validatorName = readlineSync.question('Enter validator name : ', {
 			hideEchoBack : false
 		});
@@ -102,7 +102,7 @@ for (var i = 0; i < numberOfNodes; i++) {
 			process.exit(1);
 		}
 		
-		console.log("If you have the domain name ready, provide it else ignore and hit Enter.")
+		console.log("If you have the domain name ready, provide it else ignore and hit enter.")
 		let domainName = readlineSync.question('Enter domain name : ', {
 			hideEchoBack : false
 		});

@@ -234,9 +234,9 @@ if(fs.existsSync(tempDir + permissionedFile))
 if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir);
 }
-if (!fs.existsSync(mongoDir)) {
-	fs.mkdirSync(mongoDir);
-}
+// if (!fs.existsSync(mongoDir)) {
+// 	fs.mkdirSync(mongoDir);
+// }
 
 //Create env file for both full/blockproducer mode
 // fs.writeFileSync(envFile, envParams); //Write private keys and passwords to .env file
