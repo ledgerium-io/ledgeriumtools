@@ -71,13 +71,16 @@ const networks = {
 
 const serviceConfig = {
 	"redis" : {
-		"ip" : base_ip.slice(0, base_ip.length-1)+"3"
+		"ip" : base_ip.slice(0, base_ip.length-1)+"3",
+		"deploy": deployConfig(500,128)
 	},
 	"ledgeriumfaucet" : {
-		"ip" : base_ip.slice(0, base_ip.length-1)+"4"
+		"ip" : base_ip.slice(0, base_ip.length-1)+"4",
+		"deploy": deployConfig(500,128)
 	},
 	"mongodb" : {
-		"ip" : base_ip.slice(0, base_ip.length-1)+"2"
+		"ip" : base_ip.slice(0, base_ip.length-1)+"2",
+		"deploy": deployConfig(500,128)
 	},
 	// "docusaurus" : {
 	// 	"ip" : base_ip.slice(0, base_ip.length-1)+"5"
@@ -1125,6 +1128,7 @@ const services = {
 			"volumes"  	: ["./logs:/logs", "./" + validatorName +':/eth'],
 			"depends_on" : [validatorName],
 			"ports" : ["5577:5577"],
+			"restart" : "always",
 			"entrypoint" : ["/bin/sh", "-c"],
 			"environment": ["GOOGLE_CAPTCHA_SECRET=6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe","REQUEST_LIMIT=3","REDIS_EXPIRE_SECONDS=86400"],
 			"networks" : {}
@@ -1153,6 +1157,7 @@ const services = {
 		var redis = {
 			"image": "redis:alpine",
 			"ports": ["6379:6379"],
+			"restart" : "always",
 			"networks" : {}
 		}
 		redis.networks[network_name] = {"ipv4_address": serviceConfig["redis"].ip};
@@ -1162,6 +1167,7 @@ const services = {
 		var doc = {
 			"image" : "ledgeriumengineering/ledgeriumdocs:v1.0",
 			"ports" : ["7000:8000"],
+			"restart" : "always",
 			"networks" : {}
 		};
 		doc.networks[network_name] = {"ipv4_address": serviceConfig["ledgeriumdocs"].ip};
@@ -1172,6 +1178,7 @@ const services = {
 			"image": "mongo:3.4.10",
 			"container_name": "blk-free-mongodb",
 			"ports": ["27017:27017"],
+			"restart" : "always",
 			"volumes": ["./mongo:/data/db:rw"],
 			"entrypoint": "mongod --smallfiles --logpath=/dev/null --bind_ip '0.0.0.0'",
 			"networks" : {}
