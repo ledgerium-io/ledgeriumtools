@@ -1176,7 +1176,6 @@ const services = {
 	"mongodb": () => {
 		var mongodb = {
 			"image": "mongo:3.4.10",
-			"container_name": "blk-free-mongodb",
 			"ports": ["27017:27017"],
 			"restart" : "always",
 			"volumes": ["./mongo:/data/db:rw"],
